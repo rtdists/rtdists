@@ -1,0 +1,4 @@
+
+useDynLib(rtdists, dfastdm_b, pfastdm_b, rfastdm)
+
+export(drd, prd, rrd)

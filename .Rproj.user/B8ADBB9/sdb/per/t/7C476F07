@@ -1,0 +1,16 @@
+{
+    "contents" : "\nuseDynLib(rtdists, dfastdm_b, pfastdm_b, rfastdm)\n\nexport(drd, prd, rrd)\n",
+    "created" : 1407838252066.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "360711893",
+    "id" : "7C476F07",
+    "lastKnownWriteTime" : 1407838619,
+    "path" : "/media/henrik/EA12019812016B41/Documents and Settings/Henrik/Desktop/work/rtdists/rtdists/NAMESPACE",
+    "project_path" : "NAMESPACE",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_namespace"
+}
