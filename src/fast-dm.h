@@ -35,12 +35,14 @@
 #endif
 
 
+// [MG] Assuming this now works in Win32/gcc
 /* windows compatibility hacks */
+/*
 #ifdef _WIN32
-/* provided in "win32erf.c" */
-extern  double  erf(double x);
+extern  double  erf(double x);   // provided in "win32erf.c" 
 #define snprintf _snprintf
-#endif /* _WIN32 */
+#endif // _WIN32 
+*/
 
 
 /* quantile levels (in permille) for the CS method */

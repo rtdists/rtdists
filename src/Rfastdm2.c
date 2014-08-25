@@ -30,7 +30,7 @@
 //   Contact: Matthew Gretton (matthew.gretton@uon.edu.au)
 //
 // Compile via R:
-//   R CMD SHLIB Rfastdm2.c density.c cdf.c pde.c phi.c precision.c
+//   R CMD SHLIB Rfastdm2.c density.c cdf.c pde.c phi.c precision.c xmalloc.c
 /*
      NOTE: To enable compilation options I added a home/.R/Makevars file containing "CFLAGS=CFLAGS=-g -O2 -Wall"
      Do -c for clean and --preclean to clean previous versions
@@ -40,45 +40,45 @@
 //
 /*****************************************************************************/
 
-// TODO:
-//          - [R] Swapping between bounds should simply be v=-v, z=a-z <- TEST
-//          - Incorporate Andrew's bounds checking
-//          - Incorporate Andrew's test code
-//          - Use pmin and pmax to set slightly off values...?
-//          - How long does dyn.load/unload take? When should we do it?
-//          - Get test-density.c running; make sure it works.
-//    DONE  - Get warnings working with R CMD SHLIB
-//    DONE! - Test with R's integrate
-//    DONE  - FIX pdf bug
-//    ?DONE - Check all array bounds, params stuff, etc.
-//    ?DONE - [C/R] Make versions of dfastdm and pfastdm which just return upper bounds
-//    ?DONE - Check with Andrew that he's okay the cdfs need to be strictly increasing
-// !!!DONEISH      - [C] Get Scott's cdf code working, compare to mine  <- need to add correction (to mine?)
-//    DONE  - [R] Return 1 for lower bound, 2 for upper
-//    ?DONE - Look at HAVE_LIBBLAS (in cdf.c) - non-trivial, not sure if it's worth it
-//
+// MG TODO: 
+// DONE    - Get compiling under Win32/64
+// DONE        - _WIN32 problem: _WIN32 is defined by gcc, but the _WIN32 code seems to have Visual Studio in mind?
+// DONE        - isinf() problem: gcc now(?) seems to have an inbuild (same for erf() )
+// DONEISH     - xmalloc/xfree problem: linux xmalloc/xfree undefined
+//               !!! for now, using Voss&Voss xmalloc, BUT SHOULD REPLACE WITH PROPER ERROR HANDLING
+// ????    - Replace normal dist functions with R inbuilts -> can't easily isolate them
+// DONE    - Replace random functions with R inbuilts (controllable with USE_R_PRNG)
+//             - jv_random.h functions replaced 
+//                - init_noise (unsigned long)     - removed, set seed in R
+//                - double        jvrand_real2 ()  - replaced with calling R's runif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <assert.h>
 
 #include "fast-dm.h"
-#include "jvrandom.h"
+
 
 #define FASTDM_DEBUG  1  // Turn this off for release
 #define SHOW_INFO     1  // Show warnings / extra info, etc.
 #undef  FASTDM_DEBUG
 #undef  SHOW_INFO
 
-// Controls for stuff I'm not sure about
-#undef ADDITIONAL_BOUNDS     // Andrew's additional bounds
-//#define ADDITIONAL_BOUNDS 1    // Andrew's additional bounds
+#define USE_R_PRNG  1 // Turn off to use internal PRNG
 
+#ifndef USE_R_PRNG    // Don't bother including if we're using R's PRNG
+  #include "jvrandom.h"
+#endif
 
-// Headers to tie into R
+// Andrew's additional bounds (no longer needed?)
+//#define ADDITIONAL_BOUNDS 1  
+#undef ADDITIONAL_BOUNDS    
+
+// Header to tie into R
 #include <R.h>
 
-// Maximum number of values that each function can return (copied from 2Voss implementation)
+// Maximum number of values that each function can return (as per Voss&Voss implementation)
 #define MAX_VALUES 1000000
 
 // Forward declarations for R-callable functions
@@ -463,11 +463,12 @@ void rfastdm (int *in_numvalues, double *in_params, double *in_precision, double
 
 	if (random_flag)
 	{
-        unsigned long t = time(NULL);
+#ifdef USE_R_PRNG
+        GetRNGstate();  // Retrieve R's PRNG state
+#else
         unsigned long c = clock();
-//        Rprintf ("Using %lu for seed (clock gives %lu).\n", t,c);
-//  	    init_noise(time(NULL));  // Init PRNG
   	    init_noise(c); 
+#endif
 	}
 
     // Create Fs[][], an s_count X s_size matrix of random or sequential numbers,
@@ -480,7 +481,14 @@ void rfastdm (int *in_numvalues, double *in_params, double *in_precision, double
         {
 			for (i=0; i<s_size; ++i)
             {
+#ifdef USE_R_PRNG
+				Fs[j][i] = unif_rand ();
+#else
 				Fs[j][i] = jvrand_real2();
+#endif
+
+				
+				
 				if (Fs[j][i] > Fs_max)  Fs_max = Fs[j][i];
 				if (Fs[j][i] < Fs_min)  Fs_min = Fs[j][i];
 			}
@@ -561,6 +569,15 @@ void rfastdm (int *in_numvalues, double *in_params, double *in_precision, double
 	xfree(F);
 	for (j=0; j<s_count; ++j) xfree(Fs[j]);
 	xfree(Fs);
+	
+	// Restore R's PRNG state if needed
+	if (random_flag)
+	{
+#ifdef USE_R_PRNG
+        PutRNGstate();  // Must put back R's PRNG state
+#endif
+    }
+
 }
 
 // Support functions for rfastdm ()

@@ -35,6 +35,9 @@ fmax(double a, double b)
 }
 #endif
 
+// [MG] This was causing a weird compiler fail under current gcc versions, which (now??) has its own isinf()
+// If we see any more issues in the wild, we should try using R's ISINF function
+/* 
 #ifdef _WIN32
 static int
 isinf(double x)
@@ -42,6 +45,8 @@ isinf(double x)
 	return (x-x != 0);
 }
 #endif
+*/
+
 
 static int
 imax(int a, int b)

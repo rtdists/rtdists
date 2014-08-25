@@ -18,8 +18,8 @@
  * 02110-1301 USA.
  */
 
-#ifdef _WIN32
-#define _USE_MATH_DEFINES
+#ifdef _WIN32  
+#define _USE_MATH_DEFINES // [MG] This is a Visual Studio thing but gcc sets _WIN32 as well
 #endif
 
 #include <math.h>
