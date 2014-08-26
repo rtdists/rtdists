@@ -43,9 +43,10 @@
 // MG TODO: 
 // DONE    - Get compiling under Win32/64
 // DONE        - _WIN32 problem: _WIN32 is defined by gcc, but the _WIN32 code seems to have Visual Studio in mind?
-// DONE        - isinf() problem: gcc now(?) seems to have an inbuild (same for erf() )
+// DONE        - isinf() problem: gcc now(?) seems to have an inbuilt (same for erf() )
 // DONEISH     - xmalloc/xfree problem: linux xmalloc/xfree undefined
-//               !!! for now, using Voss&Voss xmalloc, BUT SHOULD REPLACE WITH PROPER ERROR HANDLING
+//               ! for now, using Voss&Voss xmalloc, 
+//                 but may want to replace with more graceful out-of-memory handling
 // ????    - Replace normal dist functions with R inbuilts -> can't easily isolate them
 // DONE    - Replace random functions with R inbuilts (controllable with USE_R_PRNG)
 //             - jv_random.h functions replaced 
@@ -570,13 +571,12 @@ void rfastdm (int *in_numvalues, double *in_params, double *in_precision, double
 	for (j=0; j<s_count; ++j) xfree(Fs[j]);
 	xfree(Fs);
 	
-	// Restore R's PRNG state if needed
+#ifdef USE_R_PRNG
 	if (random_flag)
 	{
-#ifdef USE_R_PRNG
         PutRNGstate();  // Must put back R's PRNG state
-#endif
     }
+#endif
 
 }
 
