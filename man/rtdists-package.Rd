@@ -11,7 +11,7 @@ Respone Time distribtuions in R.
 Package: \tab rtdists\cr
 Type: \tab Package\cr
 Version: \tab 0.1-0\cr
-Date: \tab 2014-08-28\cr
+Date: \tab 2014-08-30\cr
 Depends: \tab R (>= 3.0.0)\cr
 License: \tab GPL (>=3)\cr
 URL: \tab https://github.com/rtdists/rtdists/\cr

@@ -5,11 +5,17 @@ rtdists: Response time distributions in R
 
 * uses fast-dm C code by Andreas Voss
 
-## Installation (NOT YET WORKING, see development.R)
+## Installation
 
 * From CRAN: In the future
 
 * Development version from Github:
 ```
-library("devtools"); install_github("rtdists",user="rtdists")
+devtools::install_github("rtdists",user="rtdists")
 ```
+
+## Get Started:
+```
+rrd(10, c(rep(1, 4), rep(0.1, 4)))
+```
+
