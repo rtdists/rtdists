@@ -6,8 +6,8 @@
 #'@param n desired number of observations.
 #'@param pl a list of paramaters in the following order: \code{c("a","v","t0","d","sz","sv","st0","z")}
 #'@param i the boundary to test, upper = 2, lower = 1
-#'@param precision precision(?)
-#'@param maxt maximum \code{t0} value for to stop integration problems (\code{prd} only).
+#'@param precision \code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accuratly. Default is 3.
+#'@param maxt maximum \code{t0} value, used to stop integration problems (\code{prd} only).
 #'
 #'@return \code{drd} gives the density, \code{prd} gives the dsitribution function, and \code{rrd} generates random response times and decisions (in a \code{matrix}).
 #'

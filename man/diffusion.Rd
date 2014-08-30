@@ -21,9 +21,9 @@ rrd(n, pl, precision = 3)
 
 \item{i}{the boundary to test, upper = 2, lower = 1}
 
-\item{precision}{precision(?)}
+\item{precision}{\code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accuratly. Default is 3.}
 
-\item{maxt}{maximum \code{t0} value for to stop integration problems (\code{prd} only).}
+\item{maxt}{maximum \code{t0} value, used to stop integration problems (\code{prd} only).}
 }
 \value{
 \code{drd} gives the density, \code{prd} gives the dsitribution function, and \code{rrd} generates random response times and decisions (in a \code{matrix}).
