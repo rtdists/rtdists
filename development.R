@@ -9,10 +9,9 @@ require(testthat)
 test_package("rtdists")
 
 
-
+## Complete documentation including DESCRPTION file is written using roxygen2 and wrapper roxyPackage:
 require(roxyPackage)  # install.packages("roxyPackage", repo="http://R.reaktanz.de")
 
-# Linux:
 R.libs <- "."
 
 roxy.package(
