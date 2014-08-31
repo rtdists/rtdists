@@ -76,9 +76,6 @@
 //#define ADDITIONAL_BOUNDS 1  
 #undef ADDITIONAL_BOUNDS    
 
-// Header to tie into R
-#include <R.h>
-
 // Maximum number of values that each function can return (as per Voss&Voss implementation)
 #define MAX_VALUES 1000000
 

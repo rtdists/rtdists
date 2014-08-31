@@ -27,8 +27,11 @@
 static void
 fatal (const char *message)
 {
-	fprintf (stderr, "error: %s, aborting\n", message);
-	abort ();
+//	fprintf (stderr, "error: %s, aborting\n", message);
+//	abort ();
+
+    Rf_error ("Error: %s, aborting.\n", message);
+
 }
 
 void *

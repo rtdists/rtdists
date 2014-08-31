@@ -24,6 +24,9 @@
 #include <stddef.h>
 
 
+// Header to tie into R
+#include <R.h>
+
 #if __GNUC__ >= 3
 #define  jv_noreturn  __attribute__ ((noreturn))
 #define  jv_malloc  __attribute__ ((malloc))
