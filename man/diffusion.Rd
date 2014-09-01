@@ -32,9 +32,9 @@ rrd(n, a, z, v, t0, d, sz, sv, st0, parameters, precision = 3)
 
 \item{sv}{inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials.     Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sv} < 2}
 
-\item{st0}{inter-trial-variability of non-decisional components. Range of a uniform distribution with mean t0 describing the distribution of actual t0 values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Typical range: 0 < \code{st0} < 0.2}
+\item{st0}{inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Typical range: 0 < \code{st0} < 0.2}
 
-\item{parameters}{a numeric vector of paramaters. If named with all parameters, order is irrelevant. If unnamed, following order is necessary: \code{c("a","z","v","t0","d","sz","sv","st0")}. Can be used as an alternative to specifying all parameters via individual arguments.}
+\item{parameters}{a numeric vector of paramaters, can be used as an alternative to specifying all parameters via individual arguments. If named, order is irrelevant. If unnamed, following order is necessary: \code{c("a","z","v","t0","d","sz","sv","st0")}.}
 
 \item{i}{the boundary to test, upper = 2, lower = 1}
 
@@ -43,10 +43,17 @@ rrd(n, a, z, v, t0, d, sz, sv, st0, parameters, precision = 3)
 \item{maxt}{maximum \code{t0} value, used to stop integration problems (\code{prd} only).}
 }
 \value{
-\code{drd} gives the density, \code{prd} gives the dsitribution function, and \code{rrd} generates random response times and decisions (in a \code{matrix}).
+\code{drd} gives the density, \code{prd} gives the distribution function, and \code{rrd} generates random response times and decisions (returning a \code{matrix}).
 }
 \description{
 Density, distribution function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{z} (relative starting point), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point). Parameters can either be specified individually or as a vector via \code{parameters}.
+}
+\examples{
+
+## identical calls (but different random values)
+rrd(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0)
+rrd(10, parameters = c(1, 0.5, 2, 0.5, 0, 0, 0, 0))
+
 }
 \author{
 Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, and Henrik Singmann.

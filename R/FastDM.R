@@ -25,6 +25,8 @@
 #'
 #' @name diffusion
 #' 
+#' @example examples/examples.diffusion.R
+#' 
 NULL
 
 get_rd_parameters <- function(a, z, v, t0, d, sz, sv, st0, pl) {
@@ -57,6 +59,7 @@ get_rd_parameters <- function(a, z, v, t0, d, sz, sv, st0, pl) {
 #
 
 #' @rdname diffusion
+#' @export drd
 drd <- function (t, a, z, v, t0, d, sz, sv, st0, parameters, i, precision = 3)
 {
   # Check for illegal parameter values
@@ -78,6 +81,7 @@ drd <- function (t, a, z, v, t0, d, sz, sv, st0, parameters, i, precision = 3)
 }
 
 #' @rdname diffusion
+#' @export prd
 # set maximum t value to stop integration problems
 prd <- function (t, a, z, v, t0, d, sz, sv, st0, parameters, i, precision = 3, maxt = 1e4) 
 {
@@ -101,6 +105,7 @@ prd <- function (t, a, z, v, t0, d, sz, sv, st0, parameters, i, precision = 3, m
 }
 
 #' @rdname diffusion
+#' @export rrd
 # Returns a matrix of 2 x n (RTs x boundaries)
 rrd <- function (n, a, z, v, t0, d, sz, sv, st0, parameters, precision = 3)
 {
