@@ -15,4 +15,4 @@ Authors@R: c( person(given="Andrew", family="Heathcote", role=c("aut")),
     person(given="Henrik", family="Singmann",
     email="singmann+rtdists@gmail.com", role=c("aut", "cre")) )
 Version: 0.1-0
-Date: 2014-08-30
+Date: 2014-09-02

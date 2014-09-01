@@ -6,18 +6,35 @@
 \alias{rrd}
 \title{The Ratcliff Diffusion Model}
 \usage{
-drd(t, pl, i, precision = 3)
+drd(t, a, z, v, t0, d, sz, sv, st0, parameters, i, precision = 3)
 
-prd(t, pl, i, precision = 3, maxt = 10000)
+prd(t, a, z, v, t0, d, sz, sv, st0, parameters, i, precision = 3,
+  maxt = 10000)
 
-rrd(n, pl, precision = 3)
+rrd(n, a, z, v, t0, d, sz, sv, st0, parameters, precision = 3)
 }
 \arguments{
 \item{t}{a vector of RTs.}
 
 \item{n}{desired number of observations.}
 
-\item{pl}{a list of paramaters in the following order: \code{c("a","v","t0","d","sz","sv","st0","z")}}
+\item{a}{threshold separation. Amount of information that is considered for a decision. Large values indicate a conservative decisional style. Typical range: 0.5 < \code{a} < 2}
+
+\item{z}{relative starting point. Indicator of an a priori bias in decision making. When the relative starting point \code{z} deviates from 0.5, the amount of information necessary for a decision differs between response alternatives. Typical range: 0.3 < \code{z} < 0.7}
+
+\item{v}{drift rate. Average slope of the information accumulation process. The drift gives information about the speed and direction of the accumulation of information. Large (absolute) values of drift indicate a good performance. If received information supports the response linked to the upper threshold the sign will be positive and vice versa. Typical range: -5 < \code{v} < 5}
+
+\item{t0}{non-decision time or response time constant (in seconds). Average duration of all non-decisional processes (encoding and response execution). Typical range: 0.1 < \code{t0} < 0.5}
+
+\item{d}{differences in speed of response execution (in seconds). Positive values indicate that response execution is faster for responses linked to the upper threshold than for responses linked to the lower threshold. Typical range: -0.1 < \code{d} < 0.1}
+
+\item{sz}{inter-trial-variability of (relative) starting point. Range of a uniform distribution with mean \code{z} describing the distribution of actual starting points from specific trials. Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sz} < 0.5}
+
+\item{sv}{inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials.     Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sv} < 2}
+
+\item{st0}{inter-trial-variability of non-decisional components. Range of a uniform distribution with mean t0 describing the distribution of actual t0 values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Typical range: 0 < \code{st0} < 0.2}
+
+\item{parameters}{a numeric vector of paramaters. If named with all parameters, order is irrelevant. If unnamed, following order is necessary: \code{c("a","z","v","t0","d","sz","sv","st0")}. Can be used as an alternative to specifying all parameters via individual arguments.}
 
 \item{i}{the boundary to test, upper = 2, lower = 1}
 
@@ -29,9 +46,9 @@ rrd(n, pl, precision = 3)
 \code{drd} gives the density, \code{prd} gives the dsitribution function, and \code{rrd} generates random response times and decisions (in a \code{matrix}).
 }
 \description{
-Density, distribution function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{z} (relative starting point), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point).
+Density, distribution function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{z} (relative starting point), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point). Parameters can either be specified individually or as a vector via \code{parameters}.
 }
 \author{
-Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton and Andrew Heathcote.
+Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, and Henrik Singmann.
 }
 

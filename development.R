@@ -3,7 +3,7 @@ require(devtools)
 require(roxygen2)
 load_all()
 
-rrd(10, c(rep(1, 4), rep(0.1, 4)))
+rrd(10, parameters = c(1, 0.5, 2, 0.5, 0, 0, 0, 0))
 
 require(testthat)
 test_package("rtdists")
