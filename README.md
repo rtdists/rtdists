@@ -11,7 +11,7 @@ rtdists: Response time distributions in R
 
 * Development version from Github:
 
-Note, for installing the development version package `devtools` is needed which may require some additional software (see [here](r-pkgs.had.co.nz/intro.html) section "Getting started")
+Note, for installing the development version package `devtools` is needed which may require some additional software (see [here](http://r-pkgs.had.co.nz/intro.html) section "Getting started")
 ```
 devtools::install_github("rtdists",user="rtdists")
 ```
