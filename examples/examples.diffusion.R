@@ -11,18 +11,11 @@ curve(drd(x, a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0.2, boundary = "uppe
 legend("topright", legend=c("no", "yes"), title = "Starting Point Variability?", lty = 1:2)
 
 # plot cdf:
-random_rts <- rrd(500, a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0.2)
-head(random_rts)
-plot(sort(random_rts[random_rts$response=="upper","rt"]), 
-     prd(sort(random_rts[random_rts$response=="upper","rt"]), 
-         a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0.2, boundary="u"), 
-     type = "l", ylab = "cumulative probability", xlab = "response time",
-     main = "CDF of random diffusion model data",
-     xlim = c(min(random_rts$rt), max(random_rts$rt)),ylim = c(0,1))
-
-lines(sort(random_rts[random_rts$response=="lower","rt"]), 
-     prd(sort(random_rts[random_rts$response=="lower","rt"]), 
-         a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0.2, boundary="l"), 
-     lty = 2)
+curve(prd(x, a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0.2, boundary="u"), 
+     xlim = c(0, 3),ylim = c(0,1), 
+     ylab = "cumulative probability", xlab = "response time",
+     main = "CDF of diffusion model with start point variability")
+curve(prd(x, a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0.2, boundary="l"), 
+     add=TRUE, lty = 2)
 legend("topleft", legend=c("upper", "lower"), title="boundary", lty=1:2)
 
