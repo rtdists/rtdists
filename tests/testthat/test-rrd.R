@@ -12,7 +12,7 @@ test_that("parameters == individual parameters:", {
 })
 
 test_that("check individual parameters:", {
-  expect_that(rrd(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), is_a("matrix"))
+  expect_that(rrd(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), is_a("data.frame"))
   expect_that(rrd(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0), throws_error())
   p1 <- c(1, 0.5, 2, 0.5, 0, 0, 0, 0)
   expect_that(rrd(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0, parameters = parameters), throws_error())
@@ -23,12 +23,12 @@ test_that("check individual parameters:", {
 
 test_that("check parameters:", {
   p1 <- c(1, 0.5, 2, 0.5, 0, 0, 0, 0)
-  expect_that(rrd(10, parameters = p1), is_a("matrix"))
+  expect_that(rrd(10, parameters = p1), is_a("data.frame"))
   expect_that(rrd(10, parameters = p1[1:7]), throws_error())
   names(p1) <- c("a", "z", "v","t0","d", "sz","sv","st0")
-  expect_that(rrd(10, parameters = p1), is_a("matrix"))
+  expect_that(rrd(10, parameters = p1), is_a("data.frame"))
   names(p1) <- c(c("a","v","t0","z"), sample(c("sz","sv","st0", "d")))
-  expect_that(rrd(10, parameters = p1), is_a("matrix"))
+  expect_that(rrd(10, parameters = p1), is_a("data.frame"))
   names(p1)[3] <- "xx"
   expect_that(rrd(10, parameters = p1), throws_error())
   names(p1) <- NULL
@@ -44,6 +44,6 @@ context("rrd: random number generation for the diffusion model")
 test_that("rrd works", {
   rrds1 <- rrd(10, parameters = c(1, 0.5, 2, 0.5, 0, 0, 0, 0))
   rrds2 <- rrd(10, parameters = c(1, 0.5, 2, 0.5, 0, 0, 0, 0))
-  expect_that(rrds1, is_a("matrix"))
+  expect_that(rrds1, is_a("data.frame"))
   expect_that(isTRUE(all.equal(rrds1, rrds2)), is_false())
 })

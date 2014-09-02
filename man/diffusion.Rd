@@ -6,10 +6,11 @@
 \alias{rrd}
 \title{The Ratcliff Diffusion Model}
 \usage{
-drd(t, a, z, v, t0, d, sz, sv, st0, parameters, i, precision = 3)
+drd(t, boundary = c("upper", "lower"), a, z, v, t0, d, sz, sv, st0,
+  parameters, precision = 3)
 
-prd(t, a, z, v, t0, d, sz, sv, st0, parameters, i, precision = 3,
-  maxt = 10000)
+prd(t, boundary = c("upper", "lower"), a, z, v, t0, d, sz, sv, st0,
+  parameters, precision = 3, maxt = 10000)
 
 rrd(n, a, z, v, t0, d, sz, sv, st0, parameters, precision = 3)
 }
@@ -17,6 +18,8 @@ rrd(n, a, z, v, t0, d, sz, sv, st0, parameters, precision = 3)
 \item{t}{a vector of RTs.}
 
 \item{n}{desired number of observations.}
+
+\item{boundary}{character vector. Which boundary should be tested. Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default.}
 
 \item{a}{threshold separation. Amount of information that is considered for a decision. Large values indicate a conservative decisional style. Typical range: 0.5 < \code{a} < 2}
 
@@ -36,23 +39,44 @@ rrd(n, a, z, v, t0, d, sz, sv, st0, parameters, precision = 3)
 
 \item{parameters}{a numeric vector of paramaters, can be used as an alternative to specifying all parameters via individual arguments. If named, order is irrelevant. If unnamed, following order is necessary: \code{c("a","z","v","t0","d","sz","sv","st0")}.}
 
-\item{i}{the boundary to test, upper = 2, lower = 1}
-
 \item{precision}{\code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accuratly. Default is 3.}
 
-\item{maxt}{maximum \code{t0} value, used to stop integration problems (\code{prd} only).}
+\item{maxt}{maximum \code{rt} allowed, used to stop integration problems (\code{prd} only).}
 }
 \value{
-\code{drd} gives the density, \code{prd} gives the distribution function, and \code{rrd} generates random response times and decisions (returning a \code{matrix}).
+\code{drd} gives the density, \code{prd} gives the distribution function, and \code{rrd} generates random response times and decisions (returning a \code{data.frame} with columns \code{rts} (numeric) and \code{response} (factor)).
 }
 \description{
-Density, distribution function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{z} (relative starting point), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point). Parameters can either be specified individually or as a vector via \code{parameters}.
+Density, distribution function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{z} (relative starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point). Parameters can either be specified individually or as a vector via \code{parameters}.
 }
 \examples{
 
 ## identical calls (but different random values)
 rrd(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0)
 rrd(10, parameters = c(1, 0.5, 2, 0.5, 0, 0, 0, 0))
+
+# plot density:
+curve(drd(x, a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0, boundary = "upper"), 
+      xlim=c(0,3), main="Density of upper responses", ylab="density", xlab="response time")
+curve(drd(x, a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0.2, boundary = "upper"), 
+      add=TRUE, lty = 2)
+legend("topright", legend=c("no", "yes"), title = "Starting Point Variability?", lty = 1:2)
+
+# plot cdf:
+random_rts <- rrd(500, a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0.2)
+head(random_rts)
+plot(sort(random_rts[random_rts$response=="upper","rt"]), 
+     prd(sort(random_rts[random_rts$response=="upper","rt"]), 
+         a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0.2, boundary="u"), 
+     type = "l", ylab = "cumulative probability", xlab = "response time",
+     main = "CDF of random diffusion model data",
+     xlim = c(min(random_rts$rt), max(random_rts$rt)),ylim = c(0,1))
+
+lines(sort(random_rts[random_rts$response=="lower","rt"]), 
+     prd(sort(random_rts[random_rts$response=="lower","rt"]), 
+         a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0.2, boundary="l"), 
+     lty = 2)
+legend("topleft", legend=c("upper", "lower"), title="boundary", lty=1:2)
 
 }
 \author{

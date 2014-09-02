@@ -1,6 +1,5 @@
 
 require(devtools)
-require(roxygen2)
 load_all()
 
 rrd(10, parameters = c(1, 0.5, 2, 0.5, 0, 0, 0, 0))
