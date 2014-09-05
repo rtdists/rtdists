@@ -2,7 +2,7 @@
 require(devtools)
 load_all()
 
-rrd(10, parameters = c(1, 0.5, 2, 0.5, 0, 0, 0, 0))
+rrd(10, a=1, v=2, t0=0.5)
 
 require(testthat)
 test_package("rtdists")
@@ -24,6 +24,7 @@ roxy.package(
         person(given=\"Andrew\", family=\"Heathcote\", role=c(\"aut\")),
         person(given=\"Matthew\", family=\"Gretton\", role=c(\"aut\")),
         person(given=\"Andreas\", family=\"Voss\", role=c(\"aut\")),
+        person(given=\"Jochen\", family=\"Voss\", role=c(\"aut\")),
         person(given=\"Henrik\", family=\"Singmann\", email=\"singmann+rtdists@gmail.com\", role=c(\"aut\", \"cre\"))
     )",
     Depends = "R (>= 3.0.0)",

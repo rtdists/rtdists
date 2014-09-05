@@ -1,20 +1,20 @@
 #' The Ratcliff Diffusion Model
 #' 
-#' Density, distribution function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{z} (relative starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point). Parameters can either be specified individually or as a vector via \code{parameters}.
+#' Density, distribution function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{z} (relative starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point). 
 #'
 #' @param t a vector of RTs.
 #' @param n desired number of observations.
 #' @param boundary character vector. Which boundary should be tested. Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default.
 #' 
 #' @param a threshold separation. Amount of information that is considered for a decision. Large values indicate a conservative decisional style. Typical range: 0.5 < \code{a} < 2
-#' @param z relative starting point. Indicator of an a priori bias in decision making. When the relative starting point \code{z} deviates from 0.5, the amount of information necessary for a decision differs between response alternatives. Typical range: 0.3 < \code{z} < 0.7
 #' @param v drift rate. Average slope of the information accumulation process. The drift gives information about the speed and direction of the accumulation of information. Large (absolute) values of drift indicate a good performance. If received information supports the response linked to the upper threshold the sign will be positive and vice versa. Typical range: -5 < \code{v} < 5
 #' @param t0 non-decision time or response time constant (in seconds). Average duration of all non-decisional processes (encoding and response execution). Typical range: 0.1 < \code{t0} < 0.5
-#' @param d differences in speed of response execution (in seconds). Positive values indicate that response execution is faster for responses linked to the upper threshold than for responses linked to the lower threshold. Typical range: -0.1 < \code{d} < 0.1
-#' @param sz inter-trial-variability of (relative) starting point. Range of a uniform distribution with mean \code{z} describing the distribution of actual starting points from specific trials. Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sz} < 0.5
-#' @param sv inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials. 	Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sv} < 2
-#' @param st0 inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Typical range: 0 < \code{st0} < 0.2
-#' @param parameters a numeric vector of paramaters, can be used as an alternative to specifying all parameters via individual arguments. If named, order is irrelevant. If unnamed, following order is necessary: \code{c("a","z","v","t0","d","sz","sv","st0")}. 
+#' 
+#' @param z relative starting point. Indicator of an a priori bias in decision making. When the relative starting point \code{z} deviates from 0.5, the amount of information necessary for a decision differs between response alternatives. Typical range: 0.3 < \code{z} < 0.7. Default is 0.5 (i.e., no bias).
+#' @param d differences in speed of response execution (in seconds). Positive values indicate that response execution is faster for responses linked to the upper threshold than for responses linked to the lower threshold. Typical range: -0.1 < \code{d} < 0.1. Default is 0.
+#' @param sz inter-trial-variability of (relative) starting point. Range of a uniform distribution with mean \code{z} describing the distribution of actual starting points from specific trials. Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sz} < 0.5. Default is 0.
+#' @param sv inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials. 	Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sv} < 2. Default is 0.
+#' @param st0 inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Typical range: 0 < \code{st0} < 0.2. Default is 0.
 #' 
 #' @param precision \code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accuratly. Default is 3.
 #' @param maxt maximum \code{rt} allowed, used to stop integration problems (\code{prd} only).
@@ -36,47 +36,53 @@
 #'
 #' @useDynLib rtdists, dfastdm_b, pfastdm_b, rfastdm
 #'
-#' @name diffusion
+#' @name Diffusion
 #' 
 #' @example examples/examples.diffusion.R
 #' 
 NULL
 
-get_rd_parameters <- function(a, z, v, t0, d, sz, sv, st0, pl) {
-  miss_p_indiv <- c(missing(a), missing(v), missing(t0), missing(z), missing(d), missing(sz), missing(sv), missing(st0))
-  miss_pl <- missing(pl)
-  if(all(miss_p_indiv) & miss_pl) stop("No parameter values specified.")
-  if(any(!miss_p_indiv) & !miss_pl) stop("Parameter values need to be specified either via individual arguments or via 'pl', but not both.")
-  if((sum(miss_p_indiv) > 0) & miss_pl) stop("Not all parameter values specified via individual arguments.")
-  if(miss_pl) {
-    rd_parameters <- c(a,v,t0,d,sz,sv,st0,z)
-    if(length(rd_parameters)!=8) stop("Each parameter needs to be of length 1.")
-    if(!is.numeric(rd_parameters)) stop("Parameters need to be numeric.")
-    if (any(is.na(rd_parameters)) || !all(is.finite(rd_parameters))) stop("Parameters need to be numeric and finite.")
-    return(rd_parameters)
-  } else {
-    if (!is.numeric(pl) | !is.vector(pl)) stop("pl needs to be a numeric vector.")
-    if(length(pl)!=8) stop("Length of pl is incorrect (must be 8).")
-    if (any(is.na(pl)) || !all(is.finite(pl))) stop("Parameters need to be numeric and finite.")
-    if (!is.null(names(pl))) {
-      if(!all(sapply(c("a","v","t0","d","sz","sv","st0","z"), function(x) x %in% names(pl)))) stop("names(pl) not complete. Need to be: c(\"a\",\"v\",\"t0\",\"z\",\"d\",\"sz\",\"sv\",\"st0\")")
-      pl <- pl[c("a","v","t0","d","sz","sv","st0","z")]
-    } else {
-      names(pl) <- c("a","z","v","t0","d","sz","sv","st0")
-      pl <- pl[c("a","v","t0","d","sz","sv","st0","z")]
-    }
-    return(pl)
-  }
-}
-
+#pl <- get_rd_parameters(a = a, z = z, v = v, t0 = t0, d = d, sz = sz, sv = sv, st0 = st0, pl = parameters)
+# get_rd_parameters <- function(a, z, v, t0, d, sz, sv, st0, pl) {
+#   miss_p_indiv <- c(missing(a), missing(v), missing(t0), missing(z), missing(d), missing(sz), missing(sv), missing(st0))
+#   miss_pl <- missing(pl)
+#   if(all(miss_p_indiv) & miss_pl) stop("No parameter values specified.")
+#   if(any(!miss_p_indiv) & !miss_pl) stop("Parameter values need to be specified either via individual arguments or via 'pl', but not both.")
+#   if((sum(miss_p_indiv) > 0) & miss_pl) stop("Not all parameter values specified via individual arguments.")
+#   if(miss_pl) {
+#     rd_parameters <- c(a,v,t0,d,sz,sv,st0,z)
+#     if(length(rd_parameters)!=8) stop("Each parameter needs to be of length 1.")
+#     if(!is.numeric(rd_parameters)) stop("Parameters need to be numeric.")
+#     if (any(is.na(rd_parameters)) || !all(is.finite(rd_parameters))) stop("Parameters need to be numeric and finite.")
+#     return(rd_parameters)
+#   } else {
+#     if (!is.numeric(pl) | !is.vector(pl)) stop("pl needs to be a numeric vector.")
+#     if(length(pl)!=8) stop("Length of pl is incorrect (must be 8).")
+#     if (any(is.na(pl)) || !all(is.finite(pl))) stop("Parameters need to be numeric and finite.")
+#     if (!is.null(names(pl))) {
+#       if(!all(sapply(c("a","v","t0","d","sz","sv","st0","z"), function(x) x %in% names(pl)))) stop("names(pl) not complete. Need to be: c(\"a\",\"v\",\"t0\",\"z\",\"d\",\"sz\",\"sv\",\"st0\")")
+#       pl <- pl[c("a","v","t0","d","sz","sv","st0","z")]
+#     } else {
+#       names(pl) <- c("a","z","v","t0","d","sz","sv","st0")
+#       pl <- pl[c("a","v","t0","d","sz","sv","st0","z")]
+#     }
+#     return(pl)
+#   }
+# }
 #
 
-#' @rdname diffusion
+#' @rdname Diffusion
 #' @export drd
-drd <- function (t, boundary = c("upper", "lower"), a, z, v, t0, d, sz, sv, st0, parameters, precision = 3)
+drd <- function (t, boundary = c("upper", "lower"), 
+                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
+                 precision = 3)
 {
   # Check for illegal parameter values
-  pl <- get_rd_parameters(a = a, z = z, v = v, t0 = t0, d = d, sz = sz, sv = sv, st0 = st0, pl = parameters)
+  if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/ot t0 must be supplied")
+  pl <- c(a,v,t0,d,sz,sv,st0,z)
+  if(length(pl)!=8) stop("Each parameter needs to be of length 1.")
+  if(!is.numeric(pl)) stop("Parameters need to be numeric.")
+  if (any(is.na(pl)) || !all(is.finite(pl))) stop("Parameters need to be numeric and finite.")
   
   boundary <- match.arg(boundary)
   if (boundary == "upper") i <- 2L
@@ -97,13 +103,20 @@ drd <- function (t, boundary = c("upper", "lower"), a, z, v, t0, d, sz, sv, st0,
   
 }
 
-#' @rdname diffusion
+#' @rdname Diffusion
 #' @export prd
 # set maximum t value to stop integration problems
-prd <- function (t, boundary = c("upper", "lower"), a, z, v, t0, d, sz, sv, st0, parameters, precision = 3, maxt = 1e4) 
+prd <- function (t, boundary = c("upper", "lower"), 
+                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
+                 precision = 3, maxt = 1e4) 
 {
   # Check for illegal parameter values
-  pl <- get_rd_parameters(a = a, z = z, v = v, t0 = t0, d = d, sz = sz, sv = sv, st0 = st0, pl = parameters)
+  if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/ot t0 must be supplied")
+  pl <- c(a,v,t0,d,sz,sv,st0,z)
+  if(length(pl)!=8) stop("Each parameter needs to be of length 1.")
+  if(!is.numeric(pl)) stop("Parameters need to be numeric.")
+  if (any(is.na(pl)) || !all(is.finite(pl))) stop("Parameters need to be numeric and finite.")
+
   t[t>maxt] <- maxt
   if(!all(t == sort(t)))  stop("t needs to be sorted")
   
@@ -126,14 +139,22 @@ prd <- function (t, boundary = c("upper", "lower"), a, z, v, t0, d, sz, sv, st0,
   
 }
 
-#' @rdname diffusion
+#' @rdname Diffusion
 #' @export rrd
 # Returns a matrix of 2 x n (RTs x boundaries)
-rrd <- function (n, a, z, v, t0, d, sz, sv, st0, parameters, precision = 3)
+rrd <- function (n, 
+                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
+                 precision = 3)
 {
   randRTs    <- vector(length=n)
   randBounds <- vector(length=n)
-  pl <- get_rd_parameters(a = a, z = z, v = v, t0 = t0, d = d, sz = sz, sv = sv, st0 = st0, pl = parameters)
+  
+  # Check for illegal parameter values
+  if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/ot t0 must be supplied")
+  pl <- c(a,v,t0,d,sz,sv,st0,z)
+  if(length(pl)!=8) stop("Each parameter needs to be of length 1.")
+  if(!is.numeric(pl)) stop("Parameters need to be numeric.")
+  if (any(is.na(pl)) || !all(is.finite(pl))) stop("Parameters need to be numeric and finite.")
 
   output <- .C("rfastdm", 
                as.integer (n),                          # 1  IN:  number of densities
