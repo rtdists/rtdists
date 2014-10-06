@@ -33,17 +33,6 @@ make_r <- function(drifts, n,b,A,vs,s,t0,st0=0,truncdrifts=TRUE) {
 #' @rdname LBA
 #' @export dlba_norm
 dlba_norm <- function(z,x0max,chi,driftrate,sddrift) {
-  if (x0max<1e-10) return(pnorm(chi/z,mean=driftrate,sd=sddrift,lower.tail=F))
-  zs=z*sddrift ; zu=z*driftrate ; chiminuszu=chi-zu ; xx=chiminuszu-x0max;
-  chizu=chiminuszu/zs ; chizumax=xx/zs;
-  tmp1=zs*(dnorm(chizumax)-dnorm(chizu));
-  tmp2=xx*pnorm(chizumax)-chiminuszu*pnorm(chizu);
-  return(1+(tmp1+tmp2)/x0max)  
-}
-
-#' @rdname LBA
-#' @export plba_norm
-plba_norm <- function(z,x0max,chi,driftrate,sddrift) {
   if (x0max<1e-10) return( (chi/z^2)*dnorm(chi/z,mean=driftrate,sd=sddrift)) 
   zs=z*sddrift ; zu=z*driftrate ; chiminuszu=chi-zu
   chizu=chiminuszu/zs ; chizumax=(chiminuszu-x0max)/zs
@@ -51,6 +40,16 @@ plba_norm <- function(z,x0max,chi,driftrate,sddrift) {
              sddrift*(dnorm(chizumax)-dnorm(chizu)))/x0max)
 }
 
+#' @rdname LBA
+#' @export plba_norm
+plba_norm <- function(z,x0max,chi,driftrate,sddrift) {
+  if (x0max<1e-10) return(pnorm(chi/z,mean=driftrate,sd=sddrift,lower.tail=F))
+  zs=z*sddrift ; zu=z*driftrate ; chiminuszu=chi-zu ; xx=chiminuszu-x0max;
+  chizu=chiminuszu/zs ; chizumax=xx/zs;
+  tmp1=zs*(dnorm(chizumax)-dnorm(chizu));
+  tmp2=xx*pnorm(chizumax)-chiminuszu*pnorm(chizu);
+  return(1+(tmp1+tmp2)/x0max)  
+}
 
 #' @rdname LBA
 #' @export rlba_norm
@@ -64,25 +63,8 @@ rlba_norm <- function(n,b,A,vs,s,t0,st0=0,truncdrifts=TRUE){
 ####### Gamma:
 
 #' @rdname LBA
-#' @export dlba_gamma  
+#' @export dlba_gamma
 dlba_gamma <- function(z,x0max,chi,driftrate,sddrift) {
-  alpha=driftrate ; beta=sddrift;
-  min = (chi-x0max)/z ; max = chi/z;
-  Gmax=pgamma(max, alpha, rate=beta);Gmin=pgamma(min, alpha, rate=beta)
-  Gmax2=pgamma(max, (alpha+1), rate=beta); Gmin2=pgamma(min, (alpha+1), rate=beta)
-  zgamma= ((Gmax2-Gmin2)*gamma(alpha+1))/((Gmax-Gmin)*beta*gamma(alpha)) 
-  
-  term1 = ((z*zgamma) - chi)/x0max; term2 = (chi-x0max-(z*zgamma))/x0max; 
-  pmax = pgamma(max, alpha, rate = beta); pmin = pgamma(min, alpha, rate = beta)
-  out.value=(1 + pmax*term1 + pmin*term2)
-  out.value[z==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
-  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-  return(out.value)
-}
-
-#' @rdname LBA
-#' @export plba_gamma
-plba_gamma <- function(z,x0max,chi,driftrate,sddrift) {
   alpha=driftrate ; beta=sddrift;
   min = (chi-x0max)/z ; max = chi/z;
   Gmax=pgamma(max, alpha, rate=beta);Gmin=pgamma(min, alpha, rate=beta)
@@ -107,6 +89,24 @@ plba_gamma <- function(z,x0max,chi,driftrate,sddrift) {
   return(out.value)
 }
 
+
+#' @rdname LBA
+#' @export plba_gamma  
+plba_gamma <- function(z,x0max,chi,driftrate,sddrift) {
+  alpha=driftrate ; beta=sddrift;
+  min = (chi-x0max)/z ; max = chi/z;
+  Gmax=pgamma(max, alpha, rate=beta);Gmin=pgamma(min, alpha, rate=beta)
+  Gmax2=pgamma(max, (alpha+1), rate=beta); Gmin2=pgamma(min, (alpha+1), rate=beta)
+  zgamma= ((Gmax2-Gmin2)*gamma(alpha+1))/((Gmax-Gmin)*beta*gamma(alpha)) 
+  
+  term1 = ((z*zgamma) - chi)/x0max; term2 = (chi-x0max-(z*zgamma))/x0max; 
+  pmax = pgamma(max, alpha, rate = beta); pmin = pgamma(min, alpha, rate = beta)
+  out.value=(1 + pmax*term1 + pmin*term2)
+  out.value[z==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
+  return(out.value)
+}
+
 #' @rdname LBA
 #' @export rlba_gamma
 rlba_gamma <- function(n,b,A,vs,s,t0,st0=0,truncdrifts=TRUE){
@@ -122,25 +122,7 @@ rlba_gamma <- function(n,b,A,vs,s,t0,st0=0,truncdrifts=TRUE){
 
 #' @rdname LBA
 #' @export dlba_frechet
-dlba_frechet <- function(z,x0max,chi,driftrate,sddrift) {                                                    
-  if (any(c(chi,chi-x0max,driftrate,sddrift)<0)) return(rep(0,length(z)))#Protection for the pfrechet()
-  z=pmax(z,0)
-  mew=1/driftrate; alpha=sddrift;
-  min = (chi-x0max)/z; max = chi/z;
-  pmax = pfrechet(max, loc=0, scale=1/mew, shape=alpha)
-  pmin = pfrechet(min, loc=0, scale=1/mew, shape=alpha)
-  zfrechet = (gamma_inc(1-(1/alpha),(mew*max)^(-alpha))-gamma_inc(1-(1/alpha),(mew*min)^(-alpha)))/
-    (mew*(pmax-pmin))    
-  term1 = ((z*zfrechet) - chi)/x0max ;term2 = (chi-x0max-(z*zfrechet))/x0max ; 
-  out.value=(1 + pmax*term1 + pmin*term2)
-  out.value[z==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
-  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-  return(out.value)
-}
-
-#' @rdname LBA
-#' @export plba_frechet
-plba_frechet <- function(z,x0max,chi,driftrate,sddrift) {
+dlba_frechet <- function(z,x0max,chi,driftrate,sddrift) {
   if (any(c(chi,chi-x0max,driftrate,sddrift)<0)) return(rep(0,length(z))) #protection for pfrechet()
   mew=1/driftrate;  alpha=sddrift;
   z=pmax(z,0)
@@ -164,6 +146,24 @@ plba_frechet <- function(z,x0max,chi,driftrate,sddrift) {
   return(out.value)    
 }
 
+#' @rdname LBA
+#' @export plba_frechet
+plba_frechet <- function(z,x0max,chi,driftrate,sddrift) {                                                    
+  if (any(c(chi,chi-x0max,driftrate,sddrift)<0)) return(rep(0,length(z)))#Protection for the pfrechet()
+  z=pmax(z,0)
+  mew=1/driftrate; alpha=sddrift;
+  min = (chi-x0max)/z; max = chi/z;
+  pmax = pfrechet(max, loc=0, scale=1/mew, shape=alpha)
+  pmin = pfrechet(min, loc=0, scale=1/mew, shape=alpha)
+  zfrechet = (gamma_inc(1-(1/alpha),(mew*max)^(-alpha))-gamma_inc(1-(1/alpha),(mew*min)^(-alpha)))/
+    (mew*(pmax-pmin))    
+  term1 = ((z*zfrechet) - chi)/x0max ;term2 = (chi-x0max-(z*zfrechet))/x0max ; 
+  out.value=(1 + pmax*term1 + pmin*term2)
+  out.value[z==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
+  return(out.value)
+}
+
 
 #' @rdname LBA
 #' @export rlba_frechet
@@ -181,25 +181,6 @@ rlba_frechet <- function(n,b,A,vs,s,t0,st0=0,truncdrifts=TRUE){
 #' @rdname LBA
 #' @export dlba_lnorm
 dlba_lnorm <- function(z,x0max,chi,driftrate,sddrift) {
-  mean=driftrate ; sd=sddrift
-  min = (chi-x0max)/z ; max = chi/z;
-  zlognorm = 
-    (exp(mean+(sd^2)/2)*(pnorm((log(max)-mean-(sd^2))/sd)-pnorm((log(min)-mean-(sd^2))/sd))) /
-    (pnorm((log(max)-mean)/sd)-pnorm((log(min)-mean)/sd))
-  term1 = ((z*zlognorm) - chi)/x0max
-  term2 = (chi-x0max-(z*zlognorm))/x0max 
-  pmax = plnorm(max, meanlog=mean, sdlog=sd) 
-  pmin = plnorm(min, meanlog=mean, sdlog=sd)
-  out.value=(1 + pmax*term1 + pmin*term2)
-  out.value[z==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
-  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-  return(out.value)
-}
-
-
-#' @rdname LBA
-#' @export plba_lnorm
-plba_lnorm <- function(z,x0max,chi,driftrate,sddrift) {
   mean=driftrate ; sd=sddrift;
   min = (chi-x0max)/z ; max = chi/z;
   
@@ -226,6 +207,24 @@ plba_lnorm <- function(z,x0max,chi,driftrate,sddrift) {
   out.value=((term1+term2+term3)/x0max)
   out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
   return(out.value)  
+}
+
+#' @rdname LBA
+#' @export plba_lnorm
+plba_lnorm <- function(z,x0max,chi,driftrate,sddrift) {
+  mean=driftrate ; sd=sddrift
+  min = (chi-x0max)/z ; max = chi/z;
+  zlognorm = 
+    (exp(mean+(sd^2)/2)*(pnorm((log(max)-mean-(sd^2))/sd)-pnorm((log(min)-mean-(sd^2))/sd))) /
+    (pnorm((log(max)-mean)/sd)-pnorm((log(min)-mean)/sd))
+  term1 = ((z*zlognorm) - chi)/x0max
+  term2 = (chi-x0max-(z*zlognorm))/x0max 
+  pmax = plnorm(max, meanlog=mean, sdlog=sd) 
+  pmin = plnorm(min, meanlog=mean, sdlog=sd)
+  out.value=(1 + pmax*term1 + pmin*term2)
+  out.value[z==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
+  return(out.value)
 }
 
 
