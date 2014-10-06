@@ -4,6 +4,8 @@ load_all()
 
 rrd(10, a=1, v=2, t0=0.5)
 
+rlba_norm(100, b = 1.3, A = 1, vs = c(0.8, 1.2), s = 1.2, t0 = .2, st0 = 0)
+
 require(testthat)
 test_package("rtdists")
 
@@ -29,7 +31,7 @@ roxy.package(
     )",
     Depends = "R (>= 3.0.0)",
     Suggests = "testthat",
-    #Imports = "",
+    Imports = "evd, msm",
     Description = "Provides response time distributions based on C code by Andreas Voss.",
     URL = "https://github.com/rtdists/rtdists/",
     License = "GPL (>=3)",
