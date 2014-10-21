@@ -8,15 +8,17 @@ Suggests:
 Imports:
     evd,
     msm
-Description: Provides response time distributions based on C code by Andreas
-    Voss.
+Description: Provides response time distributions: (a) diffusion model based on
+    C code by Andreas and Jochen Voss and (b) linear ballistic accumulator
+    (LBA) with different distribution underlying the drift rate variability.
 URL: https://github.com/rtdists/rtdists/
 License: GPL (>=3)
-Authors@R: c( person(given="Andrew", family="Heathcote", role=c("aut")),
+Authors@R: c( person(given="Scott", family="Brown", role=c("aut")),
     person(given="Matthew", family="Gretton", role=c("aut")),
+    person(given="Andrew", family="Heathcote", role=c("aut")),
     person(given="Andreas", family="Voss", role=c("aut")),
     person(given="Jochen", family="Voss", role=c("aut")),
     person(given="Henrik", family="Singmann",
     email="singmann+rtdists@gmail.com", role=c("aut", "cre")) )
-Version: 0.1-0
-Date: 2014-10-06
+Version: 0.2-0
+Date: 2014-10-21

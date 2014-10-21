@@ -17,14 +17,15 @@ R.libs <- "."
 
 roxy.package(
   pck.source.dir = ".",
-  pck.version = "0.1-0",
+  pck.version = "0.2-0",
   pck.description = data.frame(
     Package = "rtdists",
     Type = "Package",
     Title = "Respone Time distribtuions in R",
     AuthorsR = "c(
-        person(given=\"Andrew\", family=\"Heathcote\", role=c(\"aut\")),
+        person(given=\"Scott\", family=\"Brown\", role=c(\"aut\")),
         person(given=\"Matthew\", family=\"Gretton\", role=c(\"aut\")),
+        person(given=\"Andrew\", family=\"Heathcote\", role=c(\"aut\")),
         person(given=\"Andreas\", family=\"Voss\", role=c(\"aut\")),
         person(given=\"Jochen\", family=\"Voss\", role=c(\"aut\")),
         person(given=\"Henrik\", family=\"Singmann\", email=\"singmann+rtdists@gmail.com\", role=c(\"aut\", \"cre\"))
@@ -32,7 +33,7 @@ roxy.package(
     Depends = "R (>= 3.0.0)",
     Suggests = "testthat",
     Imports = "evd, msm",
-    Description = "Provides response time distributions based on C code by Andreas Voss.",
+    Description = "Provides response time distributions: (a) diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distribution underlying the drift rate variability.",
     URL = "https://github.com/rtdists/rtdists/",
     License = "GPL (>=3)",
     stringsAsFactors = FALSE),

@@ -15,31 +15,84 @@
 \alias{rlba_norm}
 \title{The linear Ballistic Accumulator (LBA)}
 \usage{
-dlba_norm(z, x0max, chi, driftrate, sddrift)
+dlba_norm(t, A, b, v, t0, sv)
 
-plba_norm(z, x0max, chi, driftrate, sddrift)
+plba_norm(t, A, b, v, t0, sv)
 
-rlba_norm(n, b, A, vs, s, t0, st0 = 0, truncdrifts = TRUE)
+rlba_norm(n, A, b, v, t0, sv, st0 = 0, truncdrifts = TRUE)
 
-dlba_gamma(z, x0max, chi, driftrate, sddrift)
+dlba_gamma(t, A, b, v, t0, sv)
 
-plba_gamma(z, x0max, chi, driftrate, sddrift)
+plba_gamma(t, A, b, v, t0, sv)
 
-rlba_gamma(n, b, A, vs, s, t0, st0 = 0, truncdrifts = TRUE)
+rlba_gamma(n, A, b, v, t0, sv, st0 = 0)
 
-dlba_frechet(z, x0max, chi, driftrate, sddrift)
+dlba_frechet(t, A, b, v, t0, sv)
 
-plba_frechet(z, x0max, chi, driftrate, sddrift)
+plba_frechet(t, A, b, v, t0, sv)
 
-rlba_frechet(n, b, A, vs, s, t0, st0 = 0, truncdrifts = TRUE)
+rlba_frechet(n, A, b, v, t0, sv, st0 = 0)
 
-dlba_lnorm(z, x0max, chi, driftrate, sddrift)
+dlba_lnorm(t, A, b, v, t0, sv)
 
-plba_lnorm(z, x0max, chi, driftrate, sddrift)
+plba_lnorm(t, A, b, v, t0, sv)
 
-rlba_lnorm(n, b, A, vs, s, t0, st0 = 0, truncdrifts = TRUE)
+rlba_lnorm(n, A, b, v, t0, sv, st0 = 0)
+}
+\arguments{
+\item{t}{a vector of RTs.}
+
+\item{A}{start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.}
+
+\item{b}{response threshold. (\code{b} - \code{A}/2) is a measure of "response caution".}
+
+\item{v}{drift rate. Rate at which evidence is accumulated. See details for random number generation.}
+
+\item{t0}{non-decision time or response time constant (in seconds). Average duration of all non-decisional processes (encoding and response execution).}
+
+\item{sv}{variability of drift rate. Distribution depends on function. See details for random number generation.}
+
+\item{n}{desired number of observations.}
+
+\item{st0}{variability of non-decision time. Uniformly distributed around \code{t0} +/- \code{st0}/2.}
+
+\item{truncdrifts}{logical. Should truncated normal be used for \code{rlba_norm} prohibiting drift rates < 0. Default is \code{TRUE}.}
 }
 \description{
-Density, distribution function, and random generation for the LBA model with different distribution functions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and lognormal (\code{lnorm})
+Density, distribution function, and random generation for the LBA model with 4 parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{v} (driftrate), and \code{sv} (inter-trial-variability of drift). In addition, all functions are available with different distribution functions underlying the drift rate variability \code{sv}: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and lognormal (\code{lnorm})
+}
+\details{
+For random number generation \code{v} and
+}
+\examples{
+
+## random number generation using different distributions for v:
+rlba_norm(10, A=0.5, b=1, v=c(1.2, 1), sv=c(1,1.5), t0 = 0.5)
+rlba_gamma(10, A=0.5, b=1, v=c(1.2, 1), sv=c(1, 1.5), t0 = 0.5)
+rlba_frechet(10, A=0.5, b=1, v=c(1.2, 1), sv=c(1, 1.5), t0 = 0.5)
+rlba_lnorm(10, A=0.5, b=1, v=c(1.2, 1), sv=c(1, 1.5), t0 = 0.5)
+
+
+# plot density:
+
+# use somewhat plausible values:
+A <- 0.2
+b <- 0.5
+v <- 0.8
+t0 <- 0.3
+sv <- 0.4
+
+curve(dlba_norm(x, A=A, b=b, v=v, t0=t0, sv=sv), ylim = c(0, 6),
+      xlim=c(0,3), main="Density of LBA versions", ylab="density", xlab="response time")
+curve(dlba_gamma(x, A=A, b=b, v=v, t0=t0, sv=sv), 
+      add=TRUE, lty = 2)
+curve(dlba_frechet(x, A=A, b=b, v=v, t0=t0, sv=sv), 
+      add=TRUE, lty = 3)
+curve(dlba_lnorm(x, A=A, b=b, v=v, t0=t0, sv=sv), 
+      add=TRUE, lty = 4)
+legend("topright", legend=c("Normal", "Gamma", "Frechet", "Log-Normal"), 
+      title = expression("Distribution of"~~italic(v)), lty = 1:4)
+
+
 }
 
