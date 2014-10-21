@@ -1,6 +1,6 @@
 #' The linear Ballistic Accumulator (LBA)
 #' 
-#' Density, distribution function, and random generation for the LBA model with 4 parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{v} (driftrate), and \code{sv} (inter-trial-variability of drift). In addition, all functions are available with different distribution functions underlying the drift rate variability \code{sv}: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and lognormal (\code{lnorm})
+#' Density, distribution function, and random generation for the LBA model with 4 parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{v} (driftrate), \code{t0} (non-decision time), and \code{sv} (inter-trial-variability of drift rate). In addition, all functions are available with different distribution functions underlying the drift rate variability \code{sv}: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}).
 #' 
 #' @param t a vector of RTs.
 #' @param n desired number of observations.
@@ -15,7 +15,16 @@
 #' @param truncdrifts logical. Should truncated normal be used for \code{rlba_norm} prohibiting drift rates < 0. Default is \code{TRUE}.
 #' 
 #' 
-#' @details For random number generation \code{v} and 
+#' @details For random number generation \code{v} and \code{vs} can (and probably should) be of length > 1. Otherwise only one response is generated.
+#' 
+#' \code{v} and \code{sv}, they correspond to the following parameters in the different distributions:
+#' \describe{
+#'  \item{norm}{\code{v} = mean and \code{sv} = sd of a (possibly truncated) normal distribution}
+#'  \item{gamma}{\code{v} = shape and \code{sv} = rate of Gamma distribution. See \code{\link{GammaDist}}}
+#'  \item{frechet}{\code{v} = scale and \code{sv} = shape of the Frechet distribution. See \code{\link[evd]{frechet}}}
+#'  \item{lnorm}{\code{v} = mean and \code{sv} = sd of a log normal distribution on the log scale. See \code{\link{Lognormal}}}
+#' }
+#' 
 #' 
 #' @importFrom evd rfrechet dfrechet pfrechet
 #' @importFrom msm rtnorm
