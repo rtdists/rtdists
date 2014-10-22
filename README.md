@@ -3,7 +3,14 @@ rtdists: Response time distributions in R
 
 ## Features
 
-* uses fast-dm C code by Andreas Voss
+* Distribution functions for response time models:
+  * distribution function or probability density function (PDF)
+  * cumulative distribution function (CDF)
+  * random number generation (RNG)
+
+* The following choice RT models are currently supported:
+  * diffusion model (using fast-dm C code by Andreas and Jochen Voss)
+  * LBA with varying distributions of the drift rate variability
 
 ## Installation
 
