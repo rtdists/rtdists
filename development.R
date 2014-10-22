@@ -17,7 +17,7 @@ R.libs <- "."
 
 roxy.package(
   pck.source.dir = ".",
-  pck.version = "0.2-0",
+  pck.version = "0.2-1",
   pck.description = data.frame(
     Package = "rtdists",
     Type = "Package",
