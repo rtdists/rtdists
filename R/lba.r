@@ -1,32 +1,25 @@
 #' The linear Ballistic Accumulator (LBA)
 #' 
-#' Density, distribution function, and random generation for the LBA model with 4 parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{v} (driftrate), \code{t0} (non-decision time), and \code{sv} (inter-trial-variability of drift rate). In addition, all functions are available with different distribution functions underlying the drift rate variability \code{sv}: Normal (\code{normal}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lornormal}).
+#' Density, distribution function, and random generation for the LBA model with 4 parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}).
 #' 
 #' @param t a vector of RTs.
 #' @param n desired number of observations.
 #' 
 #' @param A start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.
-#' @param b response threshold. (\code{b} - \code{A}/2) is a measure of "response caution".
-#' @param v drift rate. Rate at which evidence is accumulated. See details for random number generation.
+#' @param b response threshold. (\code{b} - \code{A}/2) is a measure of "response caution". 
 #' @param t0 non-decision time or response time constant (in seconds). Average duration of all non-decisional processes (encoding and response execution).
-#' @param sv variability of drift rate. Distribution depends on function. See details for random number generation.
 #' @param st0 variability of non-decision time. Uniformly distributed around \code{t0} +/- \code{st0}/2.
 #' 
-#' @param v_distribution character vector with one of the following \code{c("normal", "gamma", "frechet", "lognormal")} specifying the distribution of the drift rate varaibility. Supports partial matching of argument names. 
+#' @param mean_v,sd_v mean and standard deviation of normal distribution for drift rate (\code{norm}). See \code{\link{Normal}}
+#' @param shape_v,rate_v,scale_v shape, rate, and scale of gamma (\code{gamma}) and scale and shape of Frechet (\code{frechet}) distributions for drift rate. See \code{\link{GammaDist}} or \code{\link[evd]{frechet}}. For Gamma, scale = 1/shape and shape = 1/scale.
+#' @param meanlog_v,sdlog_v mean and standard deviation of lognormal distribution on the log scale for drift rate (\code{lnorm}). See \code{\link{Lognormal}}.
 #' 
 #' @param truncdrifts logical. Should truncated normal be used for \code{rlba_norm} prohibiting drift rates < 0. Default is \code{TRUE}.
 #' 
 #' 
-#' @details For random number generation \code{v} and \code{vs} can (and probably should) be of length > 1. Otherwise only one response is generated.
+#' @details For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. 
 #' 
-#' \code{v} and \code{sv}, they correspond to the following parameters in the different distributions:
-#' \describe{
-#'  \item{normal}{\code{v} = mean and \code{sv} = sd of a (possibly truncated) normal distribution}
-#'  \item{gamma}{\code{v} = shape and \code{sv} = rate of Gamma distribution. See \code{\link{GammaDist}}}
-#'  \item{frechet}{\code{v} = scale and \code{sv} = shape of the Frechet distribution (location = 0). See \code{\link[evd]{frechet}}}
-#'  \item{lornormal}{\code{v} = mean and \code{sv} = sd of a log normal distribution on the log scale. See \code{\link{Lognormal}}}
-#' }
-#' 
+#' @return All functions starting with a \code{d} return the density, all functions starting with \code{p} return the dsitribution function, and all functions starting with \code{r} return random respone times and responses (in a \code{data.frame}).
 #' 
 #' @importFrom evd rfrechet dfrechet pfrechet
 #' @importFrom msm rtnorm
@@ -39,234 +32,242 @@ NULL
 
 gamma_inc <- function(a,x)  pgamma(x,a,lower.tail=FALSE)*gamma(a)
 
-rem_t0 <- function(t, t0) pmax(t - t0, 0)
 
-#1================2=====================3==============4=================5
-# Andrew Terry
-# File: generalisedlba-math.r
-#1================2=====================3==============4=================5
-
-
-#' @rdname LBA
-#' @export dlba
-dlba <- function(t,A,b,v,t0,sv, v_distribution = c("normal", "gamma", "frechet", "lognormal")) {
-  ## check inputs:
-  v_distribution <- match.arg(v_distribution)
-  
-  # remove t0:
-  t <- rem_t0(t, t0)
-  
-  if (v_distribution == "normal")  {
-    if (A<1e-10) return( (b/t^2)*dnorm(b/t,mean=v,sd=sv)) 
-    zs <- t*sv
-    zu <- t*v
-    chiminuszu <- b-zu
-    chizu <- chiminuszu/zs
-    chizumax <- (chiminuszu-A)/zs
-    return((v*(pnorm(chizu)-pnorm(chizumax)) + sv*(dnorm(chizumax)-dnorm(chizu)))/A)
-  } 
-  
-  else if (v_distribution == "gamma") {
-    alpha <- v
-    beta <- sv
-    min <- (b-A)/t
-    max <- b/t
-    Gmax <- pgamma(max, alpha, rate=beta)
-    Gmin <- pgamma(min, alpha, rate=beta)
-    Gmax2 <- pgamma(max, (alpha+1), rate=beta)
-    Gmin2 <- pgamma(min, (alpha+1), rate=beta)
-    zgamma <- ( ((Gmax2-Gmin2)*gamma(alpha+1))/((Gmax-Gmin)*beta*gamma(alpha)) )
-    
-    diffG <- function(t,point,alpha, beta) {
-      (-point/(t^2))*dgamma(point/t,alpha,rate = beta)
-    } #NB:point refers to the constants b OR b-A.
-    u <- (Gmax2-Gmin2)
-    v <- (Gmax-Gmin)
-    udash <- (diffG(t, b, alpha+1, beta)- diffG(t, (b-A), alpha+1, beta))
-    vdash <- (diffG(t, b, alpha, beta)- diffG(t, (b-A), alpha, beta))
-    const <- gamma(alpha+1)/(beta*gamma(alpha))
-    diffzgamma <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
-    term1 <- (Gmax - Gmin)*(zgamma + (t*diffzgamma))
-    term2 <- diffG(t,b,alpha,beta)*((zgamma*t)-b)
-    term3 <- diffG(t,(b-A),alpha,beta)*(b-A-(zgamma*t))
-    out.value <- ((term1+term2+term3)/A)
-    out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
-    return(out.value)
-  } 
-  
-  else if (v_distribution == "frechet") {
-    if (any(c(b,b-A,v,sv)<0)) return(rep(0,length(t))) #protection for pfrechet()
-    mew <- 1/v
-    alpha <- sv
-    t <- pmax(t,0)
-    min <- (b-A)/t
-    max <- b/t
-    Gmax <- pfrechet(max, loc=0, scale=1/mew, shape=alpha)
-    Gmin <- pfrechet(min, loc=0, scale=1/mew, shape=alpha)
-    D <- Gmax - Gmin
-    gam <- gamma_inc(1-(1/alpha), (mew*max)^(-alpha))-gamma_inc(1-(1/alpha), (mew*min)^(-alpha))
-    zfrechet <- gam/(mew*D)
-    diffG1 <- ((-b/(t^2))*dfrechet(b/t, loc=0, scale=1/mew, shape=alpha))
-    diffG2 <- ((-(b-A)/(t^2))*dfrechet((b-A)/t, loc=0, scale=1/mew, shape=alpha))    
-    diffD <- diffG1 - diffG2    
-    diffgam <- (-alpha*(((mew*b)^(-alpha+1))/(t^(-alpha+2)))*exp(-(mew*b/t)^(-alpha))) - (-alpha*(((mew*(b-A))^(-alpha+1))/(t^(-alpha+2)))*exp(-(mew*(b-A)/t)^(-alpha)))
-    diffzfrechet <- (mew^(-1))*(((-D^(-2))*diffD)*gam + (diffgam*(D^(-1))))
-    term1 <- (Gmax - Gmin)*(zfrechet + (t*diffzfrechet))
-    term2 <- diffG1*((zfrechet*t)-b)
-    term3 <- diffG2*(b-A-(zfrechet*t))
-    out.value <- ((term1+term2+term3)/A)
-    out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
-    return(out.value)    
-  } 
-  
-  else if (v_distribution == "lognormal") {
-    mean <- v
-    sd <- sv
-    min <- (b-A)/t
-    max <- b/t
-    zlognorm <- (exp(mean+(sd^2)/2)*(pnorm((log(max)-mean-(sd^2))/sd)-pnorm((log(min)-mean-(sd^2))/sd))) / (pnorm((log(max)-mean)/sd)-pnorm((log(min)-mean)/sd))
-    Gmax <- plnorm(max,meanlog=mean,sdlog=sd) 
-    Gmin <- plnorm(min,meanlog=mean,sdlog=sd)
-    
-    u <- (pnorm((log(max)-mean-(sd)^2)/sd)-pnorm((log(min)-mean-(sd)^2)/sd))
-    v <- (pnorm((log(max)-mean)/sd)-pnorm((log(min)-mean)/sd))
-    
-    udash <- (((-1/(sd*t))*dnorm((log(b/t)-mean-(sd)^2)/sd)) - ((-1/(sd*t))*dnorm((log((b-A)/t)-mean-(sd)^2)/sd)))
-    vdash <- (((-1/(sd*t))*dnorm((log(b/t)-mean)/sd)) - ((-1/(sd*t))*dnorm((log((b-A)/t)-mean)/sd)))
-    const <- exp(mean+((sd)^2)/2)
-    
-    diffzlognorm <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
-    term1 <- (Gmax - Gmin)*(zlognorm + (t*diffzlognorm))
-    term2 <- ((-b/(t^2))*dlnorm(b/t,meanlog=mean,sdlog=sd))*((zlognorm*t)-b)
-    term3 <- (b-A-(zlognorm*t))*((-(b-A)/(t^2))*dlnorm((b-A)/t,meanlog=mean,sdlog=sd))
-    out.value <- ((term1+term2+term3)/A)
-    out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
-    return(out.value)  
-  }
-}
-
-
-
-#' @rdname LBA
-#' @export plba
-plba <- function(t,A,b,v,t0,sv, v_distribution = c("normal", "gamma", "frechet", "lognormal")) {
-  ## check inputs:
-  v_distribution <- match.arg(v_distribution)
-  
-  # remove t0:
-  t <- rem_t0(t, t0)
-  
-  if (v_distribution == "normal") {
-    if (A<1e-10) return(pnorm(b/t,mean=v,sd=sv,lower.tail=F))
-    zs <- t*sv
-    zu <- t*v 
-    chiminuszu <- b-zu
-    xx <- chiminuszu-A
-    chizu <- chiminuszu/zs
-    chizumax <- xx/zs
-    tmp1 <- zs*(dnorm(chizumax)-dnorm(chizu))
-    tmp2 <- xx*pnorm(chizumax)-chiminuszu*pnorm(chizu)
-    return(1+(tmp1+tmp2)/A)
-  } 
-  
-  else if (v_distribution == "gamma") {
-    alpha <- v
-    beta <- sv
-    min <- (b-A)/t
-    max <- b/t
-    Gmax <- pgamma(max, alpha, rate=beta)
-    Gmin <- pgamma(min, alpha, rate=beta)
-    Gmax2 <- pgamma(max, (alpha+1), rate=beta)
-    Gmin2 <- pgamma(min, (alpha+1), rate=beta)
-    zgamma <- ((Gmax2-Gmin2)*gamma(alpha+1))/((Gmax-Gmin)*beta*gamma(alpha)) 
-    
-    term1 <- ((t*zgamma) - b)/A
-    term2 <- (b-A-(t*zgamma))/A
-    pmax <- pgamma(max, alpha, rate = beta)
-    pmin <- pgamma(min, alpha, rate = beta)
-    out.value <- (1 + pmax*term1 + pmin*term2)
-    out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
-    out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-    return(out.value)
-  }
-  
-  else if (v_distribution == "frechet") {
-    if (any(c(b,b-A,v,sv)<0)) return(rep(0,length(t)))#Protection for the pfrechet()
-    t <- pmax(t,0)
-    mew <- 1/v
-    alpha <- sv
-    min <- (b-A)/t
-    max <- b/t
-    pmax <- pfrechet(max, loc=0, scale=1/mew, shape=alpha)
-    pmin <- pfrechet(min, loc=0, scale=1/mew, shape=alpha)
-    zfrechet <- (gamma_inc(1-(1/alpha),(mew*max)^(-alpha))-gamma_inc(1-(1/alpha),(mew*min)^(-alpha)))/(mew*(pmax-pmin))    
-    term1 <- ((t*zfrechet) - b)/A
-    term2 <- (b-A-(t*zfrechet))/A 
-    out.value <- (1 + pmax*term1 + pmin*term2)
-    out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
-    out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-    return(out.value)
-  }
-  
-  else if (v_distribution == "lognormal") {
-    mean <- v
-    sd <- sv
-    min <- (b-A)/t
-    max <- b/t
-    zlognorm <- (exp(mean+(sd^2)/2)*(pnorm((log(max)-mean-(sd^2))/sd)-pnorm((log(min)-mean-(sd^2))/sd))) / (pnorm((log(max)-mean)/sd)-pnorm((log(min)-mean)/sd))
-    term1 <- ((t*zlognorm) - b)/A
-    term2 <- (b-A-(t*zlognorm))/A 
-    pmax <- plnorm(max, meanlog=mean, sdlog=sd) 
-    pmin <- plnorm(min, meanlog=mean, sdlog=sd)
-    out.value <- (1 + pmax*term1 + pmin*term2)
-    out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
-    out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-    return(out.value)
-  }
-}
-
-
-#' @rdname LBA
-#' @export rlba
-rlba <- function(n,A,b,v,t0,sv,st0=0,
-                 v_distribution = c("normal", "gamma", "frechet", "lognormal"),
-                 truncdrifts=TRUE) {
-  
-  ## check inputs:
-  v_distribution <- match.arg(v_distribution)
-  
-  if (v_distribution == "normal") {
-  if (truncdrifts) drifts <- matrix(rtnorm(n=n*length(v), mean=v, sd=sv, lower=0),ncol=length(v),byrow=TRUE)  
-  else drifts <- matrix(rnorm(n=n*length(v), mean=v, sd=sv),ncol=length(v),byrow=TRUE)
-  } 
-  
-  else if (v_distribution == "gamma") {
-    alpha <- v
-    beta <- sv
-    # beta is rate and alpha is shape
-    drifts <- matrix(rgamma(n=n*length(alpha),shape = alpha,rate = beta),ncol=length(v),byrow=TRUE)
-  }
-  
-  else if (v_distribution == "frechet") {
-    mew <- v
-    alpha <- sv
-    # mew is rate and alpha is shape
-    drifts <- matrix(rfrechet(n=n*length(mew), loc=0, scale=mew, shape=alpha),ncol=length(v),byrow=TRUE)
-  } 
-  
-  else if (v_distribution == "lognormal") {
-    mean <- v
-    sd <- sv
-    drifts=matrix(rlnorm(n=n*length(mean),meanlog = mean,sdlog=sd),ncol=length(v),byrow=TRUE)
-  }
-  
+make_r <- function(drifts, n,b,A,n_v,t0,st0=0) {
   drifts <- drifts[1:n,]
   drifts[drifts<0] <- 0
-  starts <- matrix(runif(min=0,max=A,n=n*length(v)),ncol=length(v),byrow=TRUE)
+  starts <- matrix(runif(min=0,max=A,n=n*n_v),ncol=n_v,byrow=TRUE)
   ttf <- t((b-t(starts)))/drifts
   rt <- apply(ttf,1,min)+t0+runif(min=-st0/2,max=+st0/2,n=n)
   resp <- apply(ttf,1,which.min)
   data.frame(rt=rt,response=resp)
+}
+
+rem_t0 <- function(t, t0) pmax(t - t0, 0)
+
+####### Normal:
+
+#' @rdname LBA
+#' @export dlba_norm
+dlba_norm <- function(t,A,b, t0, mean_v, sd_v) {
+  t <- rem_t0(t, t0)
+  if (A<1e-10) return( (b/t^2)*dnorm(b/t,meanmean_v,sd=sd_v)) 
+  zs <- t*sd_v
+  zu <- t*mean_v
+  chiminuszu <- b-zu
+  chizu <- chiminuszu/zs
+  chizumax <- (chiminuszu-A)/zs
+  return((mean_v*(pnorm(chizu)-pnorm(chizumax)) + sd_v*(dnorm(chizumax)-dnorm(chizu)))/A)
+}
+
+#' @rdname LBA
+#' @export plba_norm
+plba_norm <- function(t,A,b,t0,mean_v, sd_v) {
+  t <- rem_t0(t, t0)
+  if (A<1e-10) return(pnorm(b/t,mean=mean_v,sd=sd_v,lower.tail=F))
+  zs <- t*sd_v
+  zu <- t*mean_v 
+  chiminuszu <- b-zu
+  xx <- chiminuszu-A
+  chizu <- chiminuszu/zs
+  chizumax <- xx/zs
+  tmp1 <- zs*(dnorm(chizumax)-dnorm(chizu))
+  tmp2 <- xx*pnorm(chizumax)-chiminuszu*pnorm(chizu)
+  return(1+(tmp1+tmp2)/A)  
+}
+
+#' @rdname LBA
+#' @export rlba_norm
+rlba_norm <- function(n,A,b,t0,mean_v, sd_v, st0=0,truncdrifts=TRUE){
+  n_v <- max(length(mean_v), length(sd_v))
+  if (truncdrifts) drifts <- matrix(rtnorm(n=n*n_v, mean=mean_v, sd=sd_v, lower=0),ncol=n_v,byrow=TRUE)  
+  else drifts <- matrix(rnorm(n=n*n_v, mean=mean_v, sd=sd_v),ncol=n_v,byrow=TRUE)
+  make_r(drifts=drifts, n=n, b=b,A=A, n_v=n_v, t0=t0, st0=st0)
+}
+
+
+####### Gamma:
+
+#' @rdname LBA
+#' @export dlba_gamma
+dlba_gamma <- function(t,A,b,t0,shape_v,rate_v, scale_v) {
+  t <- rem_t0(t, t0)
   
+  if (!missing(rate_v) && !missing(scale_v)) stop("specify 'rate_v' or 'scale_v', but not both")
+  if (missing(rate_v)) rate_v <- 1/scale_v
+  
+  min <- (b-A)/t
+  max <- b/t
+  
+  Gmax <- pgamma(max, shape_v, rate=rate_v)
+  Gmin <- pgamma(min, shape_v, rate=rate_v)
+  Gmax2 <- pgamma(max, (shape_v+1), rate=rate_v)
+  Gmin2 <- pgamma(min, (shape_v+1), rate=rate_v)
+  zgamma <- ( ((Gmax2-Gmin2)*gamma(shape_v+1))/((Gmax-Gmin)*rate_v*gamma(shape_v)) )
+  
+  diffG <- function(t,point,shape_v, rate_v) {
+    (-point/(t^2))*dgamma(point/t,shape_v,rate = rate_v)
+  } #NB:point refers to the constants b OR b-A.
+  u <- (Gmax2-Gmin2)
+  v <- (Gmax-Gmin)
+  udash <- (diffG(t, b, shape_v+1, rate_v)- diffG(t, (b-A), shape_v+1, rate_v))
+  vdash <- (diffG(t, b, shape_v, rate_v)- diffG(t, (b-A), shape_v, rate_v))
+  const <- gamma(shape_v+1)/(rate_v*gamma(shape_v))
+  diffzgamma <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
+  term1 <- (Gmax - Gmin)*(zgamma + (t*diffzgamma))
+  term2 <- diffG(t,b,shape_v,rate_v)*((zgamma*t)-b)
+  term3 <- diffG(t,(b-A),shape_v,rate_v)*(b-A-(zgamma*t))
+  out.value <- ((term1+term2+term3)/A)
+  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
+  return(out.value)
+}
+
+
+#' @rdname LBA
+#' @export plba_gamma  
+plba_gamma <- function(t,A,b,t0,shape_v, rate_v, scale_v) {
+  t <- rem_t0(t, t0)
+  if (!missing(rate_v) && !missing(scale_v)) stop("specify 'rate_v' or 'scale_v', but not both")
+  if (missing(rate_v)) rate_v <- 1/scale_v
+  min <- (b-A)/t
+  max <- b/t
+  Gmax <- pgamma(max, shape_v, rate=rate_v)
+  Gmin <- pgamma(min, shape_v, rate=rate_v)
+  Gmax2 <- pgamma(max, (shape_v+1), rate=rate_v)
+  Gmin2 <- pgamma(min, (shape_v+1), rate=rate_v)
+  zgamma <- ((Gmax2-Gmin2)*gamma(shape_v+1))/((Gmax-Gmin)*rate_v*gamma(shape_v)) 
+  
+  term1 <- ((t*zgamma) - b)/A
+  term2 <- (b-A-(t*zgamma))/A
+  pmax <- pgamma(max, shape_v, rate = rate_v)
+  pmin <- pgamma(min, shape_v, rate = rate_v)
+  out.value <- (1 + pmax*term1 + pmin*term2)
+  out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
+  return(out.value)
+}
+
+#' @rdname LBA
+#' @export rlba_gamma
+rlba_gamma <- function(n,A,b,t0,sv,shape_v, rate_v, scale_v, st0=0){
+  if (!missing(rate_v) && !missing(scale_v)) stop("specify 'rate_v' or 'scale_v', but not both")
+  if (missing(rate_v)) rate_v <- 1/scale_v
+  n_v <- max(length(shape_v), length(rate_v))  
+  drifts <- matrix(rgamma(n=n*n_v,shape = shape_v,rate = rate_v),ncol=n_v,byrow=TRUE)
+  make_r(drifts=drifts, n=n, b=b,A=A, n_v = n_v, t0=t0, st0=st0)
+}
+
+
+####### Frechet:
+
+#' @rdname LBA
+#' @export dlba_frechet
+dlba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
+  t <- rem_t0(t, t0)
+  if (any(c(b,b-A,scale_v,shape_v)<0)) return(rep(0,length(t))) #protection for pfrechet()
+  t <- pmax(t,0)
+  min <- (b-A)/t
+  max <- b/t
+  Gmax <- pfrechet(max, loc=0, scale=scale_v, shape=shape_v)
+  Gmin <- pfrechet(min, loc=0, scale=scale_v, shape=shape_v)
+  D <- Gmax - Gmin
+  #browser()
+  gam <- gamma_inc(1-(1/shape_v), (1/scale_v*max)^(-shape_v))-gamma_inc(1-(1/shape_v), (1/scale_v*min)^(-shape_v))
+  zfrechet <- gam/(1/scale_v*D)
+  diffG1 <- ((-b/(t^2))*dfrechet(b/t, loc=0, scale=scale_v, shape=shape_v))
+  diffG2 <- ((-(b-A)/(t^2))*dfrechet((b-A)/t, loc=0, scale=scale_v, shape=shape_v))    
+  diffD <- diffG1 - diffG2    
+  diffgam <- (-shape_v*(((1/scale_v*b)^(-shape_v+1))/(t^(-shape_v+2)))*exp(-(1/scale_v*b/t)^(-shape_v))) - (-shape_v*(((1/scale_v*(b-A))^(-shape_v+1))/(t^(-shape_v+2)))*exp(-(1/scale_v*(b-A)/t)^(-shape_v)))
+  diffzfrechet <- ((1/scale_v)^(-1))*(((-D^(-2))*diffD)*gam + (diffgam*(D^(-1))))
+  term1 <- (Gmax - Gmin)*(zfrechet + (t*diffzfrechet))
+  term2 <- diffG1*((zfrechet*t)-b)
+  term3 <- diffG2*(b-A-(zfrechet*t))
+  out.value <- ((term1+term2+term3)/A)
+  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
+  return(out.value)    
+}
+
+#' @rdname LBA
+#' @export plba_frechet
+plba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
+  if (any(c(b,b-A,shape_v,scale_v)<0)) return(rep(0,length(t)))#Protection for the pfrechet()
+  t <- pmax(t,0)
+  min <- (b-A)/t
+  max <- b/t
+  pmax <- pfrechet(max, loc=0, scale=scale_v, shape=shape_v)
+  pmin <- pfrechet(min, loc=0, scale=scale_v, shape=shape_v)
+  zfrechet <- (gamma_inc(1-(1/shape_v),(1/scale_v*max)^(-shape_v))-gamma_inc(1-(1/shape_v),(1/scale_v*min)^(-shape_v)))/(1/scale_v*(pmax-pmin))    
+  term1 <- ((t*zfrechet) - b)/A
+  term2 <- (b-A-(t*zfrechet))/A 
+  out.value <- (1 + pmax*term1 + pmin*term2)
+  out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
+  return(out.value)
+}
+
+
+#' @rdname LBA
+#' @export rlba_frechet
+rlba_frechet <- function(n,A,b,t0,shape_v, scale_v,st0=0){
+  n_v <- max(length(shape_v), length(scale_v))
+  drifts <- matrix(rfrechet(n=n*n_v, loc=0, scale=scale_v, shape=shape_v),ncol=n_v,byrow=TRUE)
+  
+  make_r(drifts=drifts, n=n, b=b,A=A, n_v=n_v, t0=t0, st0=st0)
+}
+
+
+####### Log-Normal:
+
+#' @rdname LBA
+#' @export dlba_lnorm
+dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v) {
+  t <- rem_t0(t, t0)
+  min <- (b-A)/t
+  max <- b/t
+  
+  zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnorm((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnorm((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnorm((log(max)-meanlog_v)/sdlog_v)-pnorm((log(min)-meanlog_v)/sdlog_v))
+  Gmax <- plnorm(max,meanlog=meanlog_v,sdlog=sdlog_v) 
+  Gmin <- plnorm(min,meanlog=meanlog_v,sdlog=sdlog_v)
+  
+  u <- (pnorm((log(max)-meanlog_v-(sdlog_v)^2)/sdlog_v)-pnorm((log(min)-meanlog_v-(sdlog_v)^2)/sdlog_v))
+  v <- (pnorm((log(max)-meanlog_v)/sdlog_v)-pnorm((log(min)-meanlog_v)/sdlog_v))
+  
+  udash <- (((-1/(sdlog_v*t))*dnorm((log(b/t)-meanlog_v-(sdlog_v)^2)/sdlog_v)) - ((-1/(sdlog_v*t))*dnorm((log((b-A)/t)-meanlog_v-(sdlog_v)^2)/sdlog_v)))
+  vdash <- (((-1/(sdlog_v*t))*dnorm((log(b/t)-meanlog_v)/sdlog_v)) - ((-1/(sdlog_v*t))*dnorm((log((b-A)/t)-meanlog_v)/sdlog_v)))
+  const <- exp(meanlog_v+((sdlog_v)^2)/2)
+  
+  diffzlognorm <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
+  term1 <- (Gmax - Gmin)*(zlognorm + (t*diffzlognorm))
+  term2 <- ((-b/(t^2))*dlnorm(b/t,meanlog=meanlog_v,sdlog=sdlog_v))*((zlognorm*t)-b)
+  term3 <- (b-A-(zlognorm*t))*((-(b-A)/(t^2))*dlnorm((b-A)/t,meanlog=meanlog_v,sdlog=sdlog_v))
+  out.value <- ((term1+term2+term3)/A)
+  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
+  return(out.value)  
+}
+
+#' @rdname LBA
+#' @export plba_lnorm
+plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v) {
+  t <- rem_t0(t, t0)
+  min <- (b-A)/t
+  max <- b/t
+  zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnorm((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnorm((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnorm((log(max)-meanlog_v)/sdlog_v)-pnorm((log(min)-meanlog_v)/sdlog_v))
+  term1 <- ((t*zlognorm) - b)/A
+  term2 <- (b-A-(t*zlognorm))/A 
+  pmax <- plnorm(max, meanlog=meanlog_v, sdlog=sdlog_v) 
+  pmin <- plnorm(min, meanlog=meanlog_v, sdlog=sdlog_v)
+  out.value <- (1 + pmax*term1 + pmin*term2)
+  out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
+  return(out.value)
+}
+
+
+#' @rdname LBA
+#' @export rlba_lnorm
+rlba_lnorm <- function(n,A,b,t0,meanlog_v, sdlog_v, st0=0){
+  n_v <- max(length(meanlog_v), length(sdlog_v))
+  drifts=matrix(rlnorm(n=n*n_v,meanlog = meanlog_v,sdlog=sdlog_v),ncol=n_v,byrow=TRUE)
+  make_r(drifts=drifts, n=n, b=b, A=A, n_v=n_v, t0=t0, st0=st0)
 }
 

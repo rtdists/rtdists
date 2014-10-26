@@ -2,7 +2,7 @@
 require(devtools)
 load_all()
 
-rrd(10, a=1, v=2, t0=0.5)
+dlba_frechet(seq(0.6,2,0.1), A=A, b=b, t0=t0, shape_v=1.1, scale_v=1)
 
 rlba_norm(100, b = 1.3, A = 1, vs = c(0.8, 1.2), s = 1.2, t0 = .2, st0 = 0)
 

@@ -28,7 +28,7 @@ require(rtdists)
 rrd(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0)
 example(Diffusion)
 
-rlba(10, A=0.5, b=1, v=c(1.2, 1), sv=c(1,1.5), t0 = 0.5)
+rlba_norm(10, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
 example(LBA)
 ```
 
