@@ -63,7 +63,7 @@ rem_t0 <- function(t, t0) pmax(t - t0, 0)
 dlba_norm <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE) {
   t <- rem_t0(t, t0)
   if (posdrift) denom <- pmax(pnormP(mean_v/sd_v),1e-10) else denom <- 1
-  if (A<1e-10) return( pmax(0, ((b/t^2)*dnormP(b/t,meanmean_v,sd=sd_v))/denom)) 
+  if (A<1e-10) return( pmax(0, ((b/t^2)*dnormP(b/t,mean_v,sd=sd_v))/denom)) 
   zs <- t*sd_v
   zu <- t*mean_v
   chiminuszu <- b-zu
@@ -162,7 +162,7 @@ plba_gamma <- function(t,A,b,t0,shape_v, rate_v, scale_v) {
 
 #' @rdname LBA
 #' @export rlba_gamma
-rlba_gamma <- function(n,A,b,t0,sv,shape_v, rate_v, scale_v, st0=0){
+rlba_gamma <- function(n,A,b,t0,shape_v, rate_v, scale_v, st0=0){
   if (!missing(rate_v) && !missing(scale_v)) stop("specify 'rate_v' or 'scale_v', but not both")
   if (missing(rate_v)) rate_v <- 1/scale_v
   n_v <- max(length(shape_v), length(rate_v))  

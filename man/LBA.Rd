@@ -25,7 +25,7 @@ dlba_gamma(t, A, b, t0, shape_v, rate_v, scale_v)
 
 plba_gamma(t, A, b, t0, shape_v, rate_v, scale_v)
 
-rlba_gamma(n, A, b, t0, sv, shape_v, rate_v, scale_v, st0 = 0)
+rlba_gamma(n, A, b, t0, shape_v, rate_v, scale_v, st0 = 0)
 
 dlba_frechet(t, A, b, t0, shape_v, scale_v)
 
