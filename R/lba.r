@@ -132,7 +132,7 @@ dlba_gamma <- function(t,A,b,t0,shape_v,rate_v, scale_v) {
   term3 <- diffG(t,(b-A),shape_v,rate_v)*(b-A-(zgamma*t))
   out.value <- ((term1+term2+term3)/A)
   out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
-  return(out.value)
+  return(pmax(0, out.value))
 }
 
 
@@ -157,7 +157,7 @@ plba_gamma <- function(t,A,b,t0,shape_v, rate_v, scale_v) {
   out.value <- (1 + pmax*term1 + pmin*term2)
   out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
   out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-  return(out.value)
+  return(pmin(pmax(0, out.value), 1))
 }
 
 #' @rdname LBA
@@ -197,7 +197,7 @@ dlba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
   term3 <- diffG2*(b-A-(zfrechet*t))
   out.value <- ((term1+term2+term3)/A)
   out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
-  return(out.value)    
+  return(pmax(0, out.value))
 }
 
 #' @rdname LBA
@@ -215,7 +215,7 @@ plba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
   out.value <- (1 + pmax*term1 + pmin*term2)
   out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
   out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-  return(out.value)
+  return(pmin(pmax(0, out.value), 1))
 }
 
 
@@ -255,7 +255,7 @@ dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v) {
   term3 <- (b-A-(zlognorm*t))*((-(b-A)/(t^2))*dlnorm((b-A)/t,meanlog=meanlog_v,sdlog=sdlog_v))
   out.value <- ((term1+term2+term3)/A)
   out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
-  return(out.value)  
+  return(pmax(0, out.value))
 }
 
 #' @rdname LBA
@@ -272,7 +272,7 @@ plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v) {
   out.value <- (1 + pmax*term1 + pmin*term2)
   out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
   out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-  return(out.value)
+  return(pmin(pmax(0, out.value), 1))
 }
 
 
