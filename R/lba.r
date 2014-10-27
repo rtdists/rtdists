@@ -32,11 +32,8 @@
 NULL
 
 # protected normal desity and cdf
-pnormP <- function(x,mean=0,sd=1,lower.tail=TRUE){
-  ifelse(abs(x)<7,pnorm(x,sd=sd,lower.tail=lower.tail),ifelse(x<0,0,1))}  
-dnormP <- function(x,mean=0,sd=1){
-  ifelse(abs(x)<7,dnorm(x,sd=sd),0)}
-
+pnormP <- function(x,mean=0,sd=1,lower.tail=TRUE) ifelse(abs(x)<7,pnorm(x, mean=mean, sd=sd,lower.tail=lower.tail),ifelse(x<0,0,1))
+dnormP <- function(x,mean=0,sd=1) ifelse(abs(x)<7,dnorm(x,mean=mean,sd=sd),0)
 
 make_r <- function(drifts, n,b,A,n_v,t0,st0=0) {
   drifts <- drifts[1:n,]
