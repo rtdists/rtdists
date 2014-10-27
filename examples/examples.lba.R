@@ -26,7 +26,7 @@ curve(plba_norm(x, A=A, b=b, t0=t0, mean_v=1.0, sd_v=1.0),
       ylab = "cumulative probability", xlab = "response time",
       main = "CDF of LBA versions")
 curve(plba_gamma(x, A=A, b=b, t0=t0, shape_v=1,scale_v=1), add=TRUE, lty = 2)
-curve(plba_frechet(x, A=A, b=b, t0=t0, shape=1.1, scale=1), add=TRUE, lty = 3)
+curve(plba_frechet(x, A=A, b=b, t0=t0, shape=1, scale=1), add=TRUE, lty = 3)
 curve(plba_lnorm(x, A=A, b=b, t0=t0, meanlog_v=0.5, sdlog_v = 0.5), add=TRUE, lty = 4)
 legend("bottomright", legend=c("Normal", "Gamma", "Frechet", "Log-Normal"), 
        title = expression("Distribution of"~~italic(v)), lty = 1:4)

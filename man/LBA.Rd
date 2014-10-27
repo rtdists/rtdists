@@ -15,11 +15,11 @@
 \alias{rlba_norm}
 \title{The linear Ballistic Accumulator (LBA)}
 \usage{
-dlba_norm(t, A, b, t0, mean_v, sd_v)
+dlba_norm(t, A, b, t0, mean_v, sd_v, posdrift = TRUE)
 
-plba_norm(t, A, b, t0, mean_v, sd_v)
+plba_norm(t, A, b, t0, mean_v, sd_v, posdrift = TRUE)
 
-rlba_norm(n, A, b, t0, mean_v, sd_v, st0 = 0, truncdrifts = TRUE)
+rlba_norm(n, A, b, t0, mean_v, sd_v, st0 = 0, posdrift = TRUE)
 
 dlba_gamma(t, A, b, t0, shape_v, rate_v, scale_v)
 
@@ -50,11 +50,11 @@ rlba_lnorm(n, A, b, t0, meanlog_v, sdlog_v, st0 = 0)
 
 \item{mean_v,sd_v}{mean and standard deviation of normal distribution for drift rate (\code{norm}). See \code{\link{Normal}}}
 
+\item{posdrift}{logical. Should driftrates be fored to be positive? Default is \code{TRUE}. (Uses truncated normal for random generation).}
+
 \item{n}{desired number of observations.}
 
 \item{st0}{variability of non-decision time. Uniformly distributed around \code{t0} +/- \code{st0}/2.}
-
-\item{truncdrifts}{logical. Should truncated normal be used for \code{rlba_norm} prohibiting drift rates < 0. Default is \code{TRUE}.}
 
 \item{shape_v,rate_v,scale_v}{shape, rate, and scale of gamma (\code{gamma}) and scale and shape of Frechet (\code{frechet}) distributions for drift rate. See \code{\link{GammaDist}} or \code{\link[evd]{frechet}}. For Gamma, scale = 1/shape and shape = 1/scale.}
 
@@ -67,7 +67,7 @@ All functions starting with a \code{d} return the density, all functions startin
 Density, distribution function, and random generation for the LBA model with 4 parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}).
 }
 \details{
-For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses.
+For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.
 }
 \examples{
 
@@ -86,7 +86,7 @@ t0 <- 0.3
 curve(dlba_norm(x, A=A, b=b, t0=t0, mean_v = 1.0, sd_v = 0.5), ylim = c(0, 4),
       xlim=c(0,3), main="Density of LBA versions", ylab="density", xlab="response time")
 curve(dlba_gamma(x, A=A, b=b, t0=t0, shape_v=1, scale_v=1), add=TRUE, lty = 2)
-curve(dlba_frechet(x, A=A, b=b, t0=t0, shape_v=1.1,scale_v=1.0), add=TRUE, lty = 3)
+curve(dlba_frechet(x, A=A, b=b, t0=t0, shape_v=1,scale_v=1.0), add=TRUE, lty = 3)
 curve(dlba_lnorm(x, A=A, b=b, t0=t0, meanlog_v = 0.5, sdlog_v = 0.5), add=TRUE, lty = 4)
 legend("topright", legend=c("Normal", "Gamma", "Frechet", "Log-Normal"), 
       title = expression("Distribution of"~~italic(v)), lty = 1:4)
@@ -98,7 +98,7 @@ curve(plba_norm(x, A=A, b=b, t0=t0, mean_v=1.0, sd_v=1.0),
       ylab = "cumulative probability", xlab = "response time",
       main = "CDF of LBA versions")
 curve(plba_gamma(x, A=A, b=b, t0=t0, shape_v=1,scale_v=1), add=TRUE, lty = 2)
-curve(plba_frechet(x, A=A, b=b, t0=t0, shape=1.1, scale=1), add=TRUE, lty = 3)
+curve(plba_frechet(x, A=A, b=b, t0=t0, shape=1, scale=1), add=TRUE, lty = 3)
 curve(plba_lnorm(x, A=A, b=b, t0=t0, meanlog_v=0.5, sdlog_v = 0.5), add=TRUE, lty = 4)
 legend("bottomright", legend=c("Normal", "Gamma", "Frechet", "Log-Normal"), 
        title = expression("Distribution of"~~italic(v)), lty = 1:4)

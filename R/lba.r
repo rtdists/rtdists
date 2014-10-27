@@ -14,10 +14,10 @@
 #' @param shape_v,rate_v,scale_v shape, rate, and scale of gamma (\code{gamma}) and scale and shape of Frechet (\code{frechet}) distributions for drift rate. See \code{\link{GammaDist}} or \code{\link[evd]{frechet}}. For Gamma, scale = 1/shape and shape = 1/scale.
 #' @param meanlog_v,sdlog_v mean and standard deviation of lognormal distribution on the log scale for drift rate (\code{lnorm}). See \code{\link{Lognormal}}.
 #' 
-#' @param truncdrifts logical. Should truncated normal be used for \code{rlba_norm} prohibiting drift rates < 0. Default is \code{TRUE}.
+#' @param posdrift logical. Should driftrates be fored to be positive? Default is \code{TRUE}. (Uses truncated normal for random generation).
 #' 
 #' 
-#' @details For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. 
+#' @details For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.
 #' 
 #' @return All functions starting with a \code{d} return the density, all functions starting with \code{p} return the dsitribution function, and all functions starting with \code{r} return random respone times and responses (in a \code{data.frame}).
 #' 
@@ -31,6 +31,12 @@
 #' 
 NULL
 
+# protected normal desity and cdf
+pnormP <- function(x,mean=0,sd=1,lower.tail=TRUE){
+  ifelse(abs(x)<7,pnorm(x,sd=sd,lower.tail=lower.tail),ifelse(x<0,0,1))}  
+dnormP <- function(x,mean=0,sd=1){
+  ifelse(abs(x)<7,dnorm(x,sd=sd),0)}
+
 
 make_r <- function(drifts, n,b,A,n_v,t0,st0=0) {
   drifts <- drifts[1:n,]
@@ -39,6 +45,12 @@ make_r <- function(drifts, n,b,A,n_v,t0,st0=0) {
   ttf <- t((b-t(starts)))/drifts
   rt <- apply(ttf,1,min)+t0+runif(min=-st0/2,max=+st0/2,n=n)
   resp <- apply(ttf,1,which.min)
+  bad <- !is.finite(rt)
+  if (any(bad)) {
+    warning(paste(sum(bad),"infinite RTs removed"))
+    resp <- resp[!bad]
+    rt <- rt[!bad]
+  }
   data.frame(rt=rt,response=resp)
 }
 
@@ -48,38 +60,40 @@ rem_t0 <- function(t, t0) pmax(t - t0, 0)
 
 #' @rdname LBA
 #' @export dlba_norm
-dlba_norm <- function(t,A,b, t0, mean_v, sd_v) {
+dlba_norm <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE) {
   t <- rem_t0(t, t0)
-  if (A<1e-10) return( (b/t^2)*dnorm(b/t,meanmean_v,sd=sd_v)) 
+  if (posdrift) denom <- pmax(pnormP(mean_v/sd_v),1e-10) else denom <- 1
+  if (A<1e-10) return( pmax(0, ((b/t^2)*dnormP(b/t,meanmean_v,sd=sd_v))/denom)) 
   zs <- t*sd_v
   zu <- t*mean_v
   chiminuszu <- b-zu
   chizu <- chiminuszu/zs
   chizumax <- (chiminuszu-A)/zs
-  return((mean_v*(pnorm(chizu)-pnorm(chizumax)) + sd_v*(dnorm(chizumax)-dnorm(chizu)))/A)
+  pmax(0,(mean_v*(pnormP(chizu)-pnormP(chizumax)) + sd_v*(dnormP(chizumax)-dnormP(chizu)))/(A*denom))
 }
 
 #' @rdname LBA
 #' @export plba_norm
-plba_norm <- function(t,A,b,t0,mean_v, sd_v) {
+plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE) {
   t <- rem_t0(t, t0)
-  if (A<1e-10) return(pnorm(b/t,mean=mean_v,sd=sd_v,lower.tail=F))
+  if (posdrift) denom <- pmax(pnormP(mean_v/sd_v),1e-10) else denom <- 1
+  if (A<1e-10) return(pmin(1, pmax(0, (pnormP(b/t,mean=mean_v,sd=sd_v,lower.tail=FALSE))/denom)))
   zs <- t*sd_v
   zu <- t*mean_v 
   chiminuszu <- b-zu
   xx <- chiminuszu-A
   chizu <- chiminuszu/zs
   chizumax <- xx/zs
-  tmp1 <- zs*(dnorm(chizumax)-dnorm(chizu))
-  tmp2 <- xx*pnorm(chizumax)-chiminuszu*pnorm(chizu)
-  return(1+(tmp1+tmp2)/A)  
+  tmp1 <- zs*(dnormP(chizumax)-dnormP(chizu))
+  tmp2 <- xx*pnormP(chizumax)-chiminuszu*pnormP(chizu)
+  return(pmin(pmax(0,(1+(tmp1+tmp2)/(A*denom))), 1))  
 }
 
 #' @rdname LBA
 #' @export rlba_norm
-rlba_norm <- function(n,A,b,t0,mean_v, sd_v, st0=0,truncdrifts=TRUE){
+rlba_norm <- function(n,A,b,t0,mean_v, sd_v, st0=0,posdrift=TRUE){
   n_v <- max(length(mean_v), length(sd_v))
-  if (truncdrifts) drifts <- matrix(rtnorm(n=n*n_v, mean=mean_v, sd=sd_v, lower=0),ncol=n_v,byrow=TRUE)  
+  if (posdrift) drifts <- matrix(rtnorm(n=n*n_v, mean=mean_v, sd=sd_v, lower=0),ncol=n_v,byrow=TRUE)  
   else drifts <- matrix(rnorm(n=n*n_v, mean=mean_v, sd=sd_v),ncol=n_v,byrow=TRUE)
   make_r(drifts=drifts, n=n, b=b,A=A, n_v=n_v, t0=t0, st0=st0)
 }
@@ -224,15 +238,15 @@ dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v) {
   min <- (b-A)/t
   max <- b/t
   
-  zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnorm((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnorm((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnorm((log(max)-meanlog_v)/sdlog_v)-pnorm((log(min)-meanlog_v)/sdlog_v))
+  zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnormP((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnormP((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnormP((log(max)-meanlog_v)/sdlog_v)-pnormP((log(min)-meanlog_v)/sdlog_v))
   Gmax <- plnorm(max,meanlog=meanlog_v,sdlog=sdlog_v) 
   Gmin <- plnorm(min,meanlog=meanlog_v,sdlog=sdlog_v)
   
-  u <- (pnorm((log(max)-meanlog_v-(sdlog_v)^2)/sdlog_v)-pnorm((log(min)-meanlog_v-(sdlog_v)^2)/sdlog_v))
-  v <- (pnorm((log(max)-meanlog_v)/sdlog_v)-pnorm((log(min)-meanlog_v)/sdlog_v))
+  u <- (pnormP((log(max)-meanlog_v-(sdlog_v)^2)/sdlog_v)-pnormP((log(min)-meanlog_v-(sdlog_v)^2)/sdlog_v))
+  v <- (pnormP((log(max)-meanlog_v)/sdlog_v)-pnormP((log(min)-meanlog_v)/sdlog_v))
   
-  udash <- (((-1/(sdlog_v*t))*dnorm((log(b/t)-meanlog_v-(sdlog_v)^2)/sdlog_v)) - ((-1/(sdlog_v*t))*dnorm((log((b-A)/t)-meanlog_v-(sdlog_v)^2)/sdlog_v)))
-  vdash <- (((-1/(sdlog_v*t))*dnorm((log(b/t)-meanlog_v)/sdlog_v)) - ((-1/(sdlog_v*t))*dnorm((log((b-A)/t)-meanlog_v)/sdlog_v)))
+  udash <- (((-1/(sdlog_v*t))*dnormP((log(b/t)-meanlog_v-(sdlog_v)^2)/sdlog_v)) - ((-1/(sdlog_v*t))*dnormP((log((b-A)/t)-meanlog_v-(sdlog_v)^2)/sdlog_v)))
+  vdash <- (((-1/(sdlog_v*t))*dnormP((log(b/t)-meanlog_v)/sdlog_v)) - ((-1/(sdlog_v*t))*dnormP((log((b-A)/t)-meanlog_v)/sdlog_v)))
   const <- exp(meanlog_v+((sdlog_v)^2)/2)
   
   diffzlognorm <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
@@ -250,7 +264,7 @@ plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v) {
   t <- rem_t0(t, t0)
   min <- (b-A)/t
   max <- b/t
-  zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnorm((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnorm((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnorm((log(max)-meanlog_v)/sdlog_v)-pnorm((log(min)-meanlog_v)/sdlog_v))
+  zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnormP((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnormP((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnormP((log(max)-meanlog_v)/sdlog_v)-pnormP((log(min)-meanlog_v)/sdlog_v))
   term1 <- ((t*zlognorm) - b)/A
   term2 <- (b-A-(t*zlognorm))/A 
   pmax <- plnorm(max, meanlog=meanlog_v, sdlog=sdlog_v) 
