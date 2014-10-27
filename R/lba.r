@@ -23,14 +23,13 @@
 #' 
 #' @importFrom evd rfrechet dfrechet pfrechet
 #' @importFrom msm rtnorm
+#' @importFrom gsl gamma_inc
 #' 
 #' @name LBA
 #' 
 #' @example examples/examples.lba.R
 #' 
 NULL
-
-gamma_inc <- function(a,x)  pgamma(x,a,lower.tail=FALSE)*gamma(a)
 
 
 make_r <- function(drifts, n,b,A,n_v,t0,st0=0) {

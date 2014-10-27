@@ -14,7 +14,7 @@ t0 <- 0.3
 curve(dlba_norm(x, A=A, b=b, t0=t0, mean_v = 1.0, sd_v = 0.5), ylim = c(0, 4),
       xlim=c(0,3), main="Density of LBA versions", ylab="density", xlab="response time")
 curve(dlba_gamma(x, A=A, b=b, t0=t0, shape_v=1, scale_v=1), add=TRUE, lty = 2)
-curve(dlba_frechet(x, A=A, b=b, t0=t0, shape_v=1.1,scale_v=1.0), add=TRUE, lty = 3)
+curve(dlba_frechet(x, A=A, b=b, t0=t0, shape_v=1,scale_v=1.0), add=TRUE, lty = 3)
 curve(dlba_lnorm(x, A=A, b=b, t0=t0, meanlog_v = 0.5, sdlog_v = 0.5), add=TRUE, lty = 4)
 legend("topright", legend=c("Normal", "Gamma", "Frechet", "Log-Normal"), 
       title = expression("Distribution of"~~italic(v)), lty = 1:4)

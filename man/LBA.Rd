@@ -82,7 +82,6 @@ A <- 0.2
 b <- 0.5
 t0 <- 0.3
 
-
 # plot density:
 curve(dlba_norm(x, A=A, b=b, t0=t0, mean_v = 1.0, sd_v = 0.5), ylim = c(0, 4),
       xlim=c(0,3), main="Density of LBA versions", ylab="density", xlab="response time")
