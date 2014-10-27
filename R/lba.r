@@ -56,11 +56,20 @@ make_r <- function(drifts, n,b,A,n_v,t0,st0=0) {
 
 rem_t0 <- function(t, t0) pmax(t - t0, 0)
 
+check_single_arg <- function(...) {
+  arguments <- list(...)
+  for(i in seq_along(arguments)) {
+    if (length(arguments[[i]]) != 1) stop(paste(names(arguments[i]), "needs to be of length 1!"))
+    if (!is.numeric(arguments[[i]]) | !is.finite(arguments[[i]])) stop(paste(names(arguments[i]), "needs to be numeric and finite!"))
+  }
+}
+
 ####### Normal:
 
 #' @rdname LBA
 #' @export dlba_norm
 dlba_norm <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE) {
+  check_single_arg(A=A, b=b, t0=t0, mean_v=mean_v, sd_v=sd_v)
   t <- rem_t0(t, t0)
   if (posdrift) denom <- pmax(pnormP(mean_v/sd_v),1e-10) else denom <- 1
   if (A<1e-10) return( pmax(0, ((b/t^2)*dnormP(b/t,mean_v,sd=sd_v))/denom)) 
@@ -75,6 +84,7 @@ dlba_norm <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE) {
 #' @rdname LBA
 #' @export plba_norm
 plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE) {
+  check_single_arg(A=A, b=b, t0=t0, mean_v=mean_v, sd_v=sd_v)
   t <- rem_t0(t, t0)
   if (posdrift) denom <- pmax(pnormP(mean_v/sd_v),1e-10) else denom <- 1
   if (A<1e-10) return(pmin(1, pmax(0, (pnormP(b/t,mean=mean_v,sd=sd_v,lower.tail=FALSE))/denom)))
@@ -92,6 +102,7 @@ plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE) {
 #' @rdname LBA
 #' @export rlba_norm
 rlba_norm <- function(n,A,b,t0,mean_v, sd_v, st0=0,posdrift=TRUE){
+  check_single_arg(n=n, A=A, b=b, t0=t0, st0=st0)
   n_v <- max(length(mean_v), length(sd_v))
   if (posdrift) drifts <- matrix(rtnorm(n=n*n_v, mean=mean_v, sd=sd_v, lower=0),ncol=n_v,byrow=TRUE)  
   else drifts <- matrix(rnorm(n=n*n_v, mean=mean_v, sd=sd_v),ncol=n_v,byrow=TRUE)
@@ -104,10 +115,12 @@ rlba_norm <- function(n,A,b,t0,mean_v, sd_v, st0=0,posdrift=TRUE){
 #' @rdname LBA
 #' @export dlba_gamma
 dlba_gamma <- function(t,A,b,t0,shape_v,rate_v, scale_v) {
+  check_single_arg(A=A, b=b, t0=t0)
   t <- rem_t0(t, t0)
   
   if (!missing(rate_v) && !missing(scale_v)) stop("specify 'rate_v' or 'scale_v', but not both")
   if (missing(rate_v)) rate_v <- 1/scale_v
+  check_single_arg(shape_v=shape_v, rate_v=rate_v)
   
   min <- (b-A)/t
   max <- b/t
@@ -139,9 +152,11 @@ dlba_gamma <- function(t,A,b,t0,shape_v,rate_v, scale_v) {
 #' @rdname LBA
 #' @export plba_gamma  
 plba_gamma <- function(t,A,b,t0,shape_v, rate_v, scale_v) {
+  check_single_arg(A=A, b=b, t0=t0)
   t <- rem_t0(t, t0)
   if (!missing(rate_v) && !missing(scale_v)) stop("specify 'rate_v' or 'scale_v', but not both")
   if (missing(rate_v)) rate_v <- 1/scale_v
+  check_single_arg(shape_v=shape_v, rate_v=rate_v)
   min <- (b-A)/t
   max <- b/t
   Gmax <- pgamma(max, shape_v, rate=rate_v)
@@ -163,6 +178,7 @@ plba_gamma <- function(t,A,b,t0,shape_v, rate_v, scale_v) {
 #' @rdname LBA
 #' @export rlba_gamma
 rlba_gamma <- function(n,A,b,t0,shape_v, rate_v, scale_v, st0=0){
+  check_single_arg(A=A, b=b, t0=t0, st0=st0)
   if (!missing(rate_v) && !missing(scale_v)) stop("specify 'rate_v' or 'scale_v', but not both")
   if (missing(rate_v)) rate_v <- 1/scale_v
   n_v <- max(length(shape_v), length(rate_v))  
@@ -176,6 +192,7 @@ rlba_gamma <- function(n,A,b,t0,shape_v, rate_v, scale_v, st0=0){
 #' @rdname LBA
 #' @export dlba_frechet
 dlba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
+  check_single_arg(A=A, b=b, t0=t0, shape_v=shape_v, scale_v=scale_v)
   t <- rem_t0(t, t0)
   if (any(c(b,b-A,scale_v,shape_v)<0)) return(rep(0,length(t))) #protection for pfrechet()
   t <- pmax(t,0)
@@ -203,6 +220,7 @@ dlba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
 #' @rdname LBA
 #' @export plba_frechet
 plba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
+  check_single_arg(A=A, b=b, t0=t0, shape_v=shape_v, scale_v=scale_v)
   if (any(c(b,b-A,shape_v,scale_v)<0)) return(rep(0,length(t)))#Protection for the pfrechet()
   t <- pmax(t,0)
   min <- (b-A)/t
@@ -222,6 +240,7 @@ plba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
 #' @rdname LBA
 #' @export rlba_frechet
 rlba_frechet <- function(n,A,b,t0,shape_v, scale_v,st0=0){
+  check_single_arg(A=A, b=b, t0=t0, st0=st0)
   n_v <- max(length(shape_v), length(scale_v))
   drifts <- matrix(rfrechet(n=n*n_v, loc=0, scale=scale_v, shape=shape_v),ncol=n_v,byrow=TRUE)
   
@@ -234,6 +253,7 @@ rlba_frechet <- function(n,A,b,t0,shape_v, scale_v,st0=0){
 #' @rdname LBA
 #' @export dlba_lnorm
 dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v) {
+  check_single_arg(A=A, b=b, t0=t0, meanlog_v=meanlog_v, sdlog_v=sdlog_v)
   t <- rem_t0(t, t0)
   min <- (b-A)/t
   max <- b/t
@@ -261,6 +281,7 @@ dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v) {
 #' @rdname LBA
 #' @export plba_lnorm
 plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v) {
+  check_single_arg(A=A, b=b, t0=t0, meanlog_v=meanlog_v, sdlog_v=sdlog_v)
   t <- rem_t0(t, t0)
   min <- (b-A)/t
   max <- b/t
@@ -279,6 +300,7 @@ plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v) {
 #' @rdname LBA
 #' @export rlba_lnorm
 rlba_lnorm <- function(n,A,b,t0,meanlog_v, sdlog_v, st0=0){
+  check_single_arg(A=A, b=b, t0=t0, st0=st0)
   n_v <- max(length(meanlog_v), length(sdlog_v))
   drifts=matrix(rlnorm(n=n*n_v,meanlog = meanlog_v,sdlog=sdlog_v),ncol=n_v,byrow=TRUE)
   make_r(drifts=drifts, n=n, b=b, A=A, n_v=n_v, t0=t0, st0=st0)
