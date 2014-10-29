@@ -94,7 +94,7 @@ plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE) {
   chizumax <- xx/zs
   tmp1 <- zs*(dnormP(chizumax)-dnormP(chizu))
   tmp2 <- xx*pnormP(chizumax)-chiminuszu*pnormP(chizu)
-  return(pmin(pmax(0,(1+(tmp1+tmp2)/(A*denom))), 1))  
+  return(pmin(pmax(0,(1+(tmp1+tmp2)/A)/denom), 1))  
 }
 
 #' @rdname LBA
