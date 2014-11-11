@@ -15,6 +15,7 @@
 #' @param meanlog_v,sdlog_v mean and standard deviation of lognormal distribution on the log scale for drift rate (\code{lnorm}). See \code{\link{Lognormal}}.
 #' 
 #' @param posdrift logical. Should driftrates be fored to be positive? Default is \code{TRUE}. (Uses truncated normal for random generation).
+#' @param robust logical. Should robust normal distributions be used for \code{norm} and \code{lnorm}? Can be helpful in rare cases but is approxamitely three times slower than the non-robust versions. Default is \code{FALSE}.
 #' 
 #' 
 #' @details For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.\cr
@@ -66,34 +67,48 @@ check_single_arg <- function(...) {
 
 #' @rdname LBA
 #' @export dlba_norm
-dlba_norm <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE) {
+dlba_norm <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE) {
+  if (robust) { # robust == TRUE uses robust versions of the normal distributions
+    pnorm1 <- pnormP
+    dnorm1 <- dnormP
+  } else {
+    pnorm1 <- pnorm
+    dnorm1 <- dnorm
+  }
   check_single_arg(A=A, b=b, t0=t0, mean_v=mean_v, sd_v=sd_v)
   t <- rem_t0(t, t0)
-  if (posdrift) denom <- pmax(pnormP(mean_v/sd_v),1e-10) else denom <- 1
-  if (A<1e-10) return( pmax(0, ((b/t^2)*dnormP(b/t,mean_v,sd=sd_v))/denom)) 
+  if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- 1
+  if (A<1e-10) return( pmax(0, ((b/t^2)*dnorm1(b/t,mean_v,sd=sd_v))/denom)) 
   zs <- t*sd_v
   zu <- t*mean_v
   chiminuszu <- b-zu
   chizu <- chiminuszu/zs
   chizumax <- (chiminuszu-A)/zs
-  pmax(0,(mean_v*(pnormP(chizu)-pnormP(chizumax)) + sd_v*(dnormP(chizumax)-dnormP(chizu)))/(A*denom))
+  pmax(0,(mean_v*(pnorm1(chizu)-pnorm1(chizumax)) + sd_v*(dnorm1(chizumax)-dnorm1(chizu)))/(A*denom))
 }
 
 #' @rdname LBA
 #' @export plba_norm
-plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE) {
+plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE) {
+  if (robust) { # robust == TRUE uses robust versions of the normal distributions
+    pnorm1 <- pnormP
+    dnorm1 <- dnormP
+  } else {
+    pnorm1 <- pnorm
+    dnorm1 <- dnorm  
+  }
   check_single_arg(A=A, b=b, t0=t0, mean_v=mean_v, sd_v=sd_v)
   t <- rem_t0(t, t0)
-  if (posdrift) denom <- pmax(pnormP(mean_v/sd_v),1e-10) else denom <- 1
-  if (A<1e-10) return(pmin(1, pmax(0, (pnormP(b/t,mean=mean_v,sd=sd_v,lower.tail=FALSE))/denom)))
+  if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- 1
+  if (A<1e-10) return(pmin(1, pmax(0, (pnorm1(b/t,mean=mean_v,sd=sd_v,lower.tail=FALSE))/denom)))
   zs <- t*sd_v
   zu <- t*mean_v 
   chiminuszu <- b-zu
   xx <- chiminuszu-A
   chizu <- chiminuszu/zs
   chizumax <- xx/zs
-  tmp1 <- zs*(dnormP(chizumax)-dnormP(chizu))
-  tmp2 <- xx*pnormP(chizumax)-chiminuszu*pnormP(chizu)
+  tmp1 <- zs*(dnorm1(chizumax)-dnorm1(chizu))
+  tmp2 <- xx*pnorm1(chizumax)-chiminuszu*pnorm1(chizu)
   return(pmin(pmax(0,(1+(tmp1+tmp2)/A)/denom), 1))  
 }
 
@@ -250,21 +265,28 @@ rlba_frechet <- function(n,A,b,t0,shape_v, scale_v,st0=0){
 
 #' @rdname LBA
 #' @export dlba_lnorm
-dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v) {
+dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
+  if (robust) { # robust == TRUE uses robust versions of the normal distributions
+    pnorm1 <- pnormP
+    dnorm1 <- dnormP
+  } else {
+    pnorm1 <- pnorm
+    dnorm1 <- dnorm  
+  }
   check_single_arg(A=A, b=b, t0=t0, meanlog_v=meanlog_v, sdlog_v=sdlog_v)
   t <- rem_t0(t, t0)
   min <- (b-A)/t
   max <- b/t
   
-  zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnormP((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnormP((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnormP((log(max)-meanlog_v)/sdlog_v)-pnormP((log(min)-meanlog_v)/sdlog_v))
+  zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnorm1((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnorm1((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnorm1((log(max)-meanlog_v)/sdlog_v)-pnorm1((log(min)-meanlog_v)/sdlog_v))
   Gmax <- plnorm(max,meanlog=meanlog_v,sdlog=sdlog_v) 
   Gmin <- plnorm(min,meanlog=meanlog_v,sdlog=sdlog_v)
   
-  u <- (pnormP((log(max)-meanlog_v-(sdlog_v)^2)/sdlog_v)-pnormP((log(min)-meanlog_v-(sdlog_v)^2)/sdlog_v))
-  v <- (pnormP((log(max)-meanlog_v)/sdlog_v)-pnormP((log(min)-meanlog_v)/sdlog_v))
+  u <- (pnorm1((log(max)-meanlog_v-(sdlog_v)^2)/sdlog_v)-pnorm1((log(min)-meanlog_v-(sdlog_v)^2)/sdlog_v))
+  v <- (pnorm1((log(max)-meanlog_v)/sdlog_v)-pnorm1((log(min)-meanlog_v)/sdlog_v))
   
-  udash <- (((-1/(sdlog_v*t))*dnormP((log(b/t)-meanlog_v-(sdlog_v)^2)/sdlog_v)) - ((-1/(sdlog_v*t))*dnormP((log((b-A)/t)-meanlog_v-(sdlog_v)^2)/sdlog_v)))
-  vdash <- (((-1/(sdlog_v*t))*dnormP((log(b/t)-meanlog_v)/sdlog_v)) - ((-1/(sdlog_v*t))*dnormP((log((b-A)/t)-meanlog_v)/sdlog_v)))
+  udash <- (((-1/(sdlog_v*t))*dnorm1((log(b/t)-meanlog_v-(sdlog_v)^2)/sdlog_v)) - ((-1/(sdlog_v*t))*dnorm1((log((b-A)/t)-meanlog_v-(sdlog_v)^2)/sdlog_v)))
+  vdash <- (((-1/(sdlog_v*t))*dnorm1((log(b/t)-meanlog_v)/sdlog_v)) - ((-1/(sdlog_v*t))*dnorm1((log((b-A)/t)-meanlog_v)/sdlog_v)))
   const <- exp(meanlog_v+((sdlog_v)^2)/2)
   
   diffzlognorm <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
@@ -278,12 +300,17 @@ dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v) {
 
 #' @rdname LBA
 #' @export plba_lnorm
-plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v) {
+plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
+  if (robust) { # robust == TRUE uses robust versions of the normal distributions
+    pnorm1 <- pnormP
+  } else {
+    pnorm1 <- pnorm 
+  }
   check_single_arg(A=A, b=b, t0=t0, meanlog_v=meanlog_v, sdlog_v=sdlog_v)
   t <- rem_t0(t, t0)
   min <- (b-A)/t
   max <- b/t
-  zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnormP((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnormP((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnormP((log(max)-meanlog_v)/sdlog_v)-pnormP((log(min)-meanlog_v)/sdlog_v))
+  zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnorm1((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnorm1((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnorm1((log(max)-meanlog_v)/sdlog_v)-pnorm1((log(min)-meanlog_v)/sdlog_v))
   term1 <- ((t*zlognorm) - b)/A
   term2 <- (b-A-(t*zlognorm))/A 
   pmax <- plnorm(max, meanlog=meanlog_v, sdlog=sdlog_v) 

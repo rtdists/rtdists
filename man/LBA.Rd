@@ -15,9 +15,9 @@
 \alias{rlba_norm}
 \title{The linear Ballistic Accumulator (LBA)}
 \usage{
-dlba_norm(t, A, b, t0, mean_v, sd_v, posdrift = TRUE)
+dlba_norm(t, A, b, t0, mean_v, sd_v, posdrift = TRUE, robust = FALSE)
 
-plba_norm(t, A, b, t0, mean_v, sd_v, posdrift = TRUE)
+plba_norm(t, A, b, t0, mean_v, sd_v, posdrift = TRUE, robust = FALSE)
 
 rlba_norm(n, A, b, t0, mean_v, sd_v, st0 = 0, posdrift = TRUE)
 
@@ -33,9 +33,9 @@ plba_frechet(t, A, b, t0, shape_v, scale_v)
 
 rlba_frechet(n, A, b, t0, shape_v, scale_v, st0 = 0)
 
-dlba_lnorm(t, A, b, t0, meanlog_v, sdlog_v)
+dlba_lnorm(t, A, b, t0, meanlog_v, sdlog_v, robust = FALSE)
 
-plba_lnorm(t, A, b, t0, meanlog_v, sdlog_v)
+plba_lnorm(t, A, b, t0, meanlog_v, sdlog_v, robust = FALSE)
 
 rlba_lnorm(n, A, b, t0, meanlog_v, sdlog_v, st0 = 0)
 }
@@ -51,6 +51,8 @@ rlba_lnorm(n, A, b, t0, meanlog_v, sdlog_v, st0 = 0)
 \item{mean_v,sd_v}{mean and standard deviation of normal distribution for drift rate (\code{norm}). See \code{\link{Normal}}}
 
 \item{posdrift}{logical. Should driftrates be fored to be positive? Default is \code{TRUE}. (Uses truncated normal for random generation).}
+
+\item{robust}{logical. Should robust normal distributions be used for \code{norm} and \code{lnorm}? Can be helpful in rare cases but is approxamitely three times slower than the non-robust versions. Default is \code{FALSE}.}
 
 \item{n}{desired number of observations.}
 
