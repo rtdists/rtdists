@@ -17,7 +17,7 @@ License: \tab GPL (>=3)\cr
 URL: \tab https://github.com/rtdists/rtdists/\cr
 }
 
-Provides response time distributions: (a) diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distribution underlying the drift rate variability.
+Provides response time distributions: (a) diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distribution underlying the drift rate.
 }
 \author{
 Scott Brown, Matthew Gretton, Andrew Heathcote, Andreas Voss, Jochen Voss, Henrik Singmann

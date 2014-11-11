@@ -38,7 +38,7 @@ roxy.package(
     Depends = "R (>= 3.0.0)",
     Suggests = "testthat",
     Imports = "evd, msm, gsl",
-    Description = "Provides response time distributions: (a) diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distribution underlying the drift rate variability.",
+    Description = "Provides response time distributions: (a) diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distribution underlying the drift rate.",
     URL = "https://github.com/rtdists/rtdists/",
     License = "GPL (>=3)",
     stringsAsFactors = FALSE),
