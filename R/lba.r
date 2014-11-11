@@ -21,7 +21,7 @@
 #' @details For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.\cr
 #' Note that for random number generation from a normal distribution for the driftrate the number of returned samples may be less than the number of requested samples if \code{posdrifts==FALSE}.
 #' 
-#' @return All functions starting with a \code{d} return the density, all functions starting with \code{p} return the dsitribution function, and all functions starting with \code{r} return random respone times and responses (in a \code{data.frame}).
+#' @return All functions starting with a \code{d} return the density (PDF), all functions starting with \code{p} return the dsitribution function (CDF), and all functions starting with \code{r} return random respone times and responses (in a \code{data.frame}).
 #' 
 #' @references 
 #' 
