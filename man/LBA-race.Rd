@@ -14,7 +14,7 @@ n1CDF(t, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
 \arguments{
 \item{t}{a vector of RTs.}
 
-\item{A,b,T0}{LBA parameters, see \code{\link{LBA}}.}
+\item{A,b,t0}{LBA parameters, see \code{\link{LBA}}.}
 
 \item{...}{two named drift rate parameters dependening on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}).}
 

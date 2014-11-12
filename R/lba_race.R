@@ -3,7 +3,7 @@
 #' as described elsewhere.
 #'
 #' @param t a vector of RTs.
-#' @param A,b,T0 LBA parameters, see \code{\link{LBA}}.
+#' @param A,b,t0 LBA parameters, see \code{\link{LBA}}.
 #' @param ... two named drift rate parameters dependening on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). 
 #' @param distribution character specifying the distribution of the drift rate.
 #' @param args.dist Optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}).
@@ -122,7 +122,7 @@ n1CDF <- function(t,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "frec
       }
       # Try smart lower bound.
       if (bounds[i]<=0) {
-        bounds[i] <- max(c((b-0.98*A)/(max(mean(mean_v),drift[1])+2*sd_v)[1],0))
+        bounds[i] <- max(c((b-0.98*A)/(max(mean(mean_v),mean_v[1])+2*sd_v)[1],0))
         next
       }
       # Try smart upper bound.
