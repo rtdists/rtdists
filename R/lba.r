@@ -14,14 +14,14 @@
 #' @param shape_v,rate_v,scale_v shape, rate, and scale of gamma (\code{gamma}) and scale and shape of Frechet (\code{frechet}) distributions for drift rate. See \code{\link{GammaDist}} or \code{\link[evd]{frechet}}. For Gamma, scale = 1/shape and shape = 1/scale.
 #' @param meanlog_v,sdlog_v mean and standard deviation of lognormal distribution on the log scale for drift rate (\code{lnorm}). See \code{\link{Lognormal}}.
 #' 
-#' @param posdrift logical. Should driftrates be fored to be positive? Default is \code{TRUE}. (Uses truncated normal for random generation).
-#' @param robust logical. Should robust normal distributions be used for \code{norm} and \code{lnorm}? Can be helpful in rare cases but is approxamitely three times slower than the non-robust versions. Default is \code{FALSE}.
+#' @param posdrift logical. Should driftrates be forced to be positive? Default is \code{TRUE}. (Uses truncated normal for random generation).
+#' @param robust logical. Should robust normal distributions be used for \code{norm} and \code{lnorm}? Can be helpful in rare cases but is approximately three times slower than the non-robust versions. Default is \code{FALSE}.
 #' 
 #' 
 #' @details For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.\cr
 #' Note that for random number generation from a normal distribution for the driftrate the number of returned samples may be less than the number of requested samples if \code{posdrifts==FALSE}.
 #' 
-#' @return All functions starting with a \code{d} return the density (PDF), all functions starting with \code{p} return the dsitribution function (CDF), and all functions starting with \code{r} return random respone times and responses (in a \code{data.frame}).
+#' @return All functions starting with a \code{d} return the density (PDF), all functions starting with \code{p} return the dsitribution function (CDF), and all functions starting with \code{r} return random response times and responses (in a \code{data.frame}).
 #' 
 #' @references 
 #' 

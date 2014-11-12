@@ -50,9 +50,9 @@ rlba_lnorm(n, A, b, t0, meanlog_v, sdlog_v, st0 = 0)
 
 \item{mean_v,sd_v}{mean and standard deviation of normal distribution for drift rate (\code{norm}). See \code{\link{Normal}}}
 
-\item{posdrift}{logical. Should driftrates be fored to be positive? Default is \code{TRUE}. (Uses truncated normal for random generation).}
+\item{posdrift}{logical. Should driftrates be forced to be positive? Default is \code{TRUE}. (Uses truncated normal for random generation).}
 
-\item{robust}{logical. Should robust normal distributions be used for \code{norm} and \code{lnorm}? Can be helpful in rare cases but is approxamitely three times slower than the non-robust versions. Default is \code{FALSE}.}
+\item{robust}{logical. Should robust normal distributions be used for \code{norm} and \code{lnorm}? Can be helpful in rare cases but is approximately three times slower than the non-robust versions. Default is \code{FALSE}.}
 
 \item{n}{desired number of observations.}
 
@@ -63,7 +63,7 @@ rlba_lnorm(n, A, b, t0, meanlog_v, sdlog_v, st0 = 0)
 \item{meanlog_v,sdlog_v}{mean and standard deviation of lognormal distribution on the log scale for drift rate (\code{lnorm}). See \code{\link{Lognormal}}.}
 }
 \value{
-All functions starting with a \code{d} return the density (PDF), all functions starting with \code{p} return the dsitribution function (CDF), and all functions starting with \code{r} return random respone times and responses (in a \code{data.frame}).
+All functions starting with a \code{d} return the density (PDF), all functions starting with \code{p} return the dsitribution function (CDF), and all functions starting with \code{r} return random response times and responses (in a \code{data.frame}).
 }
 \description{
 Density, distribution function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}).
