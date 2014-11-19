@@ -83,16 +83,33 @@ dlba_norm <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE) {
     pnorm1 <- pnorm
     dnorm1 <- dnorm
   }
-  check_single_arg(A=A, b=b, t0=t0, mean_v=mean_v, sd_v=sd_v)
-  t <- rem_t0(t, t0)
-  if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- 1
-  if (A<1e-10) return( pmax(0, ((b/t^2)*dnorm1(b/t,mean_v,sd=sd_v))/denom)) 
-  zs <- t*sd_v
-  zu <- t*mean_v
-  chiminuszu <- b-zu
+  #check_single_arg(A=A, b=b, t0=t0, mean_v=mean_v, sd_v=sd_v)
+  # bring all arguments to length of t
+  nn <- length(t)
+  A <- rep(A, length.out = nn)
+  b <- rep(b, length.out = nn)
+  t0 <- rep(t0, length.out = nn)
+  mean_v <- rep(mean_v, length.out = nn)
+  sd_v <- rep(sd_v, length.out = nn)
+  
+  t <- rem_t0(t, t0) # rmove t0 from t
+  if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- rep(1, nn)
+  
+  # for A<1e-10 save results in out_A
+  A_small <- A<1e-10
+  out_A <- pmax(0, ((b[A_small]/t[A_small]^2)*dnorm1(b[A_small]/t[A_small],mean_v[A_small],sd=sd_v[A_small]))/denom[A_small]) 
+  # calculate other results into out_o
+  zs <- t[!A_small]*sd_v[!A_small]
+  zu <- t[!A_small]*mean_v[!A_small]
+  chiminuszu <- b[!A_small]-zu
   chizu <- chiminuszu/zs
-  chizumax <- (chiminuszu-A)/zs
-  pmax(0,(mean_v*(pnorm1(chizu)-pnorm1(chizumax)) + sd_v*(dnorm1(chizumax)-dnorm1(chizu)))/(A*denom))
+  chizumax <- (chiminuszu-A[!A_small])/zs
+  out_o <- pmax(0,(mean_v[!A_small]*(pnorm1(chizu)-pnorm1(chizumax)) + sd_v[!A_small]*(dnorm1(chizumax)-dnorm1(chizu)))/(A[!A_small]*denom[!A_small]))
+  # combine out_A and out_o
+  out <- numeric(nn)
+  out[!A_small] <- out_o
+  out[A_small] <- out_A
+  out
 }
 
 #' @rdname LBA
@@ -105,19 +122,38 @@ plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE) {
     pnorm1 <- pnorm
     dnorm1 <- dnorm  
   }
-  check_single_arg(A=A, b=b, t0=t0, mean_v=mean_v, sd_v=sd_v)
+  #check_single_arg(A=A, b=b, t0=t0, mean_v=mean_v, sd_v=sd_v)
+  nn <- length(t)
+  A <- rep(A, length.out = nn)
+  b <- rep(b, length.out = nn)
+  t0 <- rep(t0, length.out = nn)
+  mean_v <- rep(mean_v, length.out = nn)
+  sd_v <- rep(sd_v, length.out = nn)
+  
   t <- rem_t0(t, t0)
   if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- 1
-  if (A<1e-10) return(pmin(1, pmax(0, (pnorm1(b/t,mean=mean_v,sd=sd_v,lower.tail=FALSE))/denom)))
-  zs <- t*sd_v
-  zu <- t*mean_v 
-  chiminuszu <- b-zu
-  xx <- chiminuszu-A
+  
+  # for A<1e-10 save results in out_A
+  #if (A<1e-10) return(pmin(1, pmax(0, (pnorm1(b/t,mean=mean_v,sd=sd_v,lower.tail=FALSE))/denom)))
+  A_small <- A<1e-10
+  out_A <- pmin(1, pmax(0, (pnorm1(b[A_small]/t[A_small],mean=mean_v[A_small],sd=sd_v[A_small],lower.tail=FALSE))/denom[A_small]))
+  
+  # calculate other results into out_o
+  zs <- t[!A_small]*sd_v[!A_small]
+  zu <- t[!A_small]*mean_v[!A_small]
+  chiminuszu <- b[!A_small]-zu
+  xx <- chiminuszu-A[!A_small]
   chizu <- chiminuszu/zs
   chizumax <- xx/zs
   tmp1 <- zs*(dnorm1(chizumax)-dnorm1(chizu))
   tmp2 <- xx*pnorm1(chizumax)-chiminuszu*pnorm1(chizu)
-  return(pmin(pmax(0,(1+(tmp1+tmp2)/A)/denom), 1))  
+  out_o <- pmin(pmax(0,(1+(tmp1+tmp2)/A[!A_small])/denom[!A_small]), 1)
+  
+  # combine out_A and out_o
+  out <- numeric(nn)
+  out[!A_small] <- out_o
+  out[A_small] <- out_A
+  out
 }
 
 #' @rdname LBA
