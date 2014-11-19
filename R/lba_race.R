@@ -114,35 +114,24 @@ n1CDF <- function(t,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "frec
       tmp <- try(do.call(integrate, args=c(f=n1PDF,lower=bounds[i],upper=bounds[i+1],subdivisions=1000,
                                            A=list(A), b=list(b), t0 = list(t0), dots, distribution = distribution, args.dist = args.dist))$value,silent=T)
       
-      #do.call(integrate, args=c(f=tmpf, lower=t[i]-st0 , upper=t[i], A=list(A), b=list(b), t0 = list(t0), dots, plba = plba, plba.args = plba.args)
-      
       if (is.numeric(tmp)) {
         outs[i]=tmp
         break
       }
       # Try smart lower bound.
-      if (bounds[i]<=0) {
-        bounds[i] <- max(c((b-0.98*A)/(max(mean(mean_v),mean_v[1])+2*sd_v)[1],0))
+      if ((distribution == "norm") && (bounds[i]<=0)) {
+        bounds[i] <- max(c((b-0.98*A)/(max(mean(dots$mean_v),dots$mean_v[1])+2*dots$sd_v)[1],0))
         next
       }
       # Try smart upper bound.
-      if (bounds[i+1]==Inf) {
-        bounds[i+1]=0.02*max(b)/(mean(mean_v)-2*mean(sd_v))
+      if ((distribution == "norm") && (bounds[i+1]==Inf)) {
+        bounds[i+1]=0.02*max(b)/(mean(dots$mean_v)-2*mean(dots$sd_v))
         next
       }
-      stop("Error in n1CDF that I could not catch.")
+      stop("Error in n1CDF that I could not catch. Please report (with data used) to maintainer email.")
     }
   }
   cumsum(outs)
 }
 
-# n1mean=function(x0max,chi,drift,sdI,posdrift=TRUE,robust=FALSE) {
-#   # Generates mean RT for responses on node #1. 
-#   pc=n1CDF(Inf,x0max,chi,drift,sdI,posdrift,robust)
-#   fn=function(t,x0max,chi,drift,sdI,st0=0,pc,posdrift,robust)
-#     t*n1PDF(t,x0max,chi,drift,sdI,st0,posdrift,robust)/pc
-#   tmp=integrate(f=fn,lower=0,upper=100*chi,x0max=x0max,chi=chi,pc=pc,
-#                 drift=drift,sdI=sdI,st0=st0,posdrift=posdrift,robust=robust)$value
-#   list(mean=tmp,p=pc)
-# }
 

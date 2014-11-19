@@ -3,14 +3,14 @@
 #' \tabular{ll}{
 #' Package: \tab rtdists\cr
 #' Type: \tab Package\cr
-#' Version: \tab 0.2-3\cr
-#' Date: \tab 2014-11-12\cr
+#' Version: \tab 0.2-4\cr
+#' Date: \tab 2014-11-19\cr
 #' Depends: \tab R (>= 3.0.0)\cr
 #' License: \tab GPL (>=3)\cr
 #' URL: \tab https://github.com/rtdists/rtdists/\cr
 #' }
 #'
-#' Provides response time distributions: (a) diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distribution underlying the drift rate.
+#' Provides response time distributions (density/PDF, distribution function/CDF, and random generation): (a) Ratcliff diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distribution underlying the drift rate.
 #'
 #' @aliases rtdists-package
 #' @name rtdists-package
