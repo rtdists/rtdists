@@ -8,7 +8,7 @@
 #' @param A start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.
 #' @param b response threshold. (\code{b} - \code{A}/2) is a measure of "response caution". 
 #' @param t0 non-decision time or response time constant (in seconds). Average duration of all non-decisional processes (encoding and response execution).
-#' @param st0 variability of non-decision time. Uniformly distributed around \code{t0} +/- \code{st0}/2.
+#' @param st0 variability of non-decision time. Uniformly distributed around \code{t0} + \code{st0} (i.e., \code{t0} is the lower bound).
 #' 
 #' @param mean_v,sd_v mean and standard deviation of normal distribution for drift rate (\code{norm}). See \code{\link{Normal}}
 #' @param shape_v,rate_v,scale_v shape, rate, and scale of gamma (\code{gamma}) and scale and shape of Frechet (\code{frechet}) distributions for drift rate. See \code{\link{GammaDist}} or \code{\link[evd]{frechet}}. For Gamma, scale = 1/shape and shape = 1/scale.
@@ -64,10 +64,21 @@ make_r <- function(drifts, n,b,A,n_v,t0,st0=0) {
 rem_t0 <- function(t, t0) pmax(t - t0, 0)
 
 check_single_arg <- function(...) {
+  mc <- match.call()
+  vars <- all.vars(mc)
   arguments <- list(...)
   for(i in seq_along(arguments)) {
-    if (length(arguments[[i]]) != 1) stop(paste(names(arguments[i]), "needs to be of length 1!"))
-    if (!is.numeric(arguments[[i]]) | !is.finite(arguments[[i]])) stop(paste(names(arguments[i]), "needs to be numeric and finite!"))
+    if (length(arguments[[i]]) != 1) stop(paste(vars[i], "needs to be of length 1!"))
+    if (!is.numeric(arguments[[i]]) | !is.finite(arguments[[i]])) stop(paste(vars[i], "needs to be numeric and finite!"))
+  }
+}
+
+check_vector <- function(...) {
+  mc <- match.call()
+  vars <- all.vars(mc)
+  dots <- list(...)
+  for (i in seq_along(dots)) {
+    if (!is.vector(dots[[i]], "numeric")) stop(paste(vars[[i]], "needs to be a numeric vector!"))
   }
 }
 
@@ -84,6 +95,7 @@ dlba_norm <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE) {
     dnorm1 <- dnorm
   }
   #check_single_arg(A=A, b=b, t0=t0, mean_v=mean_v, sd_v=sd_v)
+  check_vector(t, A, b, t0, mean_v, sd_v)
   # bring all arguments to length of t
   nn <- length(t)
   A <- rep(A, length.out = nn)
@@ -123,13 +135,14 @@ plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE) {
     dnorm1 <- dnorm  
   }
   #check_single_arg(A=A, b=b, t0=t0, mean_v=mean_v, sd_v=sd_v)
+  check_vector(t, A, b=b, t0, mean_v, sd_v)
   nn <- length(t)
   A <- rep(A, length.out = nn)
   b <- rep(b, length.out = nn)
   t0 <- rep(t0, length.out = nn)
   mean_v <- rep(mean_v, length.out = nn)
   sd_v <- rep(sd_v, length.out = nn)
-  
+  #browser()
   t <- rem_t0(t, t0)
   if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- 1
   
