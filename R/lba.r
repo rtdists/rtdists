@@ -50,7 +50,7 @@ make_r <- function(drifts, n,b,A,n_v,t0,st0=0) {
   drifts[drifts<0] <- 0
   starts <- matrix(runif(min=0,max=A,n=n*n_v),ncol=n_v,byrow=TRUE)
   ttf <- t((b-t(starts)))/drifts
-  rt <- apply(ttf,1,min)+t0+runif(min=-st0/2,max=+st0/2,n=n)
+  rt <- apply(ttf,1,min)+t0+runif(min=0,max=st0,n=n)
   resp <- apply(ttf,1,which.min)
   bad <- !is.finite(rt)
   if (any(bad)) {

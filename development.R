@@ -22,7 +22,7 @@ R.libs <- "."
 
 roxy.package(
   pck.source.dir = ".",
-  pck.version = "0.2-4",
+  pck.version = "0.2-5",
   pck.description = data.frame(
     Package = "rtdists",
     Type = "Package",
@@ -31,8 +31,9 @@ roxy.package(
         person(given=\"Scott\", family=\"Brown\", role=c(\"aut\")),
         person(given=\"Matthew\", family=\"Gretton\", role=c(\"aut\")),
         person(given=\"Andrew\", family=\"Heathcote\", role=c(\"aut\")),
-        person(given=\"Andreas\", family=\"Voss\", role=c(\"aut\")),
-        person(given=\"Jochen\", family=\"Voss\", role=c(\"aut\")),
+        person(given=\"Andreas\", family=\"Voss\", role=c(\"ctb\")),
+        person(given=\"Jochen\", family=\"Voss\", role=c(\"ctb\")),
+        person(given=\"Andrew\", family=\"Terry\", role=c(\"ctb\")),
         person(given=\"Henrik\", family=\"Singmann\", email=\"singmann+rtdists@gmail.com\", role=c(\"aut\", \"cre\"))
     )",
     Depends = "R (>= 3.0.0)",

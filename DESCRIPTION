@@ -18,9 +18,10 @@ License: GPL (>=3)
 Authors@R: c( person(given="Scott", family="Brown", role=c("aut")),
     person(given="Matthew", family="Gretton", role=c("aut")),
     person(given="Andrew", family="Heathcote", role=c("aut")),
-    person(given="Andreas", family="Voss", role=c("aut")),
-    person(given="Jochen", family="Voss", role=c("aut")),
+    person(given="Andreas", family="Voss", role=c("ctb")),
+    person(given="Jochen", family="Voss", role=c("ctb")),
+    person(given="Andrew", family="Terry", role=c("ctb")),
     person(given="Henrik", family="Singmann",
     email="singmann+rtdists@gmail.com", role=c("aut", "cre")) )
-Version: 0.2-4
-Date: 2014-11-19
+Version: 0.2-5
+Date: 2014-11-24
