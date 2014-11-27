@@ -54,9 +54,9 @@ rlba_lnorm(n, A, b, t0, meanlog_v, sdlog_v, st0 = 0)
 
 \item{robust}{logical. Should robust normal distributions be used for \code{norm} and \code{lnorm}? Can be helpful in rare cases but is approximately three times slower than the non-robust versions. Default is \code{FALSE}.}
 
-\item{n}{desired number of observations.}
+\item{n}{desired number of observations (scalar integer).}
 
-\item{st0}{variability of non-decision time. Uniformly distributed around \code{t0} +/- \code{st0}/2.}
+\item{st0}{variability of non-decision time. Uniformly distributed around \code{t0} + \code{st0} (i.e., \code{t0} is the lower bound). Only available in random number generation functions \code{rlba_}.}
 
 \item{shape_v,rate_v,scale_v}{shape, rate, and scale of gamma (\code{gamma}) and scale and shape of Frechet (\code{frechet}) distributions for drift rate. See \code{\link{GammaDist}} or \code{\link[evd]{frechet}}. For Gamma, scale = 1/shape and shape = 1/scale.}
 
@@ -71,6 +71,9 @@ Density, distribution function, and random generation for the LBA model with the
 \details{
 For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.\cr
 Note that for random number generation from a normal distribution for the driftrate the number of returned samples may be less than the number of requested samples if \code{posdrifts==FALSE}.
+}
+\note{
+Density (i.e., \code{dlba_}) and distribution (i.e., \code{plba_}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{t}, parameters are recycled). Somewhat inconsistently, the random number generation functions \code{rlba_} accept only scalar inputs.
 }
 \examples{
 
@@ -87,7 +90,7 @@ t0 <- 0.3
 
 # plot density:
 curve(dlba_norm(x, A=A, b=b, t0=t0, mean_v = 1.0, sd_v = 0.5), ylim = c(0, 4),
-      xlim=c(0,3), main="Density of LBA versions", ylab="density", xlab="response time")
+      xlim=c(0,3), main="Density/PDF of LBA versions", ylab="density", xlab="response time")
 curve(dlba_gamma(x, A=A, b=b, t0=t0, shape_v=1, scale_v=1), add=TRUE, lty = 2)
 curve(dlba_frechet(x, A=A, b=b, t0=t0, shape_v=1,scale_v=1.0), add=TRUE, lty = 3)
 curve(dlba_lnorm(x, A=A, b=b, t0=t0, meanlog_v = 0.5, sdlog_v = 0.5), add=TRUE, lty = 4)
@@ -99,7 +102,7 @@ legend("topright", legend=c("Normal", "Gamma", "Frechet", "Log-Normal"),
 curve(plba_norm(x, A=A, b=b, t0=t0, mean_v=1.0, sd_v=1.0), 
       xlim = c(0, 3),ylim = c(0,1), 
       ylab = "cumulative probability", xlab = "response time",
-      main = "CDF of LBA versions")
+      main = "Distribution/CDF of LBA versions")
 curve(plba_gamma(x, A=A, b=b, t0=t0, shape_v=1,scale_v=1), add=TRUE, lty = 2)
 curve(plba_frechet(x, A=A, b=b, t0=t0, shape=1, scale=1), add=TRUE, lty = 3)
 curve(plba_lnorm(x, A=A, b=b, t0=t0, meanlog_v=0.5, sdlog_v = 0.5), add=TRUE, lty = 4)
