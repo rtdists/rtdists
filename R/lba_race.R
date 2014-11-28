@@ -125,7 +125,9 @@ n1CDF <- function(t,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "frec
         outs[i]=0
         break
       }
-      tmp <- do.call(integrate, args=c(f=n1PDF,lower=bounds[i],upper=bounds[i+1],subdivisions=1000, A=list(A), b=list(b), t0 = list(t0[1]), st0 = list(st0), dots, distribution = distribution, args.dist = args.dist))$value
+      tmp_obj <- do.call(integrate, args=c(f=n1PDF,lower=bounds[i],upper=bounds[i+1],subdivisions=1000, A=list(A), b=list(b), t0 = list(t0[1]), st0 = list(st0), dots, distribution = distribution, stop.on.error = FALSE, args.dist = args.dist))
+      if (tmp_obj$message != "OK") warning(tmp_obj$message)
+      tmp <- tmp_obj$value
       
       if (is.numeric(tmp)) {
         outs[i]=tmp

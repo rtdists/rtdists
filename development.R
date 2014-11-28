@@ -14,8 +14,11 @@ dlba_frechet(seq(0.6,2,0.1), A=A, b=b, t0=t0, shape_v=1.1, scale_v=1)
 
 rlba_norm(100, b = 1.3, A = 1, vs = c(0.8, 1.2), s = 1.2, t0 = .2, st0 = 0)
 
+(x <- rlba_frechet(10, A=0.7, b = 0.5, t0 = 0.1, shape_v = c(0.7, 1.0), scale_v = c(0.7, 1.2)))
+
 require(testthat)
 test_package("rtdists")
+test_file("tests/testthat/test-lba-math.R")
 
 
 ## Complete documentation including DESCRPTION file is written using roxygen2 and wrapper roxyPackage:
