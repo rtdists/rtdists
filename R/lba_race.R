@@ -27,18 +27,23 @@ n1PDFfixedt0 <- function(t,A,b, t0, ..., distribution = c("norm", "gamma", "frec
          norm = {
            pdf <- dlba_norm
            cdf <- plba_norm
+           if (any(!(c("mean_v","sd_v") %in% names(dots)))) stop("mean_v and sd_v need to be passed for distribution = \"norm\"")
          },
          gamma = {
            pdf <- dlba_gamma
            cdf <- plba_gamma
+           if (!("shape_v" %in% names(dots))) stop("shape_v needs to be passed for distribution = \"gamma\"")
+           if ((!("rate_v" %in% names(dots))) & (!("scale_v" %in% names(dots)))) stop("rate_v or scale_v needs to be passed for distribution = \"gamma\"")
          },
          frechet = {
            pdf <- dlba_frechet
            cdf <- plba_frechet
+           if (any(!(c("shape_v","scale_v") %in% names(dots)))) stop("shape_v and scale_v need to be passed for distribution = \"frechet\"")
          },
          lnorm = {
            pdf <- dlba_lnorm
            cdf <- plba_lnorm
+           if (any(!(c("meanlog_v","sdlog_v") %in% names(dots)))) stop("meanlog_v and sdlog_v need to be passed for distribution = \"lnorm\"")
          }
          )
   n_v <- max(vapply(dots, length, 0))  # Number of responses
@@ -120,7 +125,7 @@ n1CDF <- function(t,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "frec
         outs[i]=0
         break
       }
-      tmp <- try(do.call(integrate, args=c(f=n1PDF,lower=bounds[i],upper=bounds[i+1],subdivisions=1000, A=list(A), b=list(b), t0 = list(t0[1]), st0 = list(st0), dots, distribution = distribution, args.dist = args.dist))$value,silent=T)
+      tmp <- do.call(integrate, args=c(f=n1PDF,lower=bounds[i],upper=bounds[i+1],subdivisions=1000, A=list(A), b=list(b), t0 = list(t0[1]), st0 = list(st0), dots, distribution = distribution, args.dist = args.dist))$value
       
       if (is.numeric(tmp)) {
         outs[i]=tmp

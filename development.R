@@ -2,6 +2,9 @@
 require(devtools)
 load_all()
 
+options(error = recover)
+options(error = NULL)
+
 rlba_norm(10, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2, 0.4, 0.5))
 rlba_gamma(10, A=0.5, b=1, t0 = 0.5, shape_v=c(1, 1.6, 0.7), scale_v=c(0.2,0.3))
 rlba_frechet(10, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3,0.8))

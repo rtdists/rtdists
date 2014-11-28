@@ -41,7 +41,6 @@ ks.test(r_lba$rt[r_lba$response==1], normalised_n1CDF, A=0.5, b=1, t0 = 0.5,
 ## Other examples:
 
 xx <- rlba_norm(10, A=0.5, b=1, t0 = 0.5, mean_v=1.2, sd_v=0.2)
-n1PDF(x, A=0.5, b=1, t0 = 0.5, st0 = 0.2, mean_v=c(1.2, 1.0), sd_v=0.2)
 
 n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2, st0 = 0.4)
 
@@ -54,4 +53,8 @@ n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
 n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.0, 1.2), sd_v=0.2)
 
 n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, meanlog_v = c(0.5, 0.8), sdlog_v = 0.5, distribution = "lnorm")
-n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, meanlog_v = c(0.8, 0.5), sdlog_v = 0.5, distribution = "lnorm")
+n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, meanlog_v = c(0.8, 0.5), sdlog_v = 0.5, distribution = "gamma")
+
+n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3), distribution = "gamma")
+
+n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3), distribution = "frechet")
