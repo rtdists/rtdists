@@ -7,7 +7,7 @@ test_that("PDF and CDF", {
   #source("inst/extdata//lba-math.r")
   for (i in seq_len(n)) {
     A <- runif(1, 0.3, 0.9)
-    b <- runif(1, 0.5, 1.5)
+    b <- A+runif(1, 0, 0.5)
     t0 <- runif(1, 0.1, 0.7)
     v1 <- runif(2, 0.5, 1.5)
     v2 <- runif(2, 0.1, 0.5)
@@ -33,7 +33,7 @@ test_that("Random generation", {
   #source("inst/extdata//lba-math.r")
   for (i in seq_len(n)) {
     A <- runif(1, 0.3, 0.9)
-    b <- runif(1, 0.5, 1.5)
+    b <- A+runif(1, 0, 0.5)
     t0 <- runif(1, 0.1, 0.7)
     v1 <- runif(2, 0.5, 1.5)
     v2 <- runif(2, 0.1, 0.5)
@@ -58,13 +58,13 @@ test_that("n1PDF", {
   #source("inst/extdata//lba-math.r")
   for (i in seq_len(n)) {
     A <- runif(1, 0.3, 0.9)
-    b <- runif(1, 0.5, 1.5)
+    b <- A+runif(1, 0, 0.5)
     t0 <- runif(1, 0.1, 0.7)
     v1 <- runif(2, 0.5, 1.5)
     v2 <- runif(2, 0.1, 0.5)
     r_lba1 <- rlba_norm(samples_per_run, A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1:2], posdrift = TRUE)
-    
-    #if(any(r_lba1$rt[r_lba1$response==1] < 0)) browser()
+    #head(r_lba1)
+    #if(!isTRUE(all.equal(n1CDF(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1]), .n1CDF(pmax(r_lba1$rt[r_lba1$response==1]-t0[1], 0), x0max=A, chi=b, drift=v1[1:2], sdI=v2[1])))) browser()
     
     expect_equal(
       n1CDF(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1]), 

@@ -85,6 +85,8 @@ check_vector <- function(...) {
   }
 }
 
+error_message_b_smaller_A <- "b cannot be smaller than A!"
+
 ####### Normal:
 
 #' @rdname LBA
@@ -106,6 +108,7 @@ dlba_norm <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE) {
   t0 <- rep(t0, length.out = nn)
   mean_v <- rep(mean_v, length.out = nn)
   sd_v <- rep(sd_v, length.out = nn)
+  if (any(b < A)) stop(error_message_b_smaller_A)
   
   t <- rem_t0(t, t0) # rmove t0 from t
   if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- rep(1, nn)
@@ -145,6 +148,7 @@ plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE) {
   t0 <- rep(t0, length.out = nn)
   mean_v <- rep(mean_v, length.out = nn)
   sd_v <- rep(sd_v, length.out = nn)
+  if (any(b < A)) stop(error_message_b_smaller_A)
   #browser()
   t <- rem_t0(t, t0)
   if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- 1
@@ -176,6 +180,7 @@ plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE) {
 #' @export rlba_norm
 rlba_norm <- function(n,A,b,t0,mean_v, sd_v, st0=0,posdrift=TRUE) {
   check_single_arg(n, A, b, t0, st0)
+  if (b < A) stop(error_message_b_smaller_A)
   n_v <- max(length(mean_v), length(sd_v))
   if (posdrift) drifts <- matrix(rtnorm(n=n*n_v, mean=mean_v, sd=sd_v, lower=0),ncol=n_v,byrow=TRUE)  
   else drifts <- matrix(rnorm(n=n*n_v, mean=mean_v, sd=sd_v),ncol=n_v,byrow=TRUE)
@@ -200,6 +205,7 @@ dlba_gamma <- function(t,A,b,t0,shape_v,rate_v, scale_v) {
   t0 <- rep(t0, length.out = nn)
   shape_v <- rep(shape_v, length.out = nn)
   rate_v <- rep(rate_v, length.out = nn)
+  if (any(b < A)) stop(error_message_b_smaller_A)
   
   t <- rem_t0(t, t0)
   min <- (b-A)/t
@@ -243,6 +249,7 @@ plba_gamma <- function(t,A,b,t0,shape_v, rate_v, scale_v) {
   t0 <- rep(t0, length.out = nn)
   shape_v <- rep(shape_v, length.out = nn)
   rate_v <- rep(rate_v, length.out = nn)
+  if (any(b < A)) stop(error_message_b_smaller_A)
   
   t <- rem_t0(t, t0)
   min <- (b-A)/t
@@ -267,6 +274,7 @@ plba_gamma <- function(t,A,b,t0,shape_v, rate_v, scale_v) {
 #' @export rlba_gamma
 rlba_gamma <- function(n,A,b,t0,shape_v, rate_v, scale_v, st0=0) {
   check_single_arg(n, A, b, t0, st0)
+  if (b < A) stop(error_message_b_smaller_A)
   if (!missing(rate_v) && !missing(scale_v)) stop("specify 'rate_v' or 'scale_v', but not both")
   if (missing(rate_v)) rate_v <- 1/scale_v
   n_v <- max(length(shape_v), length(rate_v))  
@@ -288,6 +296,7 @@ dlba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
   t0 <- rep(t0, length.out = nn)
   shape_v <- rep(shape_v, length.out = nn)
   scale_v <- rep(scale_v, length.out = nn)
+  if (any(b < A)) stop(error_message_b_smaller_A)
   
   t <- rem_t0(t, t0)
   
@@ -337,6 +346,7 @@ plba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
   t0 <- rep(t0, length.out = nn)
   shape_v <- rep(shape_v, length.out = nn)
   scale_v <- rep(scale_v, length.out = nn)
+  if (any(b < A)) stop(error_message_b_smaller_A)
   
   t <- rem_t0(t, t0)
   
@@ -375,6 +385,7 @@ plba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
 #' @export rlba_frechet
 rlba_frechet <- function(n,A,b,t0,shape_v, scale_v,st0=0){
   check_single_arg(n, A, b, t0, st0)
+  if (b < A) stop(error_message_b_smaller_A)
   n_v <- max(length(shape_v), length(scale_v))
   drifts <- matrix(rfrechet(n=n*n_v, loc=0, scale=scale_v, shape=shape_v),ncol=n_v,byrow=TRUE)
   
@@ -401,6 +412,7 @@ dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
   t0 <- rep(t0, length.out = nn)
   mean_v <- rep(meanlog_v, length.out = nn)
   sd_v <- rep(sdlog_v, length.out = nn)
+  if (any(b < A)) stop(error_message_b_smaller_A)
   
   t <- rem_t0(t, t0)
   
@@ -442,6 +454,7 @@ plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
   t0 <- rep(t0, length.out = nn)
   mean_v <- rep(meanlog_v, length.out = nn)
   sd_v <- rep(sdlog_v, length.out = nn)
+  if (any(b < A)) stop(error_message_b_smaller_A)
   
   t <- rem_t0(t, t0)
   min <- (b-A)/t
@@ -462,6 +475,7 @@ plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
 #' @export rlba_lnorm
 rlba_lnorm <- function(n,A,b,t0,meanlog_v, sdlog_v, st0=0){
   check_single_arg(n, A, b, t0, st0)
+  if (b < A) stop(error_message_b_smaller_A)
   n_v <- max(length(meanlog_v), length(sdlog_v))
   drifts=matrix(rlnorm(n=n*n_v,meanlog = meanlog_v,sdlog=sdlog_v),ncol=n_v,byrow=TRUE)
   make_r(drifts=drifts, n=n, b=b, A=A, n_v=n_v, t0=t0, st0=st0)
