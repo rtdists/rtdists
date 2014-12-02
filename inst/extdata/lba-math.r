@@ -126,7 +126,7 @@ rlba=function(n,b,A,vs,s,t0,st0=0,posdrift=TRUE){
 }
 
 
-.n1CDF=function(t,x0max,chi,drift,sdI,st0=0,posdrift=TRUE,robust=FALSE) {
+.n1CDF=function(t,x0max,chi,drift,sdI,st0=0,posdrift=TRUE,robust=FALSE) {  #, browser=FALSE
   # Generates defective CDF for responses on node #1. 
   N=length(drift) # Number of responses
   if (length(x0max)<N) x0max=rep(x0max,length.out=N)
@@ -139,9 +139,11 @@ rlba=function(n,b,A,vs,s,t0,st0=0,posdrift=TRUE){
     tmp="error"
     repeat {
       if (bounds[i]>=bounds[i+1]) {outs[i]=0;break}
+      #if(i==1 && browser) browser()
       tmp=try(integrate(f=.n1PDF,lower=bounds[i],upper=bounds[i+1],subdivisions=1000,
         x0max=x0max,chi=chi,drift=drift,sdI=sdI,st0=st0,posdrift=posdrift,robust=robust)$value,silent=T)
       if (is.numeric(tmp)) {outs[i]=tmp;break}
+      #browser()
       # Try smart lower bound.
       if (bounds[i]<=0) {
   bounds[i]=max(c((chi-0.98*x0max)/(max(mean(drift),drift[1])+2*sdI)[1],0))

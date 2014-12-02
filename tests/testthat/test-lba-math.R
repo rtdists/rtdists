@@ -38,11 +38,12 @@ test_that("Random generation", {
     v1 <- runif(2, 0.5, 1.5)
     v2 <- runif(2, 0.1, 0.5)
     
-    seed <- .Random.seed    
-    set.seed(seed)
+    x <- .Random.seed   
+    
     r_lba1 <- rlba_norm(samples_per_run, A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1:2])
     
-    set.seed(seed)
+    .Random.seed <<- x
+    
     #r_lba2 <- rlba_norm(samples_per_run, A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1:2])
     r_lba2 <- rlba(samples_per_run, A=A, b=b, t0 = t0, vs=v1[1:2], s=v2[1:2])
     
@@ -64,7 +65,11 @@ test_that("n1PDF", {
     v2 <- runif(2, 0.1, 0.5)
     r_lba1 <- rlba_norm(samples_per_run, A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1:2], posdrift = TRUE)
     #head(r_lba1)
-    #if(!isTRUE(all.equal(n1CDF(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1]), .n1CDF(pmax(r_lba1$rt[r_lba1$response==1]-t0[1], 0), x0max=A, chi=b, drift=v1[1:2], sdI=v2[1])))) browser()
+    #if(!isTRUE(all.equal(n1CDF(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1]),.n1CDF(pmax(r_lba1$rt[r_lba1$response==1]-t0[1], 0), x0max=A, chi=b, drift=v1[1:2], sdI=v2[1]) ))) browser()
+      #n1CDF(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1], browser = TRUE) 
+      #n1CDF(pmax(r_lba1$rt[r_lba1$response==1]-t0[1], 0), A=A, b=b, t0 = 0, mean_v=v1[1:2], sd_v=v2[1])      
+      #.n1CDF(pmax(r_lba1$rt[r_lba1$response==1]-t0[1], 0), x0max=A, chi=b, drift=v1[1:2], sdI=v2[1], browser=TRUE)     
+    #save(r_lba1, A, b, t0, v1, v2, file = "n1CDF_diff_example.RData")
     
     expect_equal(
       n1CDF(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1]), 
