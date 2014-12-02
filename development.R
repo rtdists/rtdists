@@ -20,6 +20,19 @@ require(testthat)
 test_package("rtdists")
 test_file("tests/testthat/test-lba-math.R")
 
+x <- .Random.seed
+test_file("tests/testthat/test-lba_race.R")
+
+.Random.seed <- x
+
+## Analyze problematic data:
+
+# 1. n1CDF with t0:
+load("inst//extdata//n1CDF_diff_example.RData")
+n1CDF(r_lba1$rt[ r_lba1$response==1 ], A = A, b = b, t0 = t0, mean_v = v1, sd_v = v2)
+n1CDF(r_lba1$rt[ r_lba1$response==1 ] - t0, A = A, b = b, t0 = 0, mean_v = v1, sd_v = v2)
+
+
 
 ## Complete documentation including DESCRPTION file is written using roxygen2 and wrapper roxyPackage:
 require(roxyPackage)  # install.packages("roxyPackage", repo="http://R.reaktanz.de")
