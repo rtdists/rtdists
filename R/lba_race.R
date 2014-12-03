@@ -86,10 +86,10 @@ n1PDF <- function(t, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "fr
     outs=numeric(length(t))
     #browser()
     for (i in 1:length(outs)) {
-      #tmp <- do.call(integrate, args=c(f=tmpf, lower=t[i]-t0[1]-st0, upper=t[i]-t0[1], A=list(A), b=list(b), t0=list(0), dots, distribution = distribution, args.dist = args.dist, stop.on.error = FALSE))
-      #if (tmp$message != "OK") warning(paste(tmp_obj$message))
-      #outs[i] <- tmp$value
-      outs[i] <- do.call(integrate, args=c(f=tmpf, lower=t[i]-t0[1]-st0, upper=t[i]-t0[1], A=list(A), b=list(b), t0=list(0), dots, distribution = distribution, args.dist = args.dist))$value
+      tmp <- do.call(integrate, args=c(f=tmpf, lower=t[i]-t0[1]-st0, upper=t[i]-t0[1], A=list(A), b=list(b), t0=list(0), dots, distribution = distribution, args.dist = args.dist, stop.on.error = FALSE))
+      if (tmp$message != "OK") warning(paste("n1PDF:", tmp$message))
+      outs[i] <- tmp$value
+      #outs[i] <- do.call(integrate, args=c(f=tmpf, lower=t[i]-t0[1]-st0, upper=t[i]-t0[1], A=list(A), b=list(b), t0=list(0), dots, distribution = distribution, args.dist = args.dist))$value
       #outs[i] <- do.call(integrate, args=c(f=tmpf, lower=t[i]-t0[1]-st0, upper=t[i]-t0[1], A=list(A), b=list(b), t0=list(0), dots, distribution = distribution, args.dist = args.dist, stop.on.error=FALSE))$value
     }
     return(outs)

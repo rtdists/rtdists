@@ -1,6 +1,9 @@
 
 context("LBA race functions: RNG is equivalent to n1")
 
+x <- .Random.seed
+set.seed(3)
+
 tryCatch.W.E <- function(expr)
 {
   mc <- match.call()
@@ -18,7 +21,7 @@ tryCatch.W.E <- function(expr)
 conditional_save_t <- function(t, distribution) {
   mc <- match.call()
   ex_data <- t$data
-  if (!is.null(t$warning)) save(ex_data, file = paste0(mc[[2]], "_", distribution, "_problem.Rdata"))
+  #if (!is.null(t$warning)) save(ex_data, file = paste0(mc[[2]], "_", distribution, "_problem.Rdata"))
   #browser()
   #str(t)  
 }
@@ -26,7 +29,7 @@ conditional_save_t <- function(t, distribution) {
 test_that("Norm: n1CDF corresponds to random derivates", {
   normalised_n1CDF = function(t,...) n1CDF(t,...)/n1CDF(t=Inf,...) 
   samples <- 1e3
-  p_min <- 0.0001
+  p_min <- 0.001
   p_max <- 0.05
   A <- runif(2, 0.3, 0.9)
   b <- A+runif(2, 0, 0.5)
@@ -122,7 +125,7 @@ test_that("Frechet: n1CDF corresponds to random derivates", {
   #browser()
   t3 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = st0[1]+0.2, distribution = "frechet"))
   expect_less_than(t3$value$p.value, p_min)
-  conditional_save_t(t3, "frechet")
+  conditional_save_t(t3, "frechet")  
   
   t4 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1], b=b[1], t0 = t0[1], shape_v=v1[1:2], scale_v=v2[1:2], distribution = "frechet"))
   expect_more_than(t4$value$p.value, p_max)
@@ -174,3 +177,6 @@ test_that("lnorm: n1CDF corresponds to random derivates", {
   
   #if (any(sapply(list(t1, t2, t3, t4, t5), function(x) !is.null(x$warning)))) browser()
 })
+
+
+.Random.seed <<- x

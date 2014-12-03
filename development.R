@@ -20,10 +20,12 @@ require(testthat)
 test_package("rtdists")
 test_file("tests/testthat/test-lba-math.R")
 
-x <- .Random.seed
+#x <- .Random.seed
 test_file("tests/testthat/test-lba_race.R")
 
 .Random.seed <- x
+
+test_file("tests/testthat/test-lba_race_random_parameters.R")
 
 ## Analyze problematic data:
 
