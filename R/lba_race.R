@@ -163,44 +163,19 @@ n1CDF <- function(t,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "frec
   if (st0<1e-6) {
     if(!isTRUE(all.equal(0, st0))) warning("st0 set to 0. Integral can fail for small st0.")
     st0=0
-    } # 
+  } # 
   outs <- numeric(length(t))
   bounds <- c(0,t)
   for (i in 1:length(t)) {
-    tmp <- "error"
-    repeat {
-      if (bounds[i]>=bounds[i+1]) {
-        outs[i]=0
-        break
-      }
-      #if (i==1 && browser) browser()
-      tmp_obj <- do.call(integrate, args=c(f=n1PDF,lower=bounds[i],upper=bounds[i+1],subdivisions=1000, A=list(A), b=list(b), t0 = list(t0), st0 = list(st0), dots, distribution = distribution, stop.on.error = FALSE, args.dist = args.dist))
-      #browser()
-      if (tmp_obj$message != "OK") {
-        #browser()
-        warning(tmp_obj$message)
-      }
-      tmp <- tmp_obj$value
-      
-      if (is.numeric(tmp)) {
-        outs[i]=tmp
-        break
-      }
-      # Try smart lower bound.
-      if ((distribution == "norm") && (bounds[i]<=0)) {
-        #browser()
-        bounds[i] <- max(c((b-0.98*A)/(max(mean(dots$mean_v),dots$mean_v[1])+2*dots$sd_v)[1],0))
-        next
-      }
-      # Try smart upper bound.
-      if ((distribution == "norm") && (bounds[i+1]==Inf)) {
-        bounds[i+1]=0.02*max(b)/(mean(dots$mean_v)-2*mean(dots$sd_v))
-        next
-      }
-      stop("Error in n1CDF that I could not catch. Please report (with data used) to maintainer email.")
+    if (bounds[i]>=bounds[i+1]) {
+      outs[i]=0
+      next
     }
+    tmp_obj <- do.call(integrate, args=c(f=n1PDF,lower=bounds[i],upper=bounds[i+1],subdivisions=1000, A=list(A), b=list(b), t0 = list(t0), st0 = list(st0), dots, distribution = distribution, stop.on.error = FALSE, args.dist = args.dist))
+    if (tmp_obj$message != "OK") {
+      warning(tmp_obj$message)
+    }
+    outs[i] <- tmp_obj$value
   }
   cumsum(outs)
 }
-
-
