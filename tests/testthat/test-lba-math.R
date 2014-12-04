@@ -1,5 +1,6 @@
 context("LBA-math agrees with current implementation")
 
+runif(1)
 x <- .Random.seed
 set.seed(1)
 

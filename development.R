@@ -17,7 +17,8 @@ rlba_norm(100, b = 1.3, A = 1, vs = c(0.8, 1.2), s = 1.2, t0 = .2, st0 = 0)
 (x <- rlba_frechet(10, A=0.7, b = 0.5, t0 = 0.1, shape_v = c(0.7, 1.0), scale_v = c(0.7, 1.2)))
 
 require(testthat)
-test_package("rtdists")
+test()
+test_package("rtdists")  # no long tests of n1 functions
 test_file("tests/testthat/test-lba-math.R")
 
 #x <- .Random.seed
