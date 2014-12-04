@@ -3,7 +3,7 @@
 \alias{LBA-race}
 \alias{n1CDF}
 \alias{n1PDF}
-\title{LBA race functions}
+\title{LBA race functions: Likelihood for first accumulator to win.}
 \usage{
 n1PDF(t, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
   "frechet", "lnorm"), args.dist = list())
@@ -14,18 +14,27 @@ n1CDF(t, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
 \arguments{
 \item{t}{a vector of RTs.}
 
-\item{A,b,t0}{LBA parameters, see \code{\link{LBA}}.}
+\item{A,b}{LBA parameters, see \code{\link{LBA}}. Can either be a single numeric value or vector (which will be recycled to reach \code{length(t)}) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators).}
 
-\item{...}{two named drift rate parameters dependening on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}).}
+\item{t0}{\emph{one} scalar \code{t0} parameter (see \code{\link{LBA}}). Multiple \code{t0} parameters are currently not implemented.}
 
-\item{st0}{variability of \code{t0}.}
+\item{...}{two \emph{named} drift rate parameters dependening on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}).}
 
-\item{distribution}{character specifying the distribution of the drift rate.}
+\item{st0}{\emph{one} scalar parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}).}
 
-\item{args.dist}{Optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}).}
+\item{distribution}{character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.}
+
+\item{args.dist}{list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}).}
 }
 \description{
-as described elsewhere.
+n1PDF and n1CDF take RTs, the distribution functions of the \link{LBA}, and corresponding parameter values and put them throughout the race equations and return the likelihood for the first accumulator winning (hence n1) in a set of accumulators.
+}
+\details{
+For a set of \eqn{N} independent accumulators \eqn{i = 1...N}, the race likelihood for a given accumulator \eqn{i} is given by
+\deqn{L(\mbox{unit }i \mbox{ wins}) = f_i(t) \times \prod_j^i [ S_j(t) ]}{L(unit i wins) = f_i(t) * prod_j<>i [ S_j(t) ]}
+where \eqn{f(t)} is the PDF (\code{dlba_...}) and \eqn{S_j(t) = 1 - F_j(t)} is the survivor function, that is the complement of the CDF \eqn{F(t)} (\code{plabe_...}) at time \eqn{t}.
+
+In other words, this is just the PDF/CDF for the winning accumulator at time \eqn{t} times the probability that no other accumulators have finished at time \eqn{t}.
 }
 \examples{
 
@@ -71,7 +80,6 @@ ks.test(r_lba$rt[r_lba$response==1], normalised_n1CDF, A=0.5, b=1, t0 = 0.5,
 ## Other examples:
 
 xx <- rlba_norm(10, A=0.5, b=1, t0 = 0.5, mean_v=1.2, sd_v=0.2)
-n1PDF(x, A=0.5, b=1, t0 = 0.5, st0 = 0.2, mean_v=c(1.2, 1.0), sd_v=0.2)
 
 n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2, st0 = 0.4)
 
@@ -84,6 +92,10 @@ n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
 n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.0, 1.2), sd_v=0.2)
 
 n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, meanlog_v = c(0.5, 0.8), sdlog_v = 0.5, distribution = "lnorm")
-n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, meanlog_v = c(0.8, 0.5), sdlog_v = 0.5, distribution = "lnorm")
+
+n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3), distribution = "gamma")
+
+n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3), distribution = "frechet")
+
 }
 

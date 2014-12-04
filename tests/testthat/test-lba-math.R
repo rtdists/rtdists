@@ -1,9 +1,13 @@
 context("LBA-math agrees with current implementation")
 
+x <- .Random.seed
+set.seed(1)
+
 test_that("PDF and CDF", {
   n <- 10
   samples_per_run <- 100
-  source("../../inst/extdata//lba-math.r")
+  source(system.file("extdata", "lba-math.R", package = "rtdists"))
+        
   #source("inst/extdata//lba-math.r")
   for (i in seq_len(n)) {
     A <- runif(1, 0.3, 0.9)
@@ -29,7 +33,7 @@ test_that("PDF and CDF", {
 test_that("Random generation", {
   n <- 10
   samples_per_run <- 100
-  source("../../inst/extdata//lba-math.r")
+  source(system.file("extdata", "lba-math.R", package = "rtdists"))
   #source("inst/extdata//lba-math.r")
   for (i in seq_len(n)) {
     A <- runif(1, 0.3, 0.9)
@@ -55,7 +59,7 @@ test_that("Random generation", {
 test_that("n1CDF", {
   n <- 10
   samples_per_run <- 100
-  source("../../inst/extdata//lba-math.r")
+  source(system.file("extdata", "lba-math.R", package = "rtdists"))
   #source("inst/extdata//lba-math.r")
   for (i in seq_len(n)) {
     A <- runif(1, 0.3, 0.9)
@@ -80,3 +84,4 @@ test_that("n1CDF", {
   
 })
 
+.Random.seed <<- x

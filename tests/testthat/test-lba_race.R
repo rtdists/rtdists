@@ -27,6 +27,7 @@ conditional_save_t <- function(t, distribution) {
 }
 
 test_that("Norm: n1CDF corresponds to random derivates", {
+  testthat::skip_on_cran()
   normalised_n1CDF = function(t,...) n1CDF(t,...)/n1CDF(t=Inf,...) 
   samples <- 1e3
   p_min <- 0.001
@@ -48,7 +49,7 @@ test_that("Norm: n1CDF corresponds to random derivates", {
   conditional_save_t(t2, "norm")
   
   t3 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], mean_v=v1[3:4], sd_v=v2[3:4], st0 = st0[1]+0.1))
-  expect_less_than(t3$value$p.value, p_min)
+  expect_less_than(t3$value$p.value, p_min+0.003)
   conditional_save_t(t3, "norm")
   
   t4 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2]))
@@ -64,6 +65,7 @@ test_that("Norm: n1CDF corresponds to random derivates", {
 })
 
 test_that("Gamma: n1CDF corresponds to random derivates", {
+  testthat::skip_on_cran()
   normalised_n1CDF = function(t,...) n1CDF(t,...)/n1CDF(t=Inf,...) 
   samples <- 1e3
   p_min <- 0.01
@@ -101,6 +103,7 @@ test_that("Gamma: n1CDF corresponds to random derivates", {
 })
 
 test_that("Frechet: n1CDF corresponds to random derivates", {
+  testthat::skip_on_cran()
   normalised_n1CDF = function(t,...) n1CDF(t,...)/n1CDF(t=Inf,...) 
   samples <- 2e2
   p_min <- 0.001
@@ -140,6 +143,7 @@ test_that("Frechet: n1CDF corresponds to random derivates", {
 })
 
 test_that("lnorm: n1CDF corresponds to random derivates", {
+  testthat::skip_on_cran()
   normalised_n1CDF = function(t,...) n1CDF(t,...)/n1CDF(t=Inf,...) 
   samples <- 1e3
   p_min <- 0.0001
