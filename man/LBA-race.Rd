@@ -31,7 +31,7 @@ n1PDF and n1CDF take RTs, the distribution functions of the \link{LBA}, and corr
 }
 \details{
 For a set of \eqn{N} independent accumulators \eqn{i = 1...N}, the race likelihood for a given accumulator \eqn{i} is given by
-\deqn{L(\mbox{unit }i \mbox{ wins}) = f_i(t) \times \prod_j^i [ S_j(t) ]}{L(unit i wins) = f_i(t) * prod_j<>i [ S_j(t) ]}
+\deqn{L(\mbox{unit }i \mbox{ wins}) = f_i(t) \times \prod_{j<>i} [ S_j(t) ]}{L(unit i wins) = f_i(t) * prod_j<>i [ S_j(t) ]}
 where \eqn{f(t)} is the PDF (\code{dlba_...}) and \eqn{S_j(t) = 1 - F_j(t)} is the survivor function, that is the complement of the CDF \eqn{F(t)} (\code{plba_...}) at time \eqn{t}.
 
 In other words, this is just the PDF/CDF for the winning accumulator at time \eqn{t} times the probability that no other accumulators have finished at time \eqn{t}.
