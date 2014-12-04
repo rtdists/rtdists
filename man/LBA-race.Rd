@@ -14,11 +14,11 @@ n1CDF(t, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
 \arguments{
 \item{t}{a vector of RTs.}
 
-\item{A,b}{LBA parameters, see \code{\link{LBA}}. Can either be a single numeric value or vector (which will be recycled to reach \code{length(t)}) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators).}
+\item{A,b}{LBA parameters, see \code{\link{LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(t)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators).}
 
-\item{t0}{\emph{one} scalar \code{t0} parameter (see \code{\link{LBA}}). Multiple \code{t0} parameters are currently not implemented.}
+\item{t0}{\emph{one} scalar \code{t0} parameter (see \code{\link{LBA}}). Multiple or trialwise \code{t0} parameters are currently not implemented.}
 
-\item{...}{two \emph{named} drift rate parameters dependening on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}).}
+\item{...}{two \emph{named} drift rate parameters dependening on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{t}). See examples.}
 
 \item{st0}{\emph{one} scalar parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}).}
 
@@ -32,7 +32,7 @@ n1PDF and n1CDF take RTs, the distribution functions of the \link{LBA}, and corr
 \details{
 For a set of \eqn{N} independent accumulators \eqn{i = 1...N}, the race likelihood for a given accumulator \eqn{i} is given by
 \deqn{L(\mbox{unit }i \mbox{ wins}) = f_i(t) \times \prod_j^i [ S_j(t) ]}{L(unit i wins) = f_i(t) * prod_j<>i [ S_j(t) ]}
-where \eqn{f(t)} is the PDF (\code{dlba_...}) and \eqn{S_j(t) = 1 - F_j(t)} is the survivor function, that is the complement of the CDF \eqn{F(t)} (\code{plabe_...}) at time \eqn{t}.
+where \eqn{f(t)} is the PDF (\code{dlba_...}) and \eqn{S_j(t) = 1 - F_j(t)} is the survivor function, that is the complement of the CDF \eqn{F(t)} (\code{plba_...}) at time \eqn{t}.
 
 In other words, this is just the PDF/CDF for the winning accumulator at time \eqn{t} times the probability that no other accumulators have finished at time \eqn{t}.
 }
@@ -81,21 +81,38 @@ ks.test(r_lba$rt[r_lba$response==1], normalised_n1CDF, A=0.5, b=1, t0 = 0.5,
 
 xx <- rlba_norm(10, A=0.5, b=1, t0 = 0.5, mean_v=1.2, sd_v=0.2)
 
+# default uses normal distribution for drift rate:
+n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
+
+# other distributions:
+n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3), distribution = "gamma")
+n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3), distribution = "frechet")
+n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, meanlog_v = c(0.5, 0.8), sdlog_v = 0.5, distribution = "lnorm")
+
+# add st0:
 n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2, st0 = 0.4)
 
-n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, 
-      meanlog_v = c(0.5, 0.8), sdlog_v = 0.5, distribution = "lnorm")
-n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, 
-      meanlog_v = c(0.5, 0.8), sdlog_v = 0.5, st0 = 0.2, distribution = "lnorm")
 
-n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
-n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.0, 1.2), sd_v=0.2)
+# use different A parameters for each RT:
+n1PDF(xx$rt, A=runif(10, 0.4, 0.6), 
+      b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
 
-n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, meanlog_v = c(0.5, 0.8), sdlog_v = 0.5, distribution = "lnorm")
+# use different A parameters for each RT and each accumulator:
+n1PDF(xx$rt, A=list(runif(10, 0.4, 0.6), runif(10, 0.2, 0.4)), 
+      b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
 
-n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3), distribution = "gamma")
 
-n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3), distribution = "frechet")
+### vectorize drift rates:
 
+# vector versus list:
+v1 <- n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
+v2 <- n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=list(1.2, 1.0), sd_v=0.2)
+identical(v1, v2)  # TRUE
+
+# drift rate per trial:
+n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=list(rnorm(10, 1.2), rnorm(10, 1)), sd_v=0.2)
+
+# combine list with vector:
+n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=list(rnorm(10, 1.2), rnorm(10, 1)), sd_v=c(0.2, 0.1))
 }
 

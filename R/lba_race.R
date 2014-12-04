@@ -3,10 +3,10 @@
 #' n1PDF and n1CDF take RTs, the distribution functions of the \link{LBA}, and corresponding parameter values and put them throughout the race equations and return the likelihood for the first accumulator winning (hence n1) in a set of accumulators.  
 #'
 #' @param t a vector of RTs.
-#' @param A,b LBA parameters, see \code{\link{LBA}}. Can either be a single numeric value or vector (which will be recycled to reach \code{length(t)}) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators).
-#' @param t0 \emph{one} scalar \code{t0} parameter (see \code{\link{LBA}}). Multiple \code{t0} parameters are currently not implemented.
+#' @param A,b LBA parameters, see \code{\link{LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(t)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators).
+#' @param t0 \emph{one} scalar \code{t0} parameter (see \code{\link{LBA}}). Multiple or trialwise \code{t0} parameters are currently not implemented.
 #' @param st0 \emph{one} scalar parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}).
-#' @param ... two \emph{named} drift rate parameters dependening on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). 
+#' @param ... two \emph{named} drift rate parameters dependening on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{t}). See examples.
 #' @param distribution character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.
 #' @param args.dist list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}).
 #' 
@@ -73,6 +73,7 @@ n1PDFfixedt0 <- function(t,A,b, t0, ..., distribution, args.dist = list()) {
 n1PDF <- function(t, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list()) {
   dots <- list(...)
   if (is.null(names(dots))) stop("... arguments need to be named.")
+  
   n_v <- max(vapply(dots, length, 0))  # Number of responses
   if (n_v < 2) stop("There need to be at least two accumulators/drift rates.")
   distribution <- match.arg(distribution)

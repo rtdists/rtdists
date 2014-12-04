@@ -47,3 +47,21 @@ test_that("n1CDF: List input for A and b", {
   expect_equal(p5, p1)
   
 })
+
+test_that("n1CDF: List input for drift rate", {
+  samples <- 100
+  A <- runif(2, 0.3, 0.9)
+  b <- A+runif(2, 0, 0.5)
+  t0 <- runif(2, 0.1, 0.7)
+  v1 <- runif(4, 0.5, 1.5)
+  v2 <- runif(4, 0.1, 0.5)
+  st0 <- runif(1, 0.1, 0.5)
+  r_lba <- rlba_norm(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
+  
+  v1 <- n1PDF(r_lba$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
+  v2 <- n1PDF(r_lba$rt, A=0.5, b=1, t0 = 0.5, mean_v=list(1.2, 1.0), sd_v=0.2)
+  expect_identical(v1, v2)
+  
+})
+
+

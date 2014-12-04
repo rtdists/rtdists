@@ -62,3 +62,16 @@ n1PDF(xx$rt, A=runif(10, 0.4, 0.6),
 n1PDF(xx$rt, A=list(runif(10, 0.4, 0.6), runif(10, 0.2, 0.4)), 
       b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
 
+
+### vectorize drift rates:
+
+# vector versus list:
+v1 <- n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
+v2 <- n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=list(1.2, 1.0), sd_v=0.2)
+identical(v1, v2)  # TRUE
+
+# drift rate per trial:
+n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=list(rnorm(10, 1.2), rnorm(10, 1)), sd_v=0.2)
+
+# combine list with vector:
+n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=list(rnorm(10, 1.2), rnorm(10, 1)), sd_v=c(0.2, 0.1))
