@@ -19,6 +19,22 @@ test_that("_norm vectorizes", {
   expect_identical(p1, p2)
 })
 
+test_that("_norm with small A", {
+  n <- 10
+  x <- rlba_norm(n, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
+  
+  as <- seq(0.2, 0.5, length.out = n)
+  bs <- seq(0.5, 1.5, length.out = n)
+  t0s <- seq(0, 0.5, length.out = n/2)
+  vs <- seq(0.8, 1.2, length.out = 10)
+  
+  o1 <- plba_norm(x$response, A=c(as[1:4], 0.1e-10, 0.5e-10, as[7:10]), b=bs, t0 = t0s, mean_v=vs, sd_v=0.2)
+  o2_a <- plba_norm(x$response[1:4], A=as[1:4], b=bs, t0 = t0s, mean_v=vs, sd_v=0.2)
+  o2_b <- plba_norm(x$response[5:6], A=c(0.1e-10, 0.5e-10), b=bs[5:6], t0 = c(t0s[5], t0s[1]), mean_v=vs[5:6], sd_v=0.2)
+  o2_c <- plba_norm(x$response[7:10], A=as[7:10], b=bs[7:10], t0 = t0s[2:5], mean_v=vs[7:10], sd_v=0.2)
+  expect_identical(o1, c(o2_a, o2_b, o2_c))
+})
+
 test_that("_gamma vectorizes", {
   n <- 10
   x <- rlba_norm(n, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))

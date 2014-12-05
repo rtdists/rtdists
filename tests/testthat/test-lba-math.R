@@ -2,7 +2,7 @@ context("LBA-math agrees with current implementation")
 
 runif(1)
 x <- .Random.seed
-set.seed(1)
+set.seed(2)
 
 test_that("PDF and CDF", {
   n <- 10
@@ -22,6 +22,33 @@ test_that("PDF and CDF", {
       dlba_norm(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1], sd_v=v2[1]), 
       fptpdf(pmax(r_lba1$rt[r_lba1$response==1]-t0[1], 0), x0max=A, chi=b, driftrate=v1[1], sddrift=v2[1])
       )
+    expect_equal(
+      plba_norm(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1], sd_v=v2[1]), 
+      fptcdf(pmax(r_lba1$rt[r_lba1$response==1]-t0[1], 0), x0max=A, chi=b, driftrate=v1[1], sddrift=v2[1])
+    )
+    
+  }
+  
+})
+
+test_that("small A values for 'norm'", {
+  n <- 10
+  samples_per_run <- 100
+  source(system.file("extdata", "lba-math.R", package = "rtdists"))
+  
+  #source("inst/extdata//lba-math.r")
+  for (i in seq_len(n)) {
+    A <- runif(1, 0, 1e-10)
+    b <- A+runif(1, 0, 0.5)
+    t0 <- runif(1, 0.1, 0.7)
+    v1 <- runif(2, 0.5, 1.5)
+    v2 <- runif(2, 0.1, 0.5)
+    r_lba1 <- rlba_norm(samples_per_run, A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1:2])
+    
+    expect_equal(
+      dlba_norm(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1], sd_v=v2[1]), 
+      fptpdf(pmax(r_lba1$rt[r_lba1$response==1]-t0[1], 0), x0max=A, chi=b, driftrate=v1[1], sddrift=v2[1])
+    )
     expect_equal(
       plba_norm(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1], sd_v=v2[1]), 
       fptcdf(pmax(r_lba1$rt[r_lba1$response==1]-t0[1], 0), x0max=A, chi=b, driftrate=v1[1], sddrift=v2[1])

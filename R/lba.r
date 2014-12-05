@@ -92,13 +92,6 @@ error_message_b_smaller_A <- "b cannot be smaller than A!"
 #' @rdname LBA
 #' @export dlba_norm
 dlba_norm <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE) {
-  if (robust) { # robust == TRUE uses robust versions of the normal distributions
-    pnorm1 <- pnormP
-    dnorm1 <- dnormP
-  } else {
-    pnorm1 <- pnorm
-    dnorm1 <- dnorm
-  }
   #check_single_arg(A=A, b=b, t0=t0, mean_v=mean_v, sd_v=sd_v)
   check_vector(t, A, b, t0, mean_v, sd_v)
   # bring all arguments to length of t
@@ -109,39 +102,51 @@ dlba_norm <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE) {
   mean_v <- rep(mean_v, length.out = nn)
   sd_v <- rep(sd_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
-  
-  t <- rem_t0(t, t0) # rmove t0 from t
-  if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- rep(1, nn)
-  
-  # for A<1e-10 save results in out_A
-  A_small <- A<1e-10
-  out_A <- pmax(0, ((b[A_small]/t[A_small]^2)*dnorm1(b[A_small]/t[A_small],mean_v[A_small],sd=sd_v[A_small]))/denom[A_small]) 
-  # calculate other results into out_o
-  zs <- t[!A_small]*sd_v[!A_small]
-  zu <- t[!A_small]*mean_v[!A_small]
-  chiminuszu <- b[!A_small]-zu
-  chizu <- chiminuszu/zs
-  chizumax <- (chiminuszu-A[!A_small])/zs
-  out_o <- pmax(0,(mean_v[!A_small]*(pnorm1(chizu)-pnorm1(chizumax)) + sd_v[!A_small]*(dnorm1(chizumax)-dnorm1(chizu)))/(A[!A_small]*denom[!A_small]))
-  # combine out_A and out_o
-  out <- numeric(nn)
-  out[!A_small] <- out_o
-  out[A_small] <- out_A
-  out
+  dlba_norm_core(t = t, A = A, b = b, t0 = t0, mean_v = mean_v, sd_v = sd_v, posdrift = posdrift, robust = robust, nn = nn)
 }
 
-#' @rdname LBA
-#' @export plba_norm
-plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE) {
+## this functions expects all arguments to have the samel length (which is nn)
+dlba_norm_core <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE, nn) {
   if (robust) { # robust == TRUE uses robust versions of the normal distributions
     pnorm1 <- pnormP
     dnorm1 <- dnormP
   } else {
     pnorm1 <- pnorm
-    dnorm1 <- dnorm  
+    dnorm1 <- dnorm
   }
-  #check_single_arg(A=A, b=b, t0=t0, mean_v=mean_v, sd_v=sd_v)
-  check_vector(t, A, b=b, t0, mean_v, sd_v)
+  t <- rem_t0(t, t0) # rmove t0 from t
+  if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- rep(1, nn)
+  
+  if (any(A<1e-10)) {
+    # for A<1e-10 save results in out_A
+    A_small <- A<1e-10
+    out_A <- pmax(0, ((b[A_small]/t[A_small]^2)*dnorm1(b[A_small]/t[A_small],mean_v[A_small],sd=sd_v[A_small]))/denom[A_small]) 
+    # calculate other results into out_o
+    zs <- t[!A_small]*sd_v[!A_small]
+    zu <- t[!A_small]*mean_v[!A_small]
+    chiminuszu <- b[!A_small]-zu
+    chizu <- chiminuszu/zs
+    chizumax <- (chiminuszu-A[!A_small])/zs
+    out_o <- pmax(0,(mean_v[!A_small]*(pnorm1(chizu)-pnorm1(chizumax)) + sd_v[!A_small]*(dnorm1(chizumax)-dnorm1(chizu)))/(A[!A_small]*denom[!A_small]))
+    # combine out_A and out_o
+    out <- numeric(nn)
+    out[!A_small] <- out_o
+    out[A_small] <- out_A
+    return(out) 
+  } else {
+    zs <- t*sd_v
+    zu <- t*mean_v
+    chiminuszu <- b-zu
+    chizu <- chiminuszu/zs
+    chizumax <- (chiminuszu-A)/zs
+    return(pmax(0,(mean_v*(pnorm1(chizu)-pnorm1(chizumax)) + sd_v*(dnorm1(chizumax)-dnorm1(chizu)))/(A*denom))) 
+  }
+}
+
+#' @rdname LBA
+#' @export plba_norm
+plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE) {
+  check_vector(t, A, b, t0, mean_v, sd_v)
   nn <- length(t)
   A <- rep(A, length.out = nn)
   b <- rep(b, length.out = nn)
@@ -149,31 +154,53 @@ plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE) {
   mean_v <- rep(mean_v, length.out = nn)
   sd_v <- rep(sd_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
-  #browser()
+  plba_norm_core(t = t, A = A, b = b, t0 = t0, mean_v = mean_v, sd_v = sd_v, posdrift = posdrift, robust = robust, nn = nn)
+}
+
+plba_norm_core <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE, nn) {
+  if (robust) { # robust == TRUE uses robust versions of the normal distributions
+    pnorm1 <- pnormP
+    dnorm1 <- dnormP
+  } else {
+    pnorm1 <- pnorm
+    dnorm1 <- dnorm  
+  }
+
   t <- rem_t0(t, t0)
   if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- 1
   
-  # for A<1e-10 save results in out_A
-  #if (A<1e-10) return(pmin(1, pmax(0, (pnorm1(b/t,mean=mean_v,sd=sd_v,lower.tail=FALSE))/denom)))
-  A_small <- A<1e-10
-  out_A <- pmin(1, pmax(0, (pnorm1(b[A_small]/t[A_small],mean=mean_v[A_small],sd=sd_v[A_small],lower.tail=FALSE))/denom[A_small]))
-  
-  # calculate other results into out_o
-  zs <- t[!A_small]*sd_v[!A_small]
-  zu <- t[!A_small]*mean_v[!A_small]
-  chiminuszu <- b[!A_small]-zu
-  xx <- chiminuszu-A[!A_small]
-  chizu <- chiminuszu/zs
-  chizumax <- xx/zs
-  tmp1 <- zs*(dnorm1(chizumax)-dnorm1(chizu))
-  tmp2 <- xx*pnorm1(chizumax)-chiminuszu*pnorm1(chizu)
-  out_o <- pmin(pmax(0,(1+(tmp1+tmp2)/A[!A_small])/denom[!A_small]), 1)
-  
-  # combine out_A and out_o
-  out <- numeric(nn)
-  out[!A_small] <- out_o
-  out[A_small] <- out_A
-  out
+  if (any(A<1e-10)) {
+    # for A<1e-10 save results in out_A
+    A_small <- A<1e-10
+    out_A <- pmin(1, pmax(0, (pnorm1(b[A_small]/t[A_small],mean=mean_v[A_small],sd=sd_v[A_small],lower.tail=FALSE))/denom[A_small]))
+
+    # calculate other results into out_o
+    zs <- t[!A_small]*sd_v[!A_small]
+    zu <- t[!A_small]*mean_v[!A_small]
+    chiminuszu <- b[!A_small]-zu
+    xx <- chiminuszu-A[!A_small]
+    chizu <- chiminuszu/zs
+    chizumax <- xx/zs
+    tmp1 <- zs*(dnorm1(chizumax)-dnorm1(chizu))
+    tmp2 <- xx*pnorm1(chizumax)-chiminuszu*pnorm1(chizu)
+    out_o <- pmin(pmax(0,(1+(tmp1+tmp2)/A[!A_small])/denom[!A_small]), 1)
+    
+    # combine out_A and out_o
+    out <- numeric(nn)
+    out[!A_small] <- out_o
+    out[A_small] <- out_A
+    return(out)
+  } else {
+    zs <- t*sd_v
+    zu <- t*mean_v
+    chiminuszu <- b-zu
+    xx <- chiminuszu-A
+    chizu <- chiminuszu/zs
+    chizumax <- xx/zs
+    tmp1 <- zs*(dnorm1(chizumax)-dnorm1(chizu))
+    tmp2 <- xx*pnorm1(chizumax)-chiminuszu*pnorm1(chizu)
+    return(pmin(pmax(0,(1+(tmp1+tmp2)/A)/denom), 1))
+  }
 }
 
 #' @rdname LBA
@@ -207,6 +234,12 @@ dlba_gamma <- function(t,A,b,t0,shape_v,rate_v, scale_v) {
   rate_v <- rep(rate_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
   
+  dlba_gamma_core(t=t,A=A,b=b,t0=t0, shape_v=shape_v, rate_v=rate_v, nn=nn)
+  
+}
+
+
+dlba_gamma_core <- function(t,A,b,t0,shape_v, rate_v, nn) {
   t <- rem_t0(t, t0)
   min <- (b-A)/t
   max <- b/t
@@ -250,6 +283,11 @@ plba_gamma <- function(t,A,b,t0,shape_v, rate_v, scale_v) {
   shape_v <- rep(shape_v, length.out = nn)
   rate_v <- rep(rate_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
+  
+  plba_gamma_core(t=t,A=A,b=b,t0=t0,shape_v=shape_v, rate_v=rate_v, nn=nn)
+}
+
+plba_gamma_core <- function(t,A,b,t0,shape_v, rate_v, nn) {
   
   t <- rem_t0(t, t0)
   min <- (b-A)/t
@@ -297,6 +335,11 @@ dlba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
   shape_v <- rep(shape_v, length.out = nn)
   scale_v <- rep(scale_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
+  
+  dlba_frechet_core(t=t,A=A,b=b,t0=t0,shape_v=shape_v, scale_v=scale_v, nn=nn)
+}
+
+dlba_frechet_core <- function(t,A,b,t0,shape_v, scale_v, nn) {
   
   t <- rem_t0(t, t0)
   
@@ -348,6 +391,10 @@ plba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
   scale_v <- rep(scale_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
   
+  plba_frechet_core(t=t,A=A,b=b,t0=t0,shape_v=shape_v, scale_v=scale_v, nn=nn)
+}
+
+plba_frechet_core <- function(t,A,b,t0,shape_v, scale_v, nn) {  
   t <- rem_t0(t, t0)
   
   ps <- cbind(b, b-A, scale_v,shape_v)
@@ -398,13 +445,6 @@ rlba_frechet <- function(n,A,b,t0,shape_v, scale_v,st0=0){
 #' @rdname LBA
 #' @export dlba_lnorm
 dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
-  if (robust) { # robust == TRUE uses robust versions of the normal distributions
-    pnorm1 <- pnormP
-    dnorm1 <- dnormP
-  } else {
-    pnorm1 <- pnorm
-    dnorm1 <- dnorm  
-  }
   check_vector(t, A, b, t0, meanlog_v, sdlog_v)
   nn <- length(t)
   A <- rep(A, length.out = nn)
@@ -413,6 +453,18 @@ dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
   mean_v <- rep(meanlog_v, length.out = nn)
   sd_v <- rep(sdlog_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
+  
+  dlba_lnorm_core(t=t,A=A,b=b,t0=t0,meanlog_v=meanlog_v, sdlog_v=sdlog_v, robust = robust, nn=nn)
+}
+
+dlba_lnorm_core <- function(t,A,b,t0,meanlog_v, sdlog_v, robust=FALSE, nn) {
+  if (robust) { # robust == TRUE uses robust versions of the normal distributions
+    pnorm1 <- pnormP
+    dnorm1 <- dnormP
+  } else {
+    pnorm1 <- pnorm
+    dnorm1 <- dnorm  
+  }
   
   t <- rem_t0(t, t0)
   
@@ -442,11 +494,6 @@ dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
 #' @rdname LBA
 #' @export plba_lnorm
 plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
-  if (robust) { # robust == TRUE uses robust versions of the normal distributions
-    pnorm1 <- pnormP
-  } else {
-    pnorm1 <- pnorm 
-  }
   check_vector(t, A, b, t0, meanlog_v, sdlog_v)
   nn <- length(t)
   A <- rep(A, length.out = nn)
@@ -455,6 +502,16 @@ plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
   mean_v <- rep(meanlog_v, length.out = nn)
   sd_v <- rep(sdlog_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
+  
+  plba_lnorm_core(t=t,A=A,b=b,t0=t0,meanlog_v=meanlog_v, sdlog_v=sdlog_v, robust=robust, nn=nn)
+}
+
+plba_lnorm_core <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE, nn) {
+  if (robust) { # robust == TRUE uses robust versions of the normal distributions
+    pnorm1 <- pnormP
+  } else {
+    pnorm1 <- pnorm 
+  }
   
   t <- rem_t0(t, t0)
   min <- (b-A)/t
@@ -469,7 +526,6 @@ plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
   out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
   return(pmin(pmax(0, out.value), 1))
 }
-
 
 #' @rdname LBA
 #' @export rlba_lnorm
