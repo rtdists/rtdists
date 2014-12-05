@@ -82,6 +82,7 @@ check_vector <- function(...) {
   for (i in seq_along(dots)) {
     if ((vars[i] == "t") && (any(dots[[i]] < 0))) stop("t needs to contain only positive values.") 
     if (!is.vector(dots[[i]], "numeric")) stop(paste(vars[[i]], "needs to be a numeric vector!"))
+    if (length(dots[[i]]) < 1) stop(paste(vars[[i]], "needs to have a length >= 1."))
   }
 }
 
