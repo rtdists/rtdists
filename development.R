@@ -48,7 +48,7 @@ roxy.package(
   pck.description = data.frame(
     Package = "rtdists",
     Type = "Package",
-    Title = "Respone Time distribtuions in R",
+    Title = "Response time distributions",
     AuthorsR = "c(
         person(given=\"Scott\", family=\"Brown\", role=c(\"aut\")),
         person(given=\"Matthew\", family=\"Gretton\", role=c(\"aut\")),

@@ -169,3 +169,4 @@ n1mean=function(x0max,chi,drift,sdI,posdrift=TRUE,robust=FALSE) {
      drift=drift,sdI=sdI,st0=st0,posdrift=posdrift,robust=robust)$value
    list(mean=tmp,p=pc)
 }
+

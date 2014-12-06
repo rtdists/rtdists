@@ -16,7 +16,7 @@
 #' @param sv inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials. 	Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sv} < 2. Default is 0.
 #' @param st0 inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Typical range: 0 < \code{st0} < 0.2. Default is 0.
 #' 
-#' @param precision \code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accuratly. Default is 3.
+#' @param precision \code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.
 #' @param maxt maximum \code{rt} allowed, used to stop integration problems (\code{prd} only).
 #'
 #' @return \code{drd} gives the density, \code{prd} gives the distribution function, and \code{rrd} generates random response times and decisions (returning a \code{data.frame} with columns \code{rts} (numeric) and \code{response} (factor)).

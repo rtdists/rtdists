@@ -18,7 +18,7 @@ n1CDF(t, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
 
 \item{t0}{\emph{one} scalar \code{t0} parameter (see \code{\link{LBA}}). Multiple or trialwise \code{t0} parameters are currently not implemented.}
 
-\item{...}{two \emph{named} drift rate parameters dependening on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{t}). See examples.}
+\item{...}{two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{t}). See examples.}
 
 \item{st0}{\emph{one} scalar parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}).}
 

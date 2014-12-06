@@ -1,4 +1,4 @@
-#' Respone Time distribtuions in R.
+#' Response time distributions.
 #'
 #' \tabular{ll}{
 #' Package: \tab rtdists\cr

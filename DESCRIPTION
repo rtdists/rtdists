@@ -1,6 +1,6 @@
 Package: rtdists
 Type: Package
-Title: Respone Time distribtuions in R
+Title: Response time distributions
 Depends:
     R (>= 3.0.0)
 Suggests:
@@ -11,17 +11,16 @@ Imports:
     gsl
 Description: Provides response time distributions (density/PDF, distribution
     function/CDF, and random generation): (a) Ratcliff diffusion model based on
-    C code by Andreas and Jochen Voss and (b) linear ballistic accumulator
-    (LBA) with different distribution underlying the drift rate.
+    C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA)
+    with different distribution underlying the drift rate.
 URL: https://github.com/rtdists/rtdists/
 License: GPL (>=3)
 Authors@R: c( person(given="Scott", family="Brown", role=c("aut")),
     person(given="Matthew", family="Gretton", role=c("aut")),
     person(given="Andrew", family="Heathcote", role=c("aut")),
     person(given="Andreas", family="Voss", role=c("ctb")),
-    person(given="Jochen", family="Voss", role=c("ctb")),
-    person(given="Andrew", family="Terry", role=c("ctb")),
-    person(given="Henrik", family="Singmann",
+    person(given="Jochen", family="Voss", role=c("ctb")), person(given="Andrew",
+    family="Terry", role=c("ctb")), person(given="Henrik", family="Singmann",
     email="singmann+rtdists@gmail.com", role=c("aut", "cre")) )
 Version: 0.2-6
 Date: 2014-12-06

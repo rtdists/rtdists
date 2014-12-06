@@ -36,7 +36,7 @@ rrd(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
 
 \item{st0}{inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Typical range: 0 < \code{st0} < 0.2. Default is 0.}
 
-\item{precision}{\code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accuratly. Default is 3.}
+\item{precision}{\code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.}
 
 \item{maxt}{maximum \code{rt} allowed, used to stop integration problems (\code{prd} only).}
 

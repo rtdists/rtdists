@@ -4,7 +4,7 @@
 \alias{rtdists-package}
 \title{The rtdists Package}
 \description{
-Respone Time distribtuions in R.
+Response time distributions.
 }
 \details{
 \tabular{ll}{

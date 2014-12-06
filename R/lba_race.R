@@ -6,7 +6,7 @@
 #' @param A,b LBA parameters, see \code{\link{LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(t)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators).
 #' @param t0 \emph{one} scalar \code{t0} parameter (see \code{\link{LBA}}). Multiple or trialwise \code{t0} parameters are currently not implemented.
 #' @param st0 \emph{one} scalar parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}).
-#' @param ... two \emph{named} drift rate parameters dependening on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{t}). See examples.
+#' @param ... two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{t}). See examples.
 #' @param distribution character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.
 #' @param args.dist list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}).
 #' @param silent logical. Should the number of accumulators used be suppressed? Default is \code{FALSE} which prints the number of accumulators.
@@ -24,7 +24,7 @@
 #' 
 NULL
 
-## note, this functions does not check parameters, it is only< called internally (i.e., passed correctly).
+## note, this functions does not check parameters, it is only called internally (i.e., passed correctly).
 n1PDFfixedt0 <- function(t,A,b, t0, ..., pdf, cdf, args.dist = list()) {
   # Generates defective PDF for responses on node #1.
   dots <- list(...)
