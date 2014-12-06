@@ -9,6 +9,7 @@
 #' @param ... two \emph{named} drift rate parameters dependening on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{t}). See examples.
 #' @param distribution character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.
 #' @param args.dist list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}).
+#' @param silent logical. Should the number of accumulators used be suppressed? Default is \code{FALSE} which prints the number of accumulators.
 #' 
 #' 
 #' @details For a set of \eqn{N} independent accumulators \eqn{i = 1...N}, the race likelihood for a given accumulator \eqn{i} is given by
@@ -24,82 +25,106 @@
 NULL
 
 ## note, this functions does not check parameters, it is only< called internally (i.e., passed correctly).
-n1PDFfixedt0 <- function(t,A,b, t0, ..., distribution, args.dist = list()) {
+n1PDFfixedt0 <- function(t,A,b, t0, ..., pdf, cdf, args.dist = list()) {
   # Generates defective PDF for responses on node #1.
   dots <- list(...)
-  #if (is.null(names(dots))) stop("... arguments need to be named.")
-  #check_single_arg(t0 = t0)
-  #distribution <- match.arg(distribution)
+  nn <- length(t)
+  #if (length(A) != nn) browser()
   #browser()
-  switch(distribution, 
-         norm = {
-           pdf <- dlba_norm
-           cdf <- plba_norm
-           if (any(!(c("mean_v","sd_v") %in% names(dots)))) stop("mean_v and sd_v need to be passed for distribution = \"norm\"")
-         },
-         gamma = {
-           pdf <- dlba_gamma
-           cdf <- plba_gamma
-           if (!("shape_v" %in% names(dots))) stop("shape_v needs to be passed for distribution = \"gamma\"")
-           if ((!("rate_v" %in% names(dots))) & (!("scale_v" %in% names(dots)))) stop("rate_v or scale_v needs to be passed for distribution = \"gamma\"")
-         },
-         frechet = {
-           pdf <- dlba_frechet
-           cdf <- plba_frechet
-           if (any(!(c("shape_v","scale_v") %in% names(dots)))) stop("shape_v and scale_v need to be passed for distribution = \"frechet\"")
-         },
-         lnorm = {
-           pdf <- dlba_lnorm
-           cdf <- plba_lnorm
-           if (any(!(c("meanlog_v","sdlog_v") %in% names(dots)))) stop("meanlog_v and sdlog_v need to be passed for distribution = \"lnorm\"")
-         }
-  )
   n_v <- max(vapply(dots, length, 0))  # Number of responses
   if (n_v>2) {
     tmp=array(dim=c(length(t),n_v-1))
-    for (i in 2:n_v) tmp[,i-1] <- do.call(cdf, args = c(t=list(t), A=if(is.list(A)) A[i] else list(A), b=if(is.list(b)) b[i] else list(b), t0 = t0, sapply(dots, "[[", i = i, simplify = FALSE), args.dist = args.dist))
+    for (i in 2:n_v) tmp[,i-1] <- do.call(cdf, args = c(t=list(t), A=if(is.list(A)) A[i] else list(A), b=if(is.list(b)) b[i] else list(b), t0 = t0, sapply(dots, "[[", i = i, simplify = FALSE), args.dist = args.dist, nn=nn))
     G <- apply(1-tmp,1,prod)
   } else {
-    G <- 1-do.call(cdf, args = c(t=list(t), A=if(is.list(A)) A[2] else list(A), b=if(is.list(b)) b[2] else list(b), t0 = t0, sapply(dots, "[[", i = 2, simplify = FALSE), args.dist = args.dist))
+    G <- 1-do.call(cdf, args = c(t=list(t), A=if(is.list(A)) A[2] else list(A), b=if(is.list(b)) b[2] else list(b), t0 = t0, sapply(dots, "[[", i = 2, simplify = FALSE), args.dist = args.dist, nn=nn))
   }
-  G*do.call(pdf, args = c(t=list(t), A=if(is.list(A)) A[1] else list(A), b=if(is.list(b)) b[1] else list(b), t0 = t0, sapply(dots, "[[", i = 1, simplify = FALSE), args.dist = args.dist))
+  G*do.call(pdf, args = c(t=list(t), A=if(is.list(A)) A[1] else list(A), b=if(is.list(b)) b[1] else list(b), t0 = t0, sapply(dots, "[[", i = 1, simplify = FALSE), args.dist = args.dist, nn=nn))
 }
 
+#sapply(dots, rep_dots, which = 1, nn = nn, simplify = FALSE)
+rep_dots <- function(arg, which, nn) {
+  rep(arg[[which]], length.out=nn)
+}
 
-
+## functions which checks if argument is numeric and 
+check_n1_arguments <- function(arg, nn, n_v, dots = FALSE) {
+  mc <- match.call()
+  varname <- sub("dots\\$", "", all.vars(mc[[2]]))  
+  if (!is.list(arg)) {
+    if ((!is.vector(arg, "numeric")) || (length(arg) < 1)) stop(paste(varname, "needs to be a numeric vector of length >= 1!"))
+    if (dots) {
+      arg <- as.list(arg)
+      arg <- lapply(arg, rep, length.out=nn)
+    } else arg <- rep(arg, length.out=nn)
+  } else {
+    if (!dots && (length(arg) != n_v)) stop(paste("if", varname, "is a list, its length needs to correspond to the number of accumulators."))
+    for (i in seq_along(arg)) {
+      if ((!is.vector(arg[[i]], "numeric")) || (length(arg[[i]]) < 1)) stop(paste0(varname, "[[", i, "]] needs to be a numeric vector of length >= 1!"))
+      arg[[i]] <- rep(arg[[i]], length.out=nn)
+    }
+  }
+  return(arg)
+}
 
 #' @rdname LBA-race
 #' @export
-n1PDF <- function(t, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list()) {
+n1PDF <- function(t, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE) {
   dots <- list(...)
+  #browser()
   if (is.null(names(dots))) stop("... arguments need to be named.")
   
   n_v <- max(vapply(dots, length, 0))  # Number of responses
+  if(!silent) message(paste("Results based on", n_v, "accumulators/drift rates."))
   if (n_v < 2) stop("There need to be at least two accumulators/drift rates.")
   distribution <- match.arg(distribution)
   check_single_arg(t0 = t0)
   nn <- length(t)
-  
-  if (!is.list(A)) {
-    A <- rep(A, length.out=nn)
-  } else {
-    if (length(A) != n_v) stop("if A is a list, its length needs to correspond to the number of accumulators.")
-    for (i in seq_along(A)) {
-      A[[i]] <- rep(A[[i]], length.out=nn)
-    }
-  }
-  if (!is.list(b)) {
-    b <- rep(b, length.out=nn)
-  } else {
-    if (length(b) != n_v) stop("if b is a list, its length needs to correspond to the number of accumulators.")
-    for (i in seq_along(b)) {
-      b[[i]] <- rep(b[[i]], length.out=nn)
-    }
-  }
-  #if (is.null(dim(A)) && length(A)== 1) A <- rep(A,length.out=n_v)
-  #if (length(b)<n_v) b <- rep(b,length.out=n_v)
-  #if (length(t0)<n_v) t0 <- rep(t0,length.out=n_v)
-  for (i in length(dots)) {
+  #browser()
+  A <- check_n1_arguments(A, nn=nn, n_v=n_v)
+  b <- check_n1_arguments(b, nn=nn, n_v=n_v)
+  switch(distribution, 
+         norm = {
+           pdf <- dlba_norm_core
+           cdf <- plba_norm_core
+           if (any(!(c("mean_v","sd_v") %in% names(dots)))) stop("mean_v and sd_v need to be passed for distribution = \"norm\"")
+           dots$mean_v <- check_n1_arguments(dots$mean_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots$sd_v <- check_n1_arguments(dots$sd_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("mean_v","sd_v")]
+         },
+         gamma = {
+           pdf <- dlba_gamma_core
+           cdf <- plba_gamma_core
+           if (!("shape_v" %in% names(dots))) stop("shape_v needs to be passed for distribution = \"gamma\"")
+           if ((!("rate_v" %in% names(dots))) & (!("scale_v" %in% names(dots)))) stop("rate_v or scale_v need to be passed for distribution = \"gamma\"")
+           dots$shape_v <- check_n1_arguments(dots$shape_v, nn=nn, n_v=n_v, dots = TRUE)
+           if ("scale_v" %in% names(dots)) {
+             dots$scale_v <- check_n1_arguments(dots$scale_v, nn=nn, n_v=n_v, dots = TRUE)
+             if (is.list(dots$scale_v)) {
+               dots$rate_v <- lapply(dots$scale_v, function(x) 1/x)
+             } else dots$rate_v <- 1/dots$scale_v
+           } else dots$rate_v <- check_n1_arguments(dots$rate_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("shape_v","rate_v")]
+         },
+         frechet = {
+           pdf <- dlba_frechet_core
+           cdf <- plba_frechet_core
+           if (any(!(c("shape_v","scale_v") %in% names(dots)))) stop("shape_v and scale_v need to be passed for distribution = \"frechet\"")
+           dots$shape_v <- check_n1_arguments(dots$shape_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots$scale_v <- check_n1_arguments(dots$scale_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("shape_v","scale_v")]
+         },
+         lnorm = {
+           pdf <- dlba_lnorm_core
+           cdf <- plba_lnorm_core
+           if (any(!(c("meanlog_v","sdlog_v") %in% names(dots)))) stop("meanlog_v and sdlog_v need to be passed for distribution = \"lnorm\"")
+           dots$meanlog_v <- check_n1_arguments(dots$meanlog_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots$sdlog_v <- check_n1_arguments(dots$sdlog_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("meanlog_v","sdlog_v")]
+         }
+  )
+  #browser()
+  for (i in seq_len(length(dots))) {
     if (length(dots[[i]]) < n_v) dots[[i]] <- rep(dots[[i]],length.out=n_v)
   }
   if (length(st0)>1) {
@@ -107,16 +132,24 @@ n1PDF <- function(t, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "fr
     st0 <- st0[1] # Only ONE non-decision time.
   }
   #browser()
-  if (st0==0) return(do.call(n1PDFfixedt0, args = c(t=list(t), A=list(A), b=list(b), t0 = list(t0), dots, distribution = distribution, args.dist = args.dist)))
+  do.call(n1PDF_core, args = c(t=list(t), A=list(A), b=list(b), t0 = list(t0), st0 = st0, dots, pdf=pdf, cdf=cdf, args.dist = args.dist))
+}
+
+
+n1PDF_core <- function(t, A, b, t0, ..., st0, pdf, cdf, args.dist = list()) {
+  dots <- list(...)
+  #browser()
+  if (st0==0) return(do.call(n1PDFfixedt0, args = c(t=list(t), A=list(A), b=list(b), t0 = list(t0), dots, pdf=pdf, cdf=cdf, args.dist = args.dist)))
   else {
-    tmpf <- function(t, A, b, t0, ..., plba, plba.args = list()) {
+    tmpf <- function(t, A, b, t0, ..., pdf, cdf, args.dist = list()) {
       #browser()
-      do.call(n1PDFfixedt0, args = c(t=list(pmax(t-t0, 0)), A=list(A), t0 = list(0), b=list(b), dots, distribution = distribution, args.dist = args.dist))/st0
+      dots2 <- list(...)
+      do.call(n1PDFfixedt0, args = c(t=list(pmax(t-t0, 0)), A=list(A), b=list(b), t0 = list(0), dots2, pdf=pdf, cdf=cdf, args.dist = args.dist))/st0
     }
     outs=numeric(length(t))
     #browser()
     for (i in 1:length(outs)) {
-      tmp <- do.call(integrate, args=c(f=tmpf, lower=t[i]-t0[1]-st0, upper=t[i]-t0[1], A=list(A), b=list(b), t0=list(0), dots, distribution = distribution, args.dist = args.dist, stop.on.error = FALSE))
+      tmp <- do.call(integrate, args=c(f=tmpf, lower=t[i]-t0[1]-st0, upper=t[i]-t0[1], A=ret_arg(A, i), b=ret_arg(b, i), t0=list(0), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), pdf=pdf, cdf=cdf, args.dist = args.dist, stop.on.error = FALSE))
       if (tmp$message != "OK") warning(paste("n1PDF:", tmp$message))
       outs[i] <- tmp$value
     }
@@ -124,37 +157,103 @@ n1PDF <- function(t, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "fr
   }
 }
 
+# n1PDF_single <- function(t, A, b, t0, ..., st0, pdf, cdf, args.dist = list()) {
+#   dots <- list(...)
+#   #browser()
+#   if (st0==0) return(do.call(n1PDFfixedt0, args = c(t=list(t), A=list(A), b=list(b), t0 = list(t0), dots, pdf=pdf, cdf=cdf, args.dist = args.dist)))
+#   else {
+#     tmpf <- function(t, A, b, t0, ..., pdf, cdf, args.dist = list()) {
+#       #browser()
+#       do.call(n1PDFfixedt0, args = c(t=list(pmax(t-t0, 0)), A=list(A), b=list(b), t0 = list(0), dots, pdf=pdf, cdf=cdf, args.dist = args.dist))/st0
+#     }
+#     outs=numeric(length(t))
+#     #browser()
+#     for (i in 1:length(outs)) {
+#       tmp <- do.call(integrate, args=c(f=tmpf, lower=t[i]-t0[1]-st0, upper=t[i]-t0[1], A=list(A), b=list(b), t0=list(0), dots, pdf=pdf, cdf=cdf, args.dist = args.dist, stop.on.error = FALSE))
+#       if (tmp$message != "OK") warning(paste("n1PDF:", tmp$message))
+#       outs[i] <- tmp$value
+#     }
+#     return(outs)
+#   }
+# }
+
+ret_arg <- function(arg, which) {
+  list(if(is.list(arg)) {
+    if (which <= min(sapply(arg, length))) sapply(arg, "[[", i = which, simplify = FALSE) else arg 
+    } else {
+      if (which <= length(arg)) arg[which]
+      else arg
+      })
+}
+
+ret_arg2 <- function(arg, which) {
+  if(is.list(arg)) {
+    if (which <= min(sapply(arg, length))) sapply(arg, "[[", i = which, simplify = FALSE) else arg 
+    } else {
+      if (which <= length(arg)) arg[which]
+      else arg
+      }
+}
+
 # t = time, A=x0max, b=chi, v=drift, sv=sdI
 #' @rdname LBA-race
 #' @export
-n1CDF <- function(t,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list()) {  #, browser=FALSE
+n1CDF <- function(t,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE) {  #, browser=FALSE
   # Generates defective CDF for responses on node #1. 
   dots <- list(...)
   if (is.null(names(dots))) stop("... arguments need to be named.")
-  check_single_arg(t0 = t0)
+  
   n_v <- max(vapply(dots, length, 0))  # Number of responses
+  if(!silent) message(paste("Results based on", n_v, "accumulators/drift rates."))
   if (n_v < 2) stop("There need to be at least two accumulators/drift rates.")
   distribution <- match.arg(distribution)
+  check_single_arg(t0 = t0)
   nn <- length(t)
-  if (!is.list(A)) {
-    A <- rep(A, length.out=nn)
-  } else {
-    if (length(A) != n_v) stop("if A is a list, its length needs to correspond to the number of accumulators.")
-    for (i in seq_along(A)) {
-      A[[i]] <- rep(A[[i]], length.out=nn)
-    }
-  }
-  if (!is.list(b)) {
-    b <- rep(b, length.out=nn)
-  } else {
-    if (length(b) != n_v) stop("if b is a list, its length needs to correspond to the number of accumulators.")
-    for (i in seq_along(b)) {
-      b[[i]] <- rep(b[[i]], length.out=nn)
-    }
-  }
+  #browser()
+  A <- check_n1_arguments(A, nn=nn, n_v=n_v)
+  b <- check_n1_arguments(b, nn=nn, n_v=n_v)
+  switch(distribution, 
+         norm = {
+           pdf <- dlba_norm_core
+           cdf <- plba_norm_core
+           if (any(!(c("mean_v","sd_v") %in% names(dots)))) stop("mean_v and sd_v need to be passed for distribution = \"norm\"")
+           dots$mean_v <- check_n1_arguments(dots$mean_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots$sd_v <- check_n1_arguments(dots$sd_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("mean_v","sd_v")]
+         },
+         gamma = {
+           pdf <- dlba_gamma_core
+           cdf <- plba_gamma_core
+           if (!("shape_v" %in% names(dots))) stop("shape_v needs to be passed for distribution = \"gamma\"")
+           if ((!("rate_v" %in% names(dots))) & (!("scale_v" %in% names(dots)))) stop("rate_v or scale_v need to be passed for distribution = \"gamma\"")
+           dots$shape_v <- check_n1_arguments(dots$shape_v, nn=nn, n_v=n_v, dots = TRUE)
+           if ("scale_v" %in% names(dots)) {
+             dots$scale_v <- check_n1_arguments(dots$scale_v, nn=nn, n_v=n_v, dots = TRUE)
+             if (is.list(dots$scale_v)) {
+               dots$rate_v <- lapply(dots$scale_v, function(x) 1/x)
+             } else dots$rate_v <- 1/dots$scale_v
+           } else dots$rate_v <- check_n1_arguments(dots$rate_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("shape_v","rate_v")]
+         },
+         frechet = {
+           pdf <- dlba_frechet_core
+           cdf <- plba_frechet_core
+           if (any(!(c("shape_v","scale_v") %in% names(dots)))) stop("shape_v and scale_v need to be passed for distribution = \"frechet\"")
+           dots$shape_v <- check_n1_arguments(dots$shape_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots$scale_v <- check_n1_arguments(dots$scale_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("shape_v","scale_v")]
+         },
+         lnorm = {
+           pdf <- dlba_lnorm_core
+           cdf <- plba_lnorm_core
+           if (any(!(c("meanlog_v","sdlog_v") %in% names(dots)))) stop("meanlog_v and sdlog_v need to be passed for distribution = \"lnorm\"")
+           dots$meanlog_v <- check_n1_arguments(dots$meanlog_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots$sdlog_v <- check_n1_arguments(dots$sdlog_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("meanlog_v","sdlog_v")]
+         }
+  )
   
-  #if (length(t0)<n_v) t0 <- rep(t0,length.out=n_v)
-  for (i in length(dots)) {
+  for (i in seq_len(length(dots))) {
     if (length(dots[[i]]) < n_v) dots[[i]] <- rep(dots[[i]],length.out=n_v)
   }
   if (length(st0)>1) {
@@ -167,12 +266,13 @@ n1CDF <- function(t,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "frec
   } # 
   outs <- numeric(length(t))
   bounds <- c(0,t)
+  #browser()
   for (i in 1:length(t)) {
     if (bounds[i]>=bounds[i+1]) {
       outs[i]=0
       next
     }
-    tmp_obj <- do.call(integrate, args=c(f=n1PDF,lower=bounds[i],upper=bounds[i+1],subdivisions=1000, A=list(A), b=list(b), t0 = list(t0), st0 = list(st0), dots, distribution = distribution, stop.on.error = FALSE, args.dist = args.dist))
+    tmp_obj <- do.call(integrate, args=c(f=n1PDF_core,lower=bounds[i],upper=bounds[i+1],subdivisions=1000, A=ret_arg(A, i), b=ret_arg(b, i), t0 = list(t0), st0 = list(st0), sapply(dots, function(z, i) sapply(z, "[[", i = i, simplify=FALSE), i=i, simplify=FALSE), pdf = pdf, cdf = cdf, stop.on.error = FALSE, args.dist = args.dist))
     if (tmp_obj$message != "OK") {
       warning(tmp_obj$message)
     }

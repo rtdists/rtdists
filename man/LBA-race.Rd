@@ -6,10 +6,10 @@
 \title{LBA race functions: Likelihood for first accumulator to win.}
 \usage{
 n1PDF(t, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
-  "frechet", "lnorm"), args.dist = list())
+  "frechet", "lnorm"), args.dist = list(), silent = FALSE)
 
 n1CDF(t, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
-  "frechet", "lnorm"), args.dist = list())
+  "frechet", "lnorm"), args.dist = list(), silent = FALSE)
 }
 \arguments{
 \item{t}{a vector of RTs.}
@@ -25,6 +25,8 @@ n1CDF(t, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
 \item{distribution}{character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.}
 
 \item{args.dist}{list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}).}
+
+\item{silent}{logical. Should the number of accumulators used be suppressed? Default is \code{FALSE} which prints the number of accumulators.}
 }
 \description{
 n1PDF and n1CDF take RTs, the distribution functions of the \link{LBA}, and corresponding parameter values and put them throughout the race equations and return the likelihood for the first accumulator winning (hence n1) in a set of accumulators.
