@@ -4,14 +4,14 @@
 \alias{rtdists-package}
 \title{The rtdists Package}
 \description{
-Response time distributions.
+Response Time Distributions.
 }
 \details{
 \tabular{ll}{
 Package: \tab rtdists\cr
 Type: \tab Package\cr
-Version: \tab 0.2-6\cr
-Date: \tab 2014-12-06\cr
+Version: \tab 0.3-1\cr
+Date: \tab 2014-12-07\cr
 Depends: \tab R (>= 3.0.0)\cr
 License: \tab GPL (>=3)\cr
 URL: \tab https://github.com/rtdists/rtdists/\cr
