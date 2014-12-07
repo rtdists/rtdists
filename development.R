@@ -44,11 +44,11 @@ R.libs <- "."
 
 roxy.package(
   pck.source.dir = ".",
-  pck.version = "0.2-6",
+  pck.version = "0.3-1",
   pck.description = data.frame(
     Package = "rtdists",
     Type = "Package",
-    Title = "Response time distributions",
+    Title = "Response Time Distributions",
     AuthorsR = "c(
         person(given=\"Scott\", family=\"Brown\", role=c(\"aut\")),
         person(given=\"Matthew\", family=\"Gretton\", role=c(\"aut\")),
