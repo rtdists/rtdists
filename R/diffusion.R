@@ -8,13 +8,13 @@
 #' 
 #' @param a threshold separation. Amount of information that is considered for a decision. Large values indicate a conservative decisional style. Typical range: 0.5 < \code{a} < 2
 #' @param v drift rate. Average slope of the information accumulation process. The drift gives information about the speed and direction of the accumulation of information. Large (absolute) values of drift indicate a good performance. If received information supports the response linked to the upper threshold the sign will be positive and vice versa. Typical range: -5 < \code{v} < 5
-#' @param t0 non-decision time or response time constant (in seconds). Average duration of all non-decisional processes (encoding and response execution). Typical range: 0.1 < \code{t0} < 0.5
+#' @param t0 non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution). Typical range: 0.1 < \code{t0} < 0.5
 #' 
 #' @param z relative starting point. Indicator of an a priori bias in decision making. When the relative starting point \code{z} deviates from 0.5, the amount of information necessary for a decision differs between response alternatives. Typical range: 0.3 < \code{z} < 0.7. Default is 0.5 (i.e., no bias).
 #' @param d differences in speed of response execution (in seconds). Positive values indicate that response execution is faster for responses linked to the upper threshold than for responses linked to the lower threshold. Typical range: -0.1 < \code{d} < 0.1. Default is 0.
 #' @param sz inter-trial-variability of (relative) starting point. Range of a uniform distribution with mean \code{z} describing the distribution of actual starting points from specific trials. Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sz} < 0.5. Default is 0.
 #' @param sv inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials. 	Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sv} < 2. Default is 0.
-#' @param st0 inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Typical range: 0 < \code{st0} < 0.2. Default is 0.
+#' @param st0 inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0 + st0/2} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Typical range: 0 < \code{st0} < 0.2. Default is 0.
 #' 
 #' @param precision \code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.
 #' @param maxt maximum \code{rt} allowed, used to stop integration problems (\code{prd} only).
@@ -71,12 +71,20 @@ NULL
 # }
 #
 
+# [MG 20150616]
+# In line with LBA, adjust t0 to be the lower bound of the non-decision time distribution rather than the average 
+# Called from prd, drd, rrd 
+recalc_t0 <- function (t0, st0) { t0 <- t0 + st0/2 }
+
+
 #' @rdname Diffusion
 #' @export drd
 drd <- function (t, boundary = c("upper", "lower"), 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
                  precision = 3)
 {
+  t0 <- recalc_t0 (t0, st0) 
+  
   # Check for illegal parameter values
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/ot t0 must be supplied")
   pl <- c(a,v,t0,d,sz,sv,st0,z)
@@ -110,6 +118,8 @@ prd <- function (t, boundary = c("upper", "lower"),
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
                  precision = 3, maxt = 1e4) 
 {
+  t0 <- recalc_t0 (t0, st0) 
+
   # Check for illegal parameter values
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/ot t0 must be supplied")
   pl <- c(a,v,t0,d,sz,sv,st0,z)
@@ -139,6 +149,7 @@ prd <- function (t, boundary = c("upper", "lower"),
   
 }
 
+
 #' @rdname Diffusion
 #' @export rrd
 # Returns a matrix of 2 x n (RTs x boundaries)
@@ -148,6 +159,8 @@ rrd <- function (n,
 {
   randRTs    <- vector(length=n)
   randBounds <- vector(length=n)
+
+  t0 <- recalc_t0 (t0, st0) 
   
   # Check for illegal parameter values
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/ot t0 must be supplied")
