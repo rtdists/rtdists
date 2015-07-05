@@ -8,18 +8,18 @@ library (rtdists)
 source ("_dev/diffusion_batch_test.R")
 
 # VECTOR VERSION: Set up parameters
-test_vec_len <- 1
-vec_rts <- seq (1, 2.9, by=0.2)
-vec_bounds <- "upper"
-
-vec_a   <- 1
-vec_z   <- .20 
-vec_v   <- .30
-vec_t0  <- .40
-vec_d   <- .50
-vec_sz  <- .06
-vec_sv  <- .70
-vec_st0 <- .80
+# test_vec_len <- 1
+# vec_rts <- seq (1, 2.9, by=0.2)
+# vec_bounds <- "upper"
+# 
+# vec_a   <- 1
+# vec_z   <- .20 
+# vec_v   <- .30
+# vec_t0  <- .40
+# vec_d   <- .50
+# vec_sz  <- .06
+# vec_sv  <- .70
+# vec_st0 <- .80
 
 # MATRIX VERSION: Set up parameter vectors
 test_vec_len <- 10
@@ -33,7 +33,7 @@ vec_t0  <- rep (.40, test_vec_len)
 vec_d   <- rep (.50, test_vec_len)
 vec_sz  <- rep (.06, test_vec_len)
 vec_sv  <- rep (.70, test_vec_len)
-vec_st0 <- rep (.80, test_vec_len)
+vec_st0 <- rep (.08, test_vec_len)
 
 
 # !! DEBUG ONLY
@@ -94,7 +94,7 @@ densities <- vector(length=length(t))
 if (length(params[,1]) == 1)
 {
   # Call the C code
-  output <- .C("dfastdm_b", 
+  output <- .C("pfastdm_b", 
                as.integer (length(t)),                 # 1  IN:  number of densities
                as.vector  (pl),                        # 2  IN:  parameters
                as.vector  (t),                         # 3  IN:  RTs
@@ -107,7 +107,6 @@ if (length(params[,1]) == 1)
   
 } else
 {
-  cat ("Doing vector params,\n")
   # Check matrix-specific errors
   #  Needs to be 2D, with second dimension of length 9 (incl. boundary)
   if (length(dim(params)) != 2)   { stop("Needs to be a two-dimensional parameter matrix.") }
@@ -139,16 +138,15 @@ if (length(params[,1]) == 1)
             ok_params[6], ok_params[7], ok_params[8], ok_params[4])  
 
     # Call the C code
-    output <- .C("dfastdm_b", 
-                 as.integer (length(rts[ok_rows])),                 # 1  IN:  number of densities
+    output <- .C("pfastdm_b", 
+                 as.integer (length(t[ok_rows])),        # 1  IN:  number of densities
                  as.vector  (pl),                        # 2  IN:  parameters
-                 as.vector  (t[ok_rows]),                         # 3  IN:  RTs
+                 as.vector  (t[ok_rows]),                # 3  IN:  RTs
                  as.double  (precision),                 # 4  IN:  precision
-                 as.integer (ok_paramsi),                         # 5  IN:  boundary
+                 as.integer (ok_params[9]),                # 5  IN:  boundary
                  as.vector  (densities, mode="numeric")  # 6 OUT:  densities
     )
-    densities[ok_rows] <- out
-
+    densities[ok_rows] <- head(unlist(output[6]), length(ok_rows))
   
 #     out2 <- drd (rts[ok_rows], a =current_params[1], z  =current_params[2], v =current_params[3], 
 #                      t0=current_params[4], d  =current_params[5], sz=current_params[6], 
@@ -156,7 +154,6 @@ if (length(params[,1]) == 1)
 #     
 #     output2[ok_rows] <- out2
   }
-  densities
   
   # Test
   all.equal (correct_prd_vals, densities)
