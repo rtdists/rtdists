@@ -134,6 +134,7 @@ drd_batch <- function (t, boundary = c("upper", "lower"),
     unique_rows <- length(uniques[,1])
     
     # ?TODO: If we wanted to do an optimising heuristic with the percent of unique rows, we'd do it here
+    #        e.g. if >95% rows are unique is probably slower to batch them than send them off individually
     
     for (i in 1:unique_rows)
     {
@@ -222,6 +223,7 @@ prd_batch <- function (t, boundary = c("upper", "lower"),
     unique_rows <- length(uniques[,1])
     
     # ?TODO: If we wanted to do an optimising heuristic with the percent of unique rows, we'd do it here
+    #        e.g. if >95% rows are unique is probably slower to batch them than send them off individually
     
     for (i in 1:unique_rows)
     {
@@ -255,33 +257,88 @@ prd_batch <- function (t, boundary = c("upper", "lower"),
 
 #' @rdname Diffusion
 #' @export rrd_batch
-# [TODO]
+#' When given vectorised parameters, n is the number of replicates for each parameter set
 rrd_batch <- function (n, 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
                  precision = 3)
 {
-  randRTs    <- vector(length=n)
-  randBounds <- vector(length=n)
 
-  t0 <- recalc_t0 (t0, st0) 
+  #t0 <- recalc_t0 (t0, st0) 
+  
+  # Build parameter matrix
+  params <- cbind (a, v, t0, z, d, sz, sv, st0)
+  
+  params[3,] <- recalc_t0 (params[3,], params[8,]) 
+  
   
   # Check for illegal parameter values
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/ot t0 must be supplied")
-  pl <- c(a,v,t0,d,sz,sv,st0,z)
-  if(length(pl)!=8) stop("Each parameter needs to be of length 1.")
-  if(!is.numeric(pl)) stop("Parameters need to be numeric.")
-  if (any(is.na(pl)) || !all(is.finite(pl))) stop("Parameters need to be numeric and finite.")
-
-  output <- .C("rfastdm", 
-               as.integer (n),                          # 1  IN:  number of densities
-               as.vector  (pl),                         # 2  IN:  parameters
-               as.double  (precision),                  # 3  IN:  precision
-               as.vector  (randRTs, mode="numeric"),    # 4 OUT:  RTs 
-               as.vector  (randBounds, mode="numeric")  # 5 OUT:  bounds 
-  )
+  if(!is.numeric(params)) stop("Parameters need to be numeric.")
+  if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
   
-  randRTs <- unlist(output[4]) 
-  randBounds <- unlist(output[5])
+  randRTs    <- vector(length=n*length(params[,1]))
+  randBounds <- vector(length=n*length(params[,1]))
+
+  if (length(params[,1]) == 1)  # Treat this like a parameter vector
+  {
+    pl <- c(a,v,t0,d,sz,sv,st0,z)
+  
+    output <- .C("rfastdm", 
+                 as.integer (n),                          # 1  IN:  number of densities
+                 as.vector  (pl),                         # 2  IN:  parameters
+                 as.double  (precision),                  # 3  IN:  precision
+                 as.vector  (randRTs, mode="numeric"),    # 4 OUT:  RTs 
+                 as.vector  (randBounds, mode="numeric")  # 5 OUT:  bounds 
+    )
+    randRTs <- unlist(output[4]) 
+    randBounds <- unlist(output[5])
+  } else
+  {
+    # Check matrix-specific errors
+    #  Needs to be 2D, with second dimension of length 9 (incl. boundary)
+    if (length(dim(params)) != 2)   { stop("Needs to be a two-dimensional parameter matrix.") }
+    if (length (params[1,]) != 8)   { stop("Incorrect length of parameter rows") }
+    uniques <- unique(params)
+    unique_rows <- length(uniques[,1])
+    
+    # ?TODO: If we wanted to do an optimising heuristic with the percent of unique rows, we'd do it here
+    #        e.g. if >95% rows are unique is probably slower to batch them than send them off individually
+  
+    start_idx <-1
+    for (i in 1:unique_rows)
+    {
+      
+      # Get list of row indices equal to the i'th unique row
+      # Todo: check this actually works!
+      ok_rows <- which(params[,1]      == uniques[i,1])
+      for (j in 2:8) { ok_rows <- ok_rows[which(params[ok_rows,j] == uniques[i,j])] }    
+    
+      # Calculate n for this row
+      current_n <- n * length(ok_rows)
+      
+      # Select the correct RT indices and parameters for this batch of 'ok' parameter rows
+      ok_params <- params[ok_rows[1],]
+      
+      # pl <- c(a,v,t0,d,sz,sv,st0,z) (need to put z at the end)
+      pl <- c(ok_params[1], ok_params[2], ok_params[3], ok_params[5], 
+              ok_params[6], ok_params[7], ok_params[8], ok_params[4])  
+      
+      # Call the C code
+      output <- .C("rfastdm", 
+                   as.integer (current_n),                 # 1  IN:  number of densities
+                   as.vector  (pl),                        # 2  IN:  parameters
+                   as.double  (precision),                 # 3  IN:  precision
+                   as.vector  (randRTs, mode="numeric"),   # 4 OUT:  RTs 
+                   as.vector  (randBounds, mode="numeric") # 5 OUT:  bounds 
+      )
+      
+      end_idx <- start_idx+current_n-1              
+
+      randRTs[start_idx:end_idx]    <- head(unlist(output[4]), current_n) 
+      randBounds[start_idx:end_idx] <- head(unlist(output[5]), current_n)
+      start_idx <- start_idx + current_n
+    }
+  }
   response <- factor(randBounds, levels = 0:1, labels = c("lower", "upper"))
   data.frame(rt = randRTs, response)
 }

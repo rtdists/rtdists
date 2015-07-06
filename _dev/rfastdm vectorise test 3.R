@@ -29,11 +29,15 @@ vec_bounds <- sample (c("upper","lower"), test_vec_len, replace=TRUE)
 vec_a   <- c(1,    1,    1,    2,    3,    3,    3,    4,    4,    4    )
 vec_z   <- rep (.20, test_vec_len)
 vec_v   <- rep (.30, test_vec_len)
-vec_t0  <- rep (.40, test_vec_len)
+vec_t0  <- rep (.40, 3) # test_vec_len)
+vec_t0  <- c(vec_t0, .48)
+
 vec_d   <- rep (.50, test_vec_len)
 vec_sz  <- rep (.06, test_vec_len)
 vec_sv  <- rep (.70, test_vec_len)
 vec_st0 <- rep (.08, test_vec_len)
+
+# params <- cbind (vec_a, vec_v, vec_t0, vec_z, vec_d, vec_sz, vec_sv, vec_st0)
 
 
 # !! DEBUG ONLY
@@ -57,4 +61,6 @@ drds <- drd_batch (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z, v=vec_v, t0=v
 all.equal (correct_prd_vals, prds)
 all.equal (correct_drd_vals, drds)
 
-rrds <- 
+source ("_dev/diffusion_batch_test.R")
+rrds <- rrd_batch (888, a=vec_a, z=vec_z, v=vec_v, t0=vec_t0, d=vec_d, sz=vec_sz, sv=vec_sv, st0=vec_st0)
+View (rrds)
