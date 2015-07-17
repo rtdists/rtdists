@@ -18,5 +18,5 @@ Authors@R: c( person(given="Scott", family="Brown", role=c("aut")),
          person(given="Andrew", family="Terry", role=c("ctb")),
          person(given="Henrik", family="Singmann",
          email="singmann+rtdists@gmail.com", role=c("aut", "cre")) )
-Version: 0.4-1
+Version: 0.4-3
 Date: 2015-06-26
