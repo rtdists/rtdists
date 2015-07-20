@@ -7,11 +7,11 @@
 \alias{rrd}
 \title{The Ratcliff Diffusion Model}
 \usage{
-drd(t, boundary = c("upper", "lower"), a, v, t0, z = 0.5, d = 0, sz = 0,
-  sv = 0, st0 = 0, precision = 3)
+drd(t, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0,
+  st0 = 0, precision = 3)
 
-prd(t, boundary = c("upper", "lower"), a, v, t0, z = 0.5, d = 0, sz = 0,
-  sv = 0, st0 = 0, precision = 3, maxt = 10000)
+prd(t, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0,
+  st0 = 0, precision = 3, maxt = 10000)
 
 rrd(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
   precision = 3)
@@ -41,13 +41,15 @@ rrd(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
 
 \item{maxt}{maximum \code{rt} allowed, used to stop integration problems (\code{prd} only).}
 
-\item{n}{desired number of observations.}
+\item{n}{is a desired number of observations.}
 }
 \value{
 \code{drd} gives the density, \code{prd} gives the distribution function, and \code{rrd} generates random response times and decisions (returning a \code{data.frame} with columns \code{rts} (numeric) and \code{response} (factor)).
 }
 \description{
 Density, distribution function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{z} (relative starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point).
+
+When given vectorised parameters, n is the number of replicates for each parameter set
 }
 \details{
 The Ratcliff diffusion model (Ratcliff, 1978) is a mathematical model for two-choice discrimination tasks. It is based on the assumption that information is accumulated continuously until one of two decision thresholds is hit. For more information, see Voss, Rothermund, and Voss (2004), Voss, Nagler, and Lerche (2013), or Wagenmakers (2009).
