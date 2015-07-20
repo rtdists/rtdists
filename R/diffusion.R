@@ -100,7 +100,9 @@ drd <- function (t, boundary = "upper",
   # Build parameter matrix
   params <- cbind (a, v, t0, z, d, sz, sv, st0, numeric_bounds)
   
+  
   # Check for illegal parameter values
+  if(length(params)<9) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/ot t0 must be supplied")
   if(!is.numeric(params)) stop("Parameters need to be numeric.")
   if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
@@ -139,7 +141,6 @@ drd <- function (t, boundary = "upper",
     for (i in 1:unique_rows)
     {
       # Get list of row indices equal to the i'th unique row
-      # Todo: check this actually works!
       ok_rows <- which(params[,1]      == uniques[i,1])
       for (j in 2:9) { ok_rows <- ok_rows[which(params[ok_rows,j] == uniques[i,j])] }    
       
@@ -162,7 +163,6 @@ drd <- function (t, boundary = "upper",
       densities[ok_rows] <- head(unlist(output[6]), length(ok_rows))
     }
   }
-  
   densities
 }
 
@@ -189,6 +189,7 @@ prd <- function (t, boundary = "upper",
   params <- cbind (a, v, t0, z, d, sz, sv, st0, numeric_bounds)
   
   # Check for illegal parameter values
+  if(length(params)<9) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/ot t0 must be supplied")
   if(!is.numeric(params)) stop("Parameters need to be numeric.")
   if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
@@ -227,7 +228,6 @@ prd <- function (t, boundary = "upper",
     for (i in 1:unique_rows)
     {
       # Get list of row indices equal to the i'th unique row
-      # Todo: check this actually works!
       ok_rows <- which(params[,1]      == uniques[i,1])
       for (j in 2:9) { ok_rows <- ok_rows[which(params[ok_rows,j] == uniques[i,j])] }    
       
@@ -254,16 +254,21 @@ prd <- function (t, boundary = "upper",
 }
 
 
+#' When given vectorised parameters, n is the number of replicates for each parameter set
+#'
 #' @rdname Diffusion
 #' @export rrd
-#' When given vectorised parameters, n is the number of replicates for each parameter set
 rrd <- function (n, 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
                  precision = 3)
 {
   t0 <- recalc_t0 (t0, st0) 
 
+  # Build parameter matrix
+  params <- cbind (a, v, t0, z, d, sz, sv, st0)
+  
   # Check for illegal parameter values
+  if(length(params)<8) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/ot t0 must be supplied")
   if(!is.numeric(params)) stop("Parameters need to be numeric.")
   if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
@@ -299,9 +304,7 @@ rrd <- function (n,
     start_idx <-1
     for (i in 1:unique_rows)
     {
-      
       # Get list of row indices equal to the i'th unique row
-      # Todo: check this actually works!
       ok_rows <- which(params[,1]      == uniques[i,1])
       for (j in 2:8) { ok_rows <- ok_rows[which(params[ok_rows,j] == uniques[i,j])] }    
     
