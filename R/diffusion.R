@@ -37,6 +37,7 @@
 #' @useDynLib rtdists, dfastdm_b, pfastdm_b, rfastdm
 #'
 #' @name Diffusion
+#' @importFrom utils head
 #' 
 #' @example examples/examples.diffusion.R
 #' 

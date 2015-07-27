@@ -19,6 +19,7 @@
 #' In other words, this is just the PDF/CDF for the winning accumulator at time \eqn{t} times the probability that no other accumulators have finished at time \eqn{t}.
 #' 
 #' @name LBA-race
+#' @importFrom stats integrate
 #' 
 #' @example examples/examples.lba-race.R
 #' 

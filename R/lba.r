@@ -36,6 +36,8 @@
 #' @importFrom evd rfrechet dfrechet pfrechet
 #' @importFrom msm rtnorm
 #' @importFrom gsl gamma_inc
+#' @importFrom stats dgamma dlnorm dnorm pgamma plnorm pnorm rgamma rlnorm rnorm runif
+#' 
 #' 
 #' @name LBA
 #' 
