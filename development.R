@@ -25,6 +25,8 @@ require(testthat)
 test()
 test_package("rtdists")  # no long tests of n1 functions
 test_file("tests/testthat/test-lba-math.R")
+test_file("tests/testthat/test-diffusion.R")
+test_file("tests/testthat/test-rrd.R")
 
 #x <- .Random.seed
 test_file("tests/testthat/test-lba_race.R")

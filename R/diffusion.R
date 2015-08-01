@@ -124,7 +124,7 @@ drd <- function (t, boundary = "upper",
                  as.vector  (densities, mode="numeric")    # 6 OUT:  densities
     )
     
-    densities <- unlist(output[6])
+    densities <- output[[6]]
     
   } else
   {
@@ -159,9 +159,9 @@ drd <- function (t, boundary = "upper",
                    as.vector  (t[ok_rows]),                # 3  IN:  RTs
                    as.double  (precision),                 # 4  IN:  precision
                    as.integer (ok_params[9]),                # 5  IN:  boundary
-                   as.vector  (densities, mode="numeric")  # 6 OUT:  densities
+                   as.vector  (densities[ok_rows], mode="numeric")  # 6 OUT:  densities
       )
-      densities[ok_rows] <- head(unlist(output[6]), length(ok_rows))
+      densities[ok_rows] <- output[[6]]
     }
   }
   densities
@@ -211,7 +211,7 @@ prd <- function (t, boundary = "upper",
                  as.vector  (pvalues, mode="numeric")    # 6 OUT:  densities
     )
     
-    pvalues <- unlist(output[6])
+    pvalues <- output[[6]]
     
   } else
   {
@@ -246,9 +246,9 @@ prd <- function (t, boundary = "upper",
                    as.vector  (t[ok_rows]),                # 3  IN:  RTs
                    as.double  (precision),                 # 4  IN:  precision
                    as.integer (ok_params[9]),                # 5  IN:  boundary
-                   as.vector  (pvalues, mode="numeric")  # 6 OUT:  densities
+                   as.vector  (pvalues[ok_rows], mode="numeric")  # 6 OUT:  densities
       )
-      pvalues[ok_rows] <- head(unlist(output[6]), length(ok_rows))
+      pvalues[ok_rows] <- output[[6]]
     }
   }
   pvalues
