@@ -66,7 +66,7 @@ roxy.package(
         person(given=\"Henrik\", family=\"Singmann\", email=\"singmann+rtdists@gmail.com\", role=c(\"aut\", \"cre\"))
     )",
     Depends = "R (>= 3.0.0)",
-    Suggests = "testthat",
+    Suggests = "testthat, glba",
     Imports = "evd, msm, gsl, stats, utils",
     Description = "Provides response time distributions (density/PDF, distribution function/CDF, and random generation): (a) Ratcliff diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distribution underlying the drift rate.",
     URL = "https://github.com/rtdists/rtdists/",
