@@ -38,9 +38,9 @@ n1PDFfixedt0 <- function(t,A,b, t0, ..., pdf, cdf, args.dist = list()) {
     for (i in 2:n_v) tmp[,i-1] <- do.call(cdf, args = c(t=list(t), A=if(is.list(A)) A[i] else list(A), b=if(is.list(b)) b[i] else list(b), t0 = t0, sapply(dots, "[[", i = i, simplify = FALSE), args.dist = args.dist, nn=nn))
     G <- apply(1-tmp,1,prod)
   } else {
-    G <- 1-do.call(cdf, args = c(t=list(t), A=if(is.list(A)) A[2] else list(A), b=if(is.list(b)) b[2] else list(b), t0 = t0, sapply(dots, "[[", i = 2, simplify = FALSE), args.dist, nn=nn))
+    G <- 1-do.call(cdf, args = c(t=list(t), A=if(is.list(A)) A[2] else list(A), b=if(is.list(b)) b[2] else list(b), t0 = unname(t0), sapply(dots, "[[", i = 2, simplify = FALSE), args.dist, nn=nn))
   }
-  G*do.call(pdf, args = c(t=list(t), A=if(is.list(A)) A[1] else list(A), b=if(is.list(b)) b[1] else list(b), t0 = t0, sapply(dots, "[[", i = 1, simplify = FALSE), args.dist, nn=nn))
+  G*do.call(pdf, args = c(t=list(t), A=if(is.list(A)) A[1] else list(A), b=if(is.list(b)) b[1] else list(b), t0 = unname(t0), sapply(dots, "[[", i = 1, simplify = FALSE), args.dist, nn=nn))
 }
 
 #sapply(dots, rep_dots, which = 1, nn = nn, simplify = FALSE)
@@ -133,7 +133,7 @@ n1PDF <- function(t, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "fr
     st0 <- st0[1] # Only ONE non-decision time.
   }
   #browser()
-  do.call(n1PDF_core, args = c(t=list(t), A=list(A), b=list(b), t0 = list(t0), st0 = st0, dots, pdf=pdf, cdf=cdf, args.dist = list(args.dist)))
+  do.call(n1PDF_core, args = c(t=list(t), A=list(A), b=list(b), t0 = list(t0), st0 = unname(st0), dots, pdf=pdf, cdf=cdf, args.dist = list(args.dist)))
 }
 
 
@@ -150,7 +150,7 @@ n1PDF_core <- function(t, A, b, t0, ..., st0, pdf, cdf, args.dist = list()) {
     outs=numeric(length(t))
     #browser()
     for (i in 1:length(outs)) {
-      tmp <- do.call(integrate, args=c(f=tmpf, lower=t[i]-t0[1]-st0, upper=t[i]-t0[1], A=ret_arg(A, i), b=ret_arg(b, i), t0=list(0), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), pdf=pdf, cdf=cdf, args.dist = list(args.dist), stop.on.error = FALSE))
+      tmp <- do.call(integrate, args=c(f=tmpf, lower=unname(t[i]-t0[1]-st0), upper=unname(t[i]-t0[1]), A=ret_arg(A, i), b=ret_arg(b, i), t0=list(0), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), pdf=pdf, cdf=cdf, args.dist = list(args.dist), stop.on.error = FALSE))
       if (tmp$message != "OK") warning(paste("n1PDF:", tmp$message))
       outs[i] <- tmp$value
     }

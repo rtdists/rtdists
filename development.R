@@ -24,6 +24,7 @@ rlba_norm(100, b = 1.3, A = 1, vs = c(0.8, 1.2), s = 1.2, t0 = .2, st0 = 0)
 require(testthat)
 test()
 test_package("rtdists")  # no long tests of n1 functions
+test(filter = "bugs")
 test_file("tests/testthat/test-lba-math.R")
 test_file("tests/testthat/test-diffusion.R")
 test_file("tests/testthat/test-rrd.R")

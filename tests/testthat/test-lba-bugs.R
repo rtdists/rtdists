@@ -30,6 +30,15 @@ test_that("n1PDF and n1CDF pass arguments correctly", {
   expect_false(all(c1 == c3))
   c4 <- n1CDF(bh08$rt,A=sp[1],b=bound[1]+sp[1], t0=nond[1], mean_v=c(drift1[1],drift2[1]), sd_v=sddr[1],dist="norm", args.dist = list(posdrift = FALSE, robust = TRUE))
   expect_false(all(c1 == c4))
+  set.seed(NULL)
+})
+
+test_that("named parameter vectors do not cause havoc", {
+  xx <- rlba_norm(10, A=0.5, b=1, t0 = 0.5, mean_v=1.2, sd_v=0.2)
+  expect_is(n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2, st0 = c(xx = 0.1), silent =TRUE), "numeric")
+  expect_is(n1PDF(xx$rt, A=0.5, b=1, t0 = c(aa=0.5), mean_v=c(1.2, 1.0), sd_v=c(xx=0.2), silent =TRUE), "numeric")
+  expect_is(n1PDF(xx$rt, A=c(xx=0.5), b=c(A = 1), t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=c(xx=0.2), silent =TRUE), "numeric")
+  expect_is(n1PDF(xx$rt, A=0.5, b=1, t0 = c(aa=0.5), mean_v=c(1.2, 1.0), sd_v=0.2, st0 = 0.1, silent =TRUE), "numeric")
 })
 
 
@@ -82,3 +91,6 @@ test_that("glba and rtdists agree", {
   
   expect_identical(ll1, ll2)
 })
+
+
+

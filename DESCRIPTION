@@ -4,17 +4,15 @@ Title: Response Time Distributions
 Depends: R (>= 3.0.0)
 Suggests: testthat, glba
 Imports: evd, msm, gsl, stats, utils
-Description: Provides response time distributions (density/PDF, distribution function/CDF, and
-           random generation): (a) Ratcliff diffusion model based on C code by Andreas and Jochen
-           Voss and (b) linear ballistic accumulator (LBA) with different distribution underlying
-           the drift rate.
+Description: Provides response time distributions (density/PDF, distribution function/CDF, and random
+            generation): (a) Ratcliff diffusion model based on C code by Andreas and Jochen Voss and (b) linear
+            ballistic accumulator (LBA) with different distribution underlying the drift rate.
 URL: https://github.com/rtdists/rtdists/
 License: GPL (>=3)
-Authors@R: c( person(given="Scott", family="Brown", role=c("aut")), person(given="Matthew",
-           family="Gretton", role=c("aut")), person(given="Andrew", family="Heathcote",
-           role=c("aut")), person(given="Andreas", family="Voss", role=c("ctb")),
-           person(given="Jochen", family="Voss", role=c("ctb")), person(given="Andrew",
-           family="Terry", role=c("ctb")), person(given="Henrik", family="Singmann",
-           email="singmann+rtdists@gmail.com", role=c("aut", "cre")) )
+Authors@R: c( person(given="Scott", family="Brown", role=c("aut")), person(given="Matthew", family="Gretton",
+            role=c("aut")), person(given="Andrew", family="Heathcote", role=c("aut")), person(given="Andreas",
+            family="Voss", role=c("ctb")), person(given="Jochen", family="Voss", role=c("ctb")),
+            person(given="Andrew", family="Terry", role=c("ctb")), person(given="Henrik", family="Singmann",
+            email="singmann+rtdists@gmail.com", role=c("aut", "cre")) )
 Version: 0.4-4
-Date: 2015-08-02
+Date: 2015-08-20
