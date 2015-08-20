@@ -39,6 +39,11 @@ test_that("named parameter vectors do not cause havoc", {
   expect_is(n1PDF(xx$rt, A=0.5, b=1, t0 = c(aa=0.5), mean_v=c(1.2, 1.0), sd_v=c(xx=0.2), silent =TRUE), "numeric")
   expect_is(n1PDF(xx$rt, A=c(xx=0.5), b=c(A = 1), t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=c(xx=0.2), silent =TRUE), "numeric")
   expect_is(n1PDF(xx$rt, A=0.5, b=1, t0 = c(aa=0.5), mean_v=c(1.2, 1.0), sd_v=0.2, st0 = 0.1, silent =TRUE), "numeric")
+  
+  expect_is(n1CDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2, st0 = c(xx = 0.1), silent =TRUE), "numeric")
+  expect_is(n1CDF(xx$rt, A=0.5, b=1, t0 = c(aa=0.5), mean_v=c(1.2, 1.0), sd_v=c(xx=0.2), silent =TRUE), "numeric")
+  expect_is(n1CDF(xx$rt, A=c(xx=0.5), b=c(A = 1), t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=c(xx=0.2), silent =TRUE), "numeric")
+  expect_is(n1CDF(xx$rt, A=0.5, b=1, t0 = c(aa=0.5), mean_v=c(1.2, 1.0), sd_v=0.2, st0 = 0.1, silent =TRUE), "numeric")
 })
 
 
