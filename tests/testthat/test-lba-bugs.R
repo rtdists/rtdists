@@ -47,6 +47,112 @@ test_that("named parameter vectors do not cause havoc", {
 })
 
 
+test_that("PDFs and CDFs do not return NaN for A = 0", {
+  expect_true(all(is.finite(dlba_norm(t = c(0, 0.0000001, 0.5),  A=0, b=1, t0 = 0, mean_v=1.2, sd_v=0.2))))
+  expect_true(all(is.finite(dlba_gamma(t = c(0, 0.0000001, 0.5),  A=0, b=1, t0 = 0, shape_v=1.2, rate_v=0.2))))
+  expect_true(all(is.finite(dlba_frechet(t = c(0, 0.0000001, 0.5),  A=0, b=1, t0 = 0, shape_v=1.2, scale_v=0.2))))
+  expect_true(all(is.finite(dlba_lnorm(t = c(0, 0.0000001, 0.5),  A=0, b=1, t0 = 0, meanlog_v = 1.2, sdlog_v = 0.2))))
+  
+  expect_true(all(is.finite(plba_norm(t = c(0, 0.0000001, 0.5),  A=0, b=1, t0 = 0, mean_v=1.2, sd_v=0.2))))
+  expect_true(all(is.finite(plba_gamma(t = c(0, 0.0000001, 0.5),  A=0, b=1, t0 = 0, shape_v=1.2, rate_v=0.2))))
+  expect_true(all(is.finite(plba_frechet(t = c(0, 0.0000001, 0.5),  A=0, b=1, t0 = 0, shape_v=1.2, scale_v=0.2))))
+  expect_true(all(is.finite(plba_lnorm(t = c(0, 0.0000001, 0.5),  A=0, b=1, t0 = 0, meanlog_v = 1.2, sdlog_v = 0.2))))
+  
+})
+
+
+test_that("LBA-norm: PDF and CDF work with various parameter values", {
+  
+  rts <- c(0, 0.0000001, 0.5, 1.5, 2)
+  seq_parameters <- seq(0, 1, length.out = 5)
+  
+  for (A in seq_parameters) {
+    for (b in seq_parameters) {
+      for (t0 in seq_parameters) {
+        for (d1 in seq_parameters) {
+          for (d2 in c(0.0001, seq_parameters[-1])) {
+            expect_true(all(is.finite(dlba_norm(t = rts,  A=A, b=(A+b), t0 = t0, mean_v=d1, sd_v=d2))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", mean_v=", d1, ", sd_v=", d2))
+            expect_true(all(is.finite(dlba_norm(t = rts,  A=A, b=(A+b), t0 = t0, mean_v=d1, sd_v=d2, posdrift = FALSE))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", mean_v=", d1, ", sd_v=", d2))
+            expect_true(all(is.finite(dlba_norm(t = rts,  A=A, b=(A+b), t0 = t0, mean_v=d1, sd_v=d2, robust = TRUE))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", mean_v=", d1, ", sd_v=", d2))
+            expect_true(all(is.finite(dlba_norm(t = rts,  A=A, b=(A+b), t0 = t0, mean_v=d1, sd_v=d2, robust = TRUE, posdrift = FALSE))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", mean_v=", d1, ", sd_v=", d2))
+            
+            expect_true(all(is.finite(plba_norm(t = rts,  A=A, b=(A+b), t0 = t0, mean_v=d1, sd_v=d2))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", mean_v=", d1, ", sd_v=", d2))
+            expect_true(all(is.finite(plba_norm(t = rts,  A=A, b=(A+b), t0 = t0, mean_v=d1, sd_v=d2, posdrift = FALSE))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", mean_v=", d1, ", sd_v=", d2))
+            expect_true(all(is.finite(plba_norm(t = rts,  A=A, b=(A+b), t0 = t0, mean_v=d1, sd_v=d2, robust = TRUE))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", mean_v=", d1, ", sd_v=", d2))
+            expect_true(all(is.finite(plba_norm(t = rts,  A=A, b=(A+b), t0 = t0, mean_v=d1, sd_v=d2, robust = TRUE, posdrift = FALSE))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", mean_v=", d1, ", sd_v=", d2))
+          }
+        }
+      }
+    }
+  }
+  
+})
+
+test_that("LBA-gamma: PDF and CDF work with various parameter values", {
+  
+  rts <- c(0, 0.0000001, 0.5, 1.5, 2)
+  seq_parameters <- seq(0, 1, length.out = 5)
+  
+  for (A in seq_parameters) {
+    for (b in seq_parameters) {
+      for (t0 in seq_parameters) {
+        for (d1 in seq_parameters) {
+          for (d2 in c(0.0001, seq_parameters[-1])) {
+            expect_true(all(is.finite(dlba_gamma(t = rts,  A=A, b=(A+b), t0 = t0, shape_v=d1, scale_v=d2))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", shape_v=", d1, ", scale_v=", d2))
+            
+            expect_true(all(is.finite(plba_gamma(t = rts,  A=A, b=(A+b), t0 = t0, shape_v=d1, scale_v=d2))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", shape_v=", d1, ", scale_v=", d2))
+          }
+        }
+      }
+    }
+  }
+  
+})
+
+test_that("LBA-frechet: PDF and CDF work with various parameter values", {
+  
+  rts <- c(0, 0.0000001, 0.5, 1.5, 2)
+  seq_parameters <- seq(0, 1, length.out = 5)
+  
+  for (A in seq_parameters) {
+    for (b in seq_parameters) {
+      for (t0 in seq_parameters) {
+        for (d1 in c(0.0001, seq_parameters[-1])) {
+          for (d2 in c(0.0001, seq_parameters[-1])) {
+            expect_true(all(is.finite(dlba_frechet(t = rts,  A=A, b=(A+b), t0 = t0, shape_v=d1, scale_v=d2))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", shape_v=", d1, ", scale_v=", d2))
+            
+            expect_true(all(is.finite(plba_frechet(t = rts,  A=A, b=(A+b), t0 = t0, shape_v=d1, scale_v=d2))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", shape_v=", d1, ", scale_v=", d2))
+          }
+        }
+      }
+    }
+  }
+  
+})
+
+test_that("LBA-lnorm: PDF and CDF work with various parameter values", {
+  
+  rts <- c(0, 0.0000001, 0.5, 1.5, 2)
+  seq_parameters <- seq(0, 1, length.out = 5)
+  
+  for (A in seq_parameters) {
+    for (b in seq_parameters) {
+      for (t0 in seq_parameters) {
+        for (d1 in c(0.0001, seq_parameters[-1])) {
+          for (d2 in c(0.0001, seq_parameters[-1])) {
+            expect_true(all(is.finite(dlba_lnorm(t = rts,  A=A, b=(A+b), t0 = t0, meanlog_v=d1, sdlog_v=d2))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", meanlog_v=", d1, ", sdlog_v=", d2))
+            expect_true(all(is.finite(dlba_lnorm(t = rts,  A=A, b=(A+b), t0 = t0, meanlog_v=d1, sdlog_v=d2)), robust = TRUE), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", meanlog_v=", d1, ", sdlog_v=", d2))
+            
+            expect_true(all(is.finite(plba_lnorm(t = rts,  A=A, b=(A+b), t0 = t0, meanlog_v=d1, sdlog_v=d2))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", meanlog_v=", d1, ", sdlog_v=", d2))
+            expect_true(all(is.finite(plba_lnorm(t = rts,  A=A, b=(A+b), t0 = t0, meanlog_v=d1, sdlog_v=d2, robust = TRUE))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", meanlog_v=", d1, ", sdlog_v=", d2))
+          }
+        }
+      }
+    }
+  }
+  
+})
+
 context("glba and rtdists are in agreement")
 
 test_that("glba and rtdists agree", {

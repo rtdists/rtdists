@@ -123,7 +123,7 @@ dlba_norm_core <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALS
   if (any(A<1e-10)) {
     # for A<1e-10 save results in out_A
     A_small <- A<1e-10
-    out_A <- pmax(0, ((b[A_small]/t[A_small]^2)*dnorm1(b[A_small]/t[A_small],mean_v[A_small],sd=sd_v[A_small]))/denom[A_small]) 
+    out_A <- pmax(0, ((b[A_small]/t[A_small]^2)*dnorm1(b[A_small]/t[A_small],mean_v[A_small],sd=sd_v[A_small]))/denom[A_small], na.rm = TRUE) 
     # calculate other results into out_o
     zs <- t[!A_small]*sd_v[!A_small]
     zu <- t[!A_small]*mean_v[!A_small]
@@ -142,7 +142,7 @@ dlba_norm_core <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALS
     chiminuszu <- b-zu
     chizu <- chiminuszu/zs
     chizumax <- (chiminuszu-A)/zs
-    return(pmax(0,(mean_v*(pnorm1(chizu)-pnorm1(chizumax)) + sd_v*(dnorm1(chizumax)-dnorm1(chizu)))/(A*denom))) 
+    return(pmax(0,(mean_v*(pnorm1(chizu)-pnorm1(chizumax)) + sd_v*(dnorm1(chizumax)-dnorm1(chizu)))/(A*denom), na.rm=TRUE)) 
   }
 }
 
@@ -175,7 +175,7 @@ plba_norm_core <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE, 
   if (any(A<1e-10)) {
     # for A<1e-10 save results in out_A
     A_small <- A<1e-10
-    out_A <- pmin(1, pmax(0, (pnorm1(b[A_small]/t[A_small],mean=mean_v[A_small],sd=sd_v[A_small],lower.tail=FALSE))/denom[A_small]))
+    out_A <- pmin(1, pmax(0, (pnorm1(b[A_small]/t[A_small],mean=mean_v[A_small],sd=sd_v[A_small],lower.tail=FALSE))/denom[A_small], na.rm=TRUE))
 
     # calculate other results into out_o
     zs <- t[!A_small]*sd_v[!A_small]
@@ -202,7 +202,7 @@ plba_norm_core <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE, 
     chizumax <- xx/zs
     tmp1 <- zs*(dnorm1(chizumax)-dnorm1(chizu))
     tmp2 <- xx*pnorm1(chizumax)-chiminuszu*pnorm1(chizu)
-    return(pmin(pmax(0,(1+(tmp1+tmp2)/A)/denom), 1))
+    return(pmin(pmax(0,(1+(tmp1+tmp2)/A)/denom, na.rm=TRUE), 1))
   }
 }
 
@@ -352,33 +352,35 @@ dlba_frechet_core <- function(t,A,b,t0,shape_v, scale_v, nn) {
   # t <- pmax(t,0) #not needed, see rem_t0
   t_old <- t
   
-  t <- t[!ps_below_zero]
-  A <- A[!ps_below_zero]
-  b <- b[!ps_below_zero]
-  t0 <- t0[!ps_below_zero]
-  shape_v <- shape_v[!ps_below_zero]
-  scale_v <- scale_v[!ps_below_zero]
-  
-  min <- (b-A)/t
-  max <- b/t
-  Gmax <- pfrechet(max, loc=0, scale=scale_v, shape=shape_v)
-  Gmin <- pfrechet(min, loc=0, scale=scale_v, shape=shape_v)
-  D <- Gmax - Gmin
-  gam <- gamma_inc(1-(1/shape_v), (1/scale_v*max)^(-shape_v))-gamma_inc(1-(1/shape_v), (1/scale_v*min)^(-shape_v))
-  zfrechet <- gam/(1/scale_v*D)
-  diffG1 <- ((-b/(t^2))*dfrechet(b/t, loc=0, scale=scale_v, shape=shape_v))
-  diffG2 <- ((-(b-A)/(t^2))*dfrechet((b-A)/t, loc=0, scale=scale_v, shape=shape_v))    
-  diffD <- diffG1 - diffG2    
-  diffgam <- (-shape_v*(((1/scale_v*b)^(-shape_v+1))/(t^(-shape_v+2)))*exp(-(1/scale_v*b/t)^(-shape_v))) - (-shape_v*(((1/scale_v*(b-A))^(-shape_v+1))/(t^(-shape_v+2)))*exp(-(1/scale_v*(b-A)/t)^(-shape_v)))
-  diffzfrechet <- ((1/scale_v)^(-1))*(((-D^(-2))*diffD)*gam + (diffgam*(D^(-1))))
-  term1 <- (Gmax - Gmin)*(zfrechet + (t*diffzfrechet))
-  term2 <- diffG1*((zfrechet*t)-b)
-  term3 <- diffG2*(b-A-(zfrechet*t))
-  out.value <- ((term1+term2+term3)/A)
-  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
-  
   out <- numeric(nn)
-  out[!ps_below_zero] <- out.value
+  
+  if (sum(!ps_below_zero) > 0) {
+    t <- t[!ps_below_zero]
+    A <- A[!ps_below_zero]
+    b <- b[!ps_below_zero]
+    t0 <- t0[!ps_below_zero]
+    shape_v <- shape_v[!ps_below_zero]
+    scale_v <- scale_v[!ps_below_zero]
+  
+    min <- (b-A)/t
+    max <- b/t
+    Gmax <- pfrechet(max, loc=0, scale=scale_v, shape=shape_v)
+    Gmin <- pfrechet(min, loc=0, scale=scale_v, shape=shape_v)
+    D <- Gmax - Gmin
+    gam <- gamma_inc(1-(1/shape_v), (1/scale_v*max)^(-shape_v))-gamma_inc(1-(1/shape_v), (1/scale_v*min)^(-shape_v))
+    zfrechet <- gam/(1/scale_v*D)
+    diffG1 <- ((-b/(t^2))*dfrechet(b/t, loc=0, scale=scale_v, shape=shape_v))
+    diffG2 <- ((-(b-A)/(t^2))*dfrechet((b-A)/t, loc=0, scale=scale_v, shape=shape_v))    
+    diffD <- diffG1 - diffG2    
+    diffgam <- (-shape_v*(((1/scale_v*b)^(-shape_v+1))/(t^(-shape_v+2)))*exp(-(1/scale_v*b/t)^(-shape_v))) - (-shape_v*(((1/scale_v*(b-A))^(-shape_v+1))/(t^(-shape_v+2)))*exp(-(1/scale_v*(b-A)/t)^(-shape_v)))
+    diffzfrechet <- ((1/scale_v)^(-1))*(((-D^(-2))*diffD)*gam + (diffgam*(D^(-1))))
+    term1 <- (Gmax - Gmin)*(zfrechet + (t*diffzfrechet))
+    term2 <- diffG1*((zfrechet*t)-b)
+    term3 <- diffG2*(b-A-(zfrechet*t))
+    out.value <- ((term1+term2+term3)/A)
+    out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
+    out[!ps_below_zero] <- out.value
+  }
   return(pmax(0, out))
 }
 
@@ -406,27 +408,31 @@ plba_frechet_core <- function(t,A,b,t0,shape_v, scale_v, nn) {
   # t <- pmax(t,0) #not needed, see rem_t0
   t_old <- t
   
-  t <- t[!ps_below_zero]
-  A <- A[!ps_below_zero]
-  b <- b[!ps_below_zero]
-  t0 <- t0[!ps_below_zero]
-  shape_v <- shape_v[!ps_below_zero]
-  scale_v <- scale_v[!ps_below_zero]
-  
-  # t <- pmax(t,0) #not needed, see rem_t0
-  min <- (b-A)/t
-  max <- b/t
-  pmax <- pfrechet(max, loc=0, scale=scale_v, shape=shape_v)
-  pmin <- pfrechet(min, loc=0, scale=scale_v, shape=shape_v)
-  zfrechet <- (gamma_inc(1-(1/shape_v),(1/scale_v*max)^(-shape_v))-gamma_inc(1-(1/shape_v),(1/scale_v*min)^(-shape_v)))/(1/scale_v*(pmax-pmin))    
-  term1 <- ((t*zfrechet) - b)/A
-  term2 <- (b-A-(t*zfrechet))/A 
-  out.value <- (1 + pmax*term1 + pmin*term2)
-  out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
-  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-  
   out <- numeric(nn)
-  out[!ps_below_zero] <- out.value
+  
+  if (sum(!ps_below_zero) > 0) {
+    
+    t <- t[!ps_below_zero]
+    A <- A[!ps_below_zero]
+    b <- b[!ps_below_zero]
+    t0 <- t0[!ps_below_zero]
+    shape_v <- shape_v[!ps_below_zero]
+    scale_v <- scale_v[!ps_below_zero]
+    
+    # t <- pmax(t,0) #not needed, see rem_t0
+    min <- (b-A)/t
+    max <- b/t
+    pmax <- pfrechet(max, loc=0, scale=scale_v, shape=shape_v)
+    pmin <- pfrechet(min, loc=0, scale=scale_v, shape=shape_v)
+    zfrechet <- (gamma_inc(1-(1/shape_v),(1/scale_v*max)^(-shape_v))-gamma_inc(1-(1/shape_v),(1/scale_v*min)^(-shape_v)))/(1/scale_v*(pmax-pmin))    
+    term1 <- ((t*zfrechet) - b)/A
+    term2 <- (b-A-(t*zfrechet))/A 
+    out.value <- (1 + pmax*term1 + pmin*term2)
+    out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+    out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
+    out[!ps_below_zero] <- out.value
+  }
+  
   return(pmin(pmax(0, out), 1))
 }
 
