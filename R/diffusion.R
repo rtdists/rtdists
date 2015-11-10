@@ -180,7 +180,6 @@ prd <- function (t, boundary = "upper",
   
   pvalues <- vector("numeric", length=length(t))    
   uniques <- unique(params)
-  densities <- vector("numeric",length=length(t))  
   for (i in seq_len(nrow(uniques))) {
     ok_rows <- apply(params, 1, identical, y = uniques[i,])
     output <- .C("pfastdm_b", 
@@ -228,7 +227,6 @@ rrd <- function (n,
   randBounds <- vector("numeric",length=n)
 
   uniques <- unique(params)
-  densities <- vector("numeric",length=length(t))  
   for (i in seq_len(nrow(uniques))) {
       ok_rows <- apply(params, 1, identical, y = uniques[i,])
     
