@@ -45,6 +45,10 @@ rrd(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
 }
 \value{
 \code{drd} gives the density, \code{prd} gives the distribution function, and \code{rrd} generates random response times and decisions (returning a \code{data.frame} with columns \code{rts} (numeric) and \code{response} (factor)).
+
+The length of the result is determined by \code{n} for \code{rrd}, and is equal to the length of \code{t} for \code{drd} and \code{prd}.
+
+The distribution parameters (as well as \code{boundary} are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the boundary.
 }
 \description{
 Density, distribution function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{z} (relative starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point).
@@ -77,6 +81,11 @@ curve(prd(x, a=1, v=2, t0=0.5, st0=0.2, boundary="l"),
      add=TRUE, lty = 2)
 legend("topleft", legend=c("upper", "lower"), title="boundary", lty=1:2)
 
+
+rts <- rrd(10, a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
+drd(rts$rt, boundary = as.character(rts$response), a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
+drd(rts$rt, boundary = c("u", "l", "u", "u"), a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
+drd(rts$rt, boundary = c("u", "l", "u", "u"), a=1, v=runif(10, 1.5, 2.5), t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
 }
 \author{
 Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, and Henrik Singmann.

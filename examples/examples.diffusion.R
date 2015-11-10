@@ -20,3 +20,8 @@ curve(prd(x, a=1, v=2, t0=0.5, st0=0.2, boundary="l"),
      add=TRUE, lty = 2)
 legend("topleft", legend=c("upper", "lower"), title="boundary", lty=1:2)
 
+
+rts <- rrd(10, a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
+drd(rts$rt, boundary = as.character(rts$response), a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
+drd(rts$rt, boundary = c("u", "l", "u", "u"), a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
+drd(rts$rt, boundary = c("u", "l", "u", "u"), a=1, v=runif(10, 1.5, 2.5), t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)

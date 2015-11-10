@@ -107,5 +107,35 @@ test_that("ensure vectorised functions are equal to previous non-vectorised vers
   #       (should never be as high as 1e-3, though)
   expect_that (prds, equals (correct_prd_vals, tolerance=1e-3))
   expect_that (drds, equals (correct_drd_vals))
+  
+  prds2 <- prd (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z[1:sample(test_vec_len, 1)], v=vec_v[1:sample(test_vec_len, 1)], t0=vec_t0[1:sample(test_vec_len, 1)], d=vec_d[1:sample(test_vec_len, 1)], sz=vec_sz[1:sample(test_vec_len, 1)], sv=vec_sv[1:sample(test_vec_len, 1)], st0=vec_st0[1:sample(test_vec_len, 1)])
+  drds2 <- drd (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z[1:sample(test_vec_len, 1)], v=vec_v[1:sample(test_vec_len, 1)], t0=vec_t0[1:sample(test_vec_len, 1)], d=vec_d[1:sample(test_vec_len, 1)], sz=vec_sz[1:sample(test_vec_len, 1)], sv=vec_sv[1:sample(test_vec_len, 1)], st0=vec_st0[1:sample(test_vec_len, 1)])
+  expect_that (prds2, equals (correct_prd_vals, tolerance=1e-3))
+  expect_that (drds2, equals (correct_drd_vals))
+})
+
+
+test_that("ensure vectorised functions are equal to previous non-vectorised versions (v2):", {
+  
+  n_test <- 20
+  rts <- rrd(n_test, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0)
+  
+  correct_prd_vals <- vector("numeric", n_test)
+  correct_drd_vals <- vector("numeric", n_test)
+  for (i in seq(1, n_test, by = 2))
+  {
+    correct_prd_vals[i] <- old_prd(sort(rts[, "rt"])[i], boundary=as.character(rts[i, "response"]), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0)
+    correct_prd_vals[i+1] <- old_prd(sort(rts[, "rt"])[i+1], boundary=as.character(rts[i+1, "response"]), a=1.5, z=0.75, v=2.25, t0=0.4, d=0.1, sz = 0.1, sv = 0.1, st0 = 0.1)
+    correct_drd_vals[i] <- old_drd(rts[i, "rt"], boundary=as.character(rts[i, "response"]), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0)
+    correct_drd_vals[i+1] <- old_drd(rts[i+1, "rt"], boundary=as.character(rts[i+1, "response"]), a=1.5, z=0.75, v=2.25, t0=0.4, d=0.1, sz = 0.1, sv = 0.1, st0 = 0.1)
+  }  
+  
+  prds <- prd(sort(rts[, "rt"]), boundary=as.character(rts[, "response"]), a=c(1, 1.5), z=c(0.5, 0.75), v=c(2, 2.25), t0=c(0.5, 0.4), d=c(0,0.1), sz = c(0,0.1), sv = c(0,0.1), st0 = c(0, 0.1))
+  drds <- drd (rts[, "rt"], boundary=as.character(rts[, "response"]), a=c(1, 1.5), z=c(0.5, 0.75), v=c(2, 2.25), t0=c(0.5, 0.4), d=c(0,0.1), sz = c(0,0.1), sv = c(0,0.1), st0 = c(0, 0.1))
+  # Note: allow a lot of tolerance for prd difference due to sampling error 
+  #       (should never be as high as 1e-3, though)
+  expect_equal(prds, correct_prd_vals, tolerance=1e-3)
+  expect_equal(drds, correct_drd_vals)
+  
 })
 
