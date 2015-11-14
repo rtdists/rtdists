@@ -3,3 +3,10 @@ Changes to Version 0.4-4
 
     o PDF and CDF LBA functions more robust (now mostly return 0 instead of NaN)
       for problematic parameter values (such as A = 0) [2015-09-17].
+
+    o diffusion model functions are now completely vectorized and accept 
+      vectors as parameters (including for boundary).
+      
+    o t0 in the diffusion model now corresponds to the lower bound of the 
+      uniform distribution from which t0 is drawn (it was the mean before). 
+      The specifications of t0 now agree between LBA and diffusion model.   
