@@ -35,7 +35,7 @@ old_drd <- function (t, boundary = c("upper", "lower"),
                as.vector  (densities, mode="numeric")  # 6 OUT:  densities
   )
   
-  unlist(output[6])
+  abs(unlist(output[6]))
   
 }
 

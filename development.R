@@ -6,8 +6,8 @@ options(error = recover)
 options(error = NULL)
 
 rrd(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0)
-rt1 <- rrd(10, a=c(1, 1.5, 1.2), z=0.5, v=1, t0=0.5, d=0, sz=0, sv=0, st0=0)
-drd(rt1[rt1$response == "upper", "rt"], a=c(1, 1.5, 1.2), z=0.5, v=1, t0=0.5, d=0, sz=0, sv=0, st0=0)
+rt1 <- rrd(20, a=c(1, 1.5, 1.2), z=0.5, v=1, t0=0.5, d=0, sz=0, sv=0, st0=0)
+drd(rt1$rt, a=c(1, 1.5, 1.2), z=0.5, v=1, t0=0.5, d=0, sz=0, sv=0, st0=0, boundary = as.character(rt1$response))
 prd(sort(rt1[rt1$response == "upper", "rt"]), a=c(1, 1.5, 1.2), z=0.5, v=1, t0=0.5, d=0, sz=0, sv=0, st0=0)
 
 rlba_norm(10, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2, 0.4, 0.5))

@@ -137,7 +137,7 @@ drd <- function (t, boundary = "upper",
     )
     densities[ok_rows] <- output[[6]]
   }
-  densities
+  abs(densities)
 }
 
 #' @rdname Diffusion
