@@ -98,9 +98,9 @@ test_that("LBA-gamma: PDF and CDF work with various parameter values", {
       for (t0 in seq_parameters) {
         for (d1 in seq_parameters) {
           for (d2 in c(0.0001, seq_parameters[-1])) {
-            expect_true(all(is.finite(dlba_gamma(t = rts,  A=A, b=(A+b), t0 = t0, shape_v=d1, scale_v=d2))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", shape_v=", d1, ", scale_v=", d2))
+            suppressWarnings(expect_true(all(is.finite(dlba_gamma(t = rts,  A=A, b=(A+b), t0 = t0, shape_v=d1, scale_v=d2))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", shape_v=", d1, ", scale_v=", d2)))
             
-            expect_true(all(is.finite(plba_gamma(t = rts,  A=A, b=(A+b), t0 = t0, shape_v=d1, scale_v=d2))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", shape_v=", d1, ", scale_v=", d2))
+            suppressWarnings(expect_true(all(is.finite(plba_gamma(t = rts,  A=A, b=(A+b), t0 = t0, shape_v=d1, scale_v=d2))), info = paste0("A=", A, ", b=", b, ", t0=", t0, ", shape_v=", d1, ", scale_v=", d2)))
           }
         }
       }
