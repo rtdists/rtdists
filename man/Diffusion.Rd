@@ -2,18 +2,19 @@
 % Please edit documentation in R/diffusion.R
 \name{Diffusion}
 \alias{Diffusion}
-\alias{drd}
-\alias{prd}
-\alias{rrd}
+\alias{ddiffusion}
+\alias{diffusion}
+\alias{pdiffusion}
+\alias{rdiffusion}
 \title{The Ratcliff Diffusion Model}
 \usage{
-drd(t, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0,
-  st0 = 0, precision = 3)
+ddiffusion(t, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
+  sv = 0, st0 = 0, precision = 3)
 
-prd(t, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0,
-  st0 = 0, precision = 3, maxt = 10000)
+pdiffusion(t, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
+  sv = 0, st0 = 0, precision = 3, maxt = 10000)
 
-rrd(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
+rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
   precision = 3)
 }
 \arguments{

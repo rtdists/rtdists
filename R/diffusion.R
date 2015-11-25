@@ -42,6 +42,7 @@
 #'
 #' @name Diffusion
 #' @importFrom utils head
+#' @aliases diffusion
 #' 
 #' @example examples/examples.diffusion.R
 #' 
@@ -87,8 +88,8 @@ recalc_t0 <- function (t0, st0) { t0 <- t0 + st0/2 }
 
 
 #' @rdname Diffusion
-#' @export drd
-drd <- function (t, boundary = "upper", 
+#' @export
+ddiffusion <- function (t, boundary = "upper", 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
                  precision = 3)
 {
@@ -141,8 +142,8 @@ drd <- function (t, boundary = "upper",
 }
 
 #' @rdname Diffusion
-#' @export prd
-prd <- function (t, boundary = "upper", 
+#' @export
+pdiffusion <- function (t, boundary = "upper", 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
                  precision = 3, maxt = 1e4) 
 {
@@ -199,8 +200,8 @@ prd <- function (t, boundary = "upper",
 #' When given vectorised parameters, n is the number of replicates for each parameter set
 #'
 #' @rdname Diffusion
-#' @export rrd
-rrd <- function (n, 
+#' @export
+rdiffusion <- function (n, 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
                  precision = 3)
 {

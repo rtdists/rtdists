@@ -1,13 +1,13 @@
-context("Diffusion prd and drd functions.")
+context("Diffusion pdiffusion and ddiffusion functions.")
 
-# Include the old non-vectorised prd and drd funcs to ensure they haven't been broken
+# Include the old non-vectorised pdiffusion and ddiffusion funcs to ensure they haven't been broken
 
 # [MG 20150616]
 # In line with LBA, adjust t0 to be the lower bound of the non-decision time distribution rather than the average 
-# Called from prd, drd, rrd 
+# Called from pdiffusion, ddiffusion, rdiffusion 
 recalc_t0 <- function (t0, st0) { t0 <- t0 + st0/2 }
 
-old_drd <- function (t, boundary = c("upper", "lower"), 
+old_ddiffusion <- function (t, boundary = c("upper", "lower"), 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
                  precision = 3)
 {
@@ -39,7 +39,7 @@ old_drd <- function (t, boundary = c("upper", "lower"),
   
 }
 
-old_prd <- function (t, boundary = c("upper", "lower"), 
+old_pdiffusion <- function (t, boundary = c("upper", "lower"), 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
                  precision = 3, maxt = 1e4) 
 {
@@ -91,51 +91,51 @@ test_that("ensure vectorised functions are equal to previous non-vectorised vers
   vec_sv  <- rep (.70, test_vec_len)
   vec_st0 <- rep (.08, test_vec_len)
   
-  correct_prd_vals <- vector(length=test_vec_len)
-  correct_drd_vals <- vector(length=test_vec_len)
+  correct_pdiffusion_vals <- vector(length=test_vec_len)
+  correct_ddiffusion_vals <- vector(length=test_vec_len)
   for (i in 1:test_vec_len)
   {
-    correct_prd_vals[i] <- old_prd(vec_rts[i], boundary=vec_bounds[i], a =vec_a[i], z=vec_z[i], v =vec_v[i], 
+    correct_pdiffusion_vals[i] <- old_pdiffusion(vec_rts[i], boundary=vec_bounds[i], a =vec_a[i], z=vec_z[i], v =vec_v[i], 
                                t0=vec_t0[i], d=vec_d[i], sz =vec_sz[i], sv=vec_sv[i], st0 = vec_st0[i])
-    correct_drd_vals[i] <- old_drd(vec_rts[i], boundary=vec_bounds[i], a =vec_a[i], z=vec_z[i], v =vec_v[i], 
+    correct_ddiffusion_vals[i] <- old_ddiffusion(vec_rts[i], boundary=vec_bounds[i], a =vec_a[i], z=vec_z[i], v =vec_v[i], 
                                t0=vec_t0[i], d=vec_d[i], sz =vec_sz[i], sv=vec_sv[i], st0 = vec_st0[i])
   }  
   
-  prds <- prd (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z, v=vec_v, t0=vec_t0, d=vec_d, sz=vec_sz, sv=vec_sv, st0=vec_st0)
-  drds <- drd (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z, v=vec_v, t0=vec_t0, d=vec_d, sz=vec_sz, sv=vec_sv, st0=vec_st0)
-  # Note: allow a lot of tolerance for prd difference due to sampling error 
+  pdiffusions <- pdiffusion (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z, v=vec_v, t0=vec_t0, d=vec_d, sz=vec_sz, sv=vec_sv, st0=vec_st0)
+  ddiffusions <- ddiffusion (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z, v=vec_v, t0=vec_t0, d=vec_d, sz=vec_sz, sv=vec_sv, st0=vec_st0)
+  # Note: allow a lot of tolerance for pdiffusion difference due to sampling error 
   #       (should never be as high as 1e-3, though)
-  expect_that (prds, equals (correct_prd_vals, tolerance=1e-3))
-  expect_that (drds, equals (correct_drd_vals))
+  expect_that (pdiffusions, equals (correct_pdiffusion_vals, tolerance=1e-3))
+  expect_that (ddiffusions, equals (correct_ddiffusion_vals))
   
-  prds2 <- prd (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z[1:sample(test_vec_len, 1)], v=vec_v[1:sample(test_vec_len, 1)], t0=vec_t0[1:sample(test_vec_len, 1)], d=vec_d[1:sample(test_vec_len, 1)], sz=vec_sz[1:sample(test_vec_len, 1)], sv=vec_sv[1:sample(test_vec_len, 1)], st0=vec_st0[1:sample(test_vec_len, 1)])
-  drds2 <- drd (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z[1:sample(test_vec_len, 1)], v=vec_v[1:sample(test_vec_len, 1)], t0=vec_t0[1:sample(test_vec_len, 1)], d=vec_d[1:sample(test_vec_len, 1)], sz=vec_sz[1:sample(test_vec_len, 1)], sv=vec_sv[1:sample(test_vec_len, 1)], st0=vec_st0[1:sample(test_vec_len, 1)])
-  expect_that (prds2, equals (correct_prd_vals, tolerance=1e-3))
-  expect_that (drds2, equals (correct_drd_vals))
+  pdiffusions2 <- pdiffusion (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z[1:sample(test_vec_len, 1)], v=vec_v[1:sample(test_vec_len, 1)], t0=vec_t0[1:sample(test_vec_len, 1)], d=vec_d[1:sample(test_vec_len, 1)], sz=vec_sz[1:sample(test_vec_len, 1)], sv=vec_sv[1:sample(test_vec_len, 1)], st0=vec_st0[1:sample(test_vec_len, 1)])
+  ddiffusions2 <- ddiffusion (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z[1:sample(test_vec_len, 1)], v=vec_v[1:sample(test_vec_len, 1)], t0=vec_t0[1:sample(test_vec_len, 1)], d=vec_d[1:sample(test_vec_len, 1)], sz=vec_sz[1:sample(test_vec_len, 1)], sv=vec_sv[1:sample(test_vec_len, 1)], st0=vec_st0[1:sample(test_vec_len, 1)])
+  expect_that (pdiffusions2, equals (correct_pdiffusion_vals, tolerance=1e-3))
+  expect_that (ddiffusions2, equals (correct_ddiffusion_vals))
 })
 
 
 test_that("ensure vectorised functions are equal to previous non-vectorised versions (v2):", {
   
   n_test <- 20
-  rts <- rrd(n_test, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0)
+  rts <- rdiffusion(n_test, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0)
   
-  correct_prd_vals <- vector("numeric", n_test)
-  correct_drd_vals <- vector("numeric", n_test)
+  correct_pdiffusion_vals <- vector("numeric", n_test)
+  correct_ddiffusion_vals <- vector("numeric", n_test)
   for (i in seq(1, n_test, by = 2))
   {
-    correct_prd_vals[i] <- old_prd(sort(rts[, "rt"])[i], boundary=as.character(rts[i, "response"]), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0)
-    correct_prd_vals[i+1] <- old_prd(sort(rts[, "rt"])[i+1], boundary=as.character(rts[i+1, "response"]), a=1.5, z=0.75, v=2.25, t0=0.4, d=0.1, sz = 0.1, sv = 0.1, st0 = 0.1)
-    correct_drd_vals[i] <- old_drd(rts[i, "rt"], boundary=as.character(rts[i, "response"]), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0)
-    correct_drd_vals[i+1] <- old_drd(rts[i+1, "rt"], boundary=as.character(rts[i+1, "response"]), a=1.5, z=0.75, v=2.25, t0=0.4, d=0.1, sz = 0.1, sv = 0.1, st0 = 0.1)
+    correct_pdiffusion_vals[i] <- old_pdiffusion(sort(rts[, "rt"])[i], boundary=as.character(rts[i, "response"]), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0)
+    correct_pdiffusion_vals[i+1] <- old_pdiffusion(sort(rts[, "rt"])[i+1], boundary=as.character(rts[i+1, "response"]), a=1.5, z=0.75, v=2.25, t0=0.4, d=0.1, sz = 0.1, sv = 0.1, st0 = 0.1)
+    correct_ddiffusion_vals[i] <- old_ddiffusion(rts[i, "rt"], boundary=as.character(rts[i, "response"]), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0)
+    correct_ddiffusion_vals[i+1] <- old_ddiffusion(rts[i+1, "rt"], boundary=as.character(rts[i+1, "response"]), a=1.5, z=0.75, v=2.25, t0=0.4, d=0.1, sz = 0.1, sv = 0.1, st0 = 0.1)
   }  
   
-  prds <- prd(sort(rts[, "rt"]), boundary=as.character(rts[, "response"]), a=c(1, 1.5), z=c(0.5, 0.75), v=c(2, 2.25), t0=c(0.5, 0.4), d=c(0,0.1), sz = c(0,0.1), sv = c(0,0.1), st0 = c(0, 0.1))
-  drds <- drd (rts[, "rt"], boundary=as.character(rts[, "response"]), a=c(1, 1.5), z=c(0.5, 0.75), v=c(2, 2.25), t0=c(0.5, 0.4), d=c(0,0.1), sz = c(0,0.1), sv = c(0,0.1), st0 = c(0, 0.1))
-  # Note: allow a lot of tolerance for prd difference due to sampling error 
+  pdiffusions <- pdiffusion(sort(rts[, "rt"]), boundary=as.character(rts[, "response"]), a=c(1, 1.5), z=c(0.5, 0.75), v=c(2, 2.25), t0=c(0.5, 0.4), d=c(0,0.1), sz = c(0,0.1), sv = c(0,0.1), st0 = c(0, 0.1))
+  ddiffusions <- ddiffusion (rts[, "rt"], boundary=as.character(rts[, "response"]), a=c(1, 1.5), z=c(0.5, 0.75), v=c(2, 2.25), t0=c(0.5, 0.4), d=c(0,0.1), sz = c(0,0.1), sv = c(0,0.1), st0 = c(0, 0.1))
+  # Note: allow a lot of tolerance for pdiffusion difference due to sampling error 
   #       (should never be as high as 1e-3, though)
-  expect_equal(prds, correct_prd_vals, tolerance=1e-3)
-  expect_equal(drds, correct_drd_vals)
+  expect_equal(pdiffusions, correct_pdiffusion_vals, tolerance=1e-3)
+  expect_equal(ddiffusions, correct_ddiffusion_vals)
   
 })
 
