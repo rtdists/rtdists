@@ -8,6 +8,8 @@ Changes to Version 0.4-x
       vectors as parameters (including for boundary). This allows a likelihood
       function which only includes one call to the density function.
       
+    o boundary parameter for diffusion functions accept numeric/factor vectors.
+      
     o t0 in the diffusion model now corresponds to the lower bound of the 
       uniform distribution from which t0 is drawn (it was the mean before). 
       The specifications of t0 now agree between LBA and diffusion model. 
