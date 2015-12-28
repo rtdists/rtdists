@@ -1,5 +1,5 @@
 
-Changes to Version 0.4-4
+Changes to Version 0.4-x
 
     o PDF and CDF LBA functions more robust (now mostly return 0 instead of NaN)
       for problematic parameter values (such as A = 0) [2015-09-17].
