@@ -12,10 +12,10 @@ test_that("_norm vectorizes", {
   vs <- seq(0.8, 1.2, length.out = 10)
   
   o1 <- plba_norm(x$response, A=as, b=bs, t0 = t0s, mean_v=vs, sd_v=0.2)
-  o2 <- mapply(plba_norm, t = x$response, A = as, b = bs, t0 = t0s, mean_v=vs, MoreArgs = list(sd_v=0.2))
+  o2 <- mapply(plba_norm, rt = x$response, A = as, b = bs, t0 = t0s, mean_v=vs, MoreArgs = list(sd_v=0.2))
   expect_identical(o1, o2)
   p1 <- dlba_norm(x$response, A=as, b=bs, t0 = t0s, mean_v=1.2, sd_v=vs)
-  p2 <- mapply(dlba_norm, t = x$response, A = as, b = bs, t0 = t0s, sd_v=vs, MoreArgs = list(mean_v=1.2))
+  p2 <- mapply(dlba_norm, rt = x$response, A = as, b = bs, t0 = t0s, sd_v=vs, MoreArgs = list(mean_v=1.2))
   expect_identical(p1, p2)
 })
 
@@ -45,10 +45,10 @@ test_that("_gamma vectorizes", {
   vs <- seq(0.8, 1.2, length.out = 10)
   
   o1 <- dlba_gamma(x$response, A=as, b=bs, t0 = t0s, shape_v=vs, scale_v=0.2)
-  o2 <- mapply(dlba_gamma, t = x$response, A = as, b = bs, t0 = t0s, shape_v=vs, MoreArgs = list(scale_v=0.2))
+  o2 <- mapply(dlba_gamma, rt = x$response, A = as, b = bs, t0 = t0s, shape_v=vs, MoreArgs = list(scale_v=0.2))
   expect_identical(o1, o2)
   p1 <- plba_gamma(x$response, A=as, b=bs, t0 = t0s, shape_v=1.2, scale_v=vs)
-  p2 <- mapply(plba_gamma, t = x$response, A = as, b = bs, t0 = t0s, scale_v=vs, MoreArgs = list(shape_v=1.2))
+  p2 <- mapply(plba_gamma, rt = x$response, A = as, b = bs, t0 = t0s, scale_v=vs, MoreArgs = list(shape_v=1.2))
   expect_identical(p1, p2)
 })
 
@@ -62,10 +62,10 @@ test_that("_frechet vectorizes", {
   vs <- seq(0.8, 1.2, length.out = 10)
   
   o1 <- dlba_frechet(x$response, A=as, b=bs, t0 = t0s, shape_v=vs, scale_v=0.2)
-  o2 <- mapply(dlba_frechet, t = x$response, A = as, b = bs, t0 = t0s, shape_v=vs, MoreArgs = list(scale_v=0.2))
+  o2 <- mapply(dlba_frechet, rt = x$response, A = as, b = bs, t0 = t0s, shape_v=vs, MoreArgs = list(scale_v=0.2))
   expect_identical(o1, o2)
   p1 <- plba_frechet(x$response, A=as, b=bs, t0 = t0s, shape_v=1.2, scale_v=vs)
-  p2 <- mapply(plba_frechet, t = x$response, A = as, b = bs, t0 = t0s, scale_v=vs, MoreArgs = list(shape_v=1.2))
+  p2 <- mapply(plba_frechet, rt = x$response, A = as, b = bs, t0 = t0s, scale_v=vs, MoreArgs = list(shape_v=1.2))
   expect_identical(p1, p2)
 })
 
@@ -79,10 +79,10 @@ test_that("_lnorm vectorizes", {
   vs <- seq(0.8, 1.2, length.out = 10)
   
   o1 <- dlba_lnorm(x$response, A=as, b=bs, t0 = t0s, meanlog_v=vs, sdlog_v=0.2)
-  o2 <- mapply(dlba_lnorm, t = x$response, A = as, b = bs, t0 = t0s, meanlog_v=vs, MoreArgs = list(sdlog_v=0.2))
+  o2 <- mapply(dlba_lnorm, rt = x$response, A = as, b = bs, t0 = t0s, meanlog_v=vs, MoreArgs = list(sdlog_v=0.2))
   expect_identical(o1, o2)
   p1 <- plba_lnorm(x$response, A=as, b=bs, t0 = t0s, meanlog_v=1.2, sdlog_v=vs)
-  p2 <- mapply(plba_lnorm, t = x$response, A = as, b = bs, t0 = t0s, sdlog_v=vs, MoreArgs = list(meanlog_v=1.2))
+  p2 <- mapply(plba_lnorm, rt = x$response, A = as, b = bs, t0 = t0s, sdlog_v=vs, MoreArgs = list(meanlog_v=1.2))
   expect_identical(p1, p2)
 })
 

@@ -2,7 +2,7 @@
 #' 
 #' Density, distribution function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}).
 #' 
-#' @param t a vector of RTs.
+#' @param rt a vector of RTs.
 #' @param n desired number of observations (scalar integer).
 #' 
 #' @param A start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.
@@ -23,7 +23,7 @@
 #' 
 #' @return All functions starting with a \code{d} return the density (PDF), all functions starting with \code{p} return the distribution function (CDF), and all functions starting with \code{r} return random response times and responses (in a \code{data.frame}).
 #' 
-#' @note Density (i.e., \code{dlba_}) and distribution (i.e., \code{plba_}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{t}, parameters are recycled). Somewhat inconsistently, the random number generation functions \code{rlba_} accept only scalar inputs.
+#' @note Density (i.e., \code{dlba_}) and distribution (i.e., \code{plba_}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{rt}, parameters are recycled). Somewhat inconsistently, the random number generation functions \code{rlba_} accept only scalar inputs.
 #' 
 #' @references 
 #' 
@@ -65,7 +65,7 @@ make_r <- function(drifts, n,b,A,n_v,t0,st0=0) {
   data.frame(rt=rt,response=resp)
 }
 
-rem_t0 <- function(t, t0) pmax(t - t0, 0)
+rem_t0 <- function(rt, t0) pmax(rt - t0, 0)
 
 check_single_arg <- function(...) {
   mc <- match.call()
@@ -82,7 +82,7 @@ check_vector <- function(...) {
   vars <- all.vars(mc)
   dots <- list(...)
   for (i in seq_along(dots)) {
-    if ((vars[i] == "t") && (any(dots[[i]] < 0))) stop("t needs to contain only positive values.") 
+    if ((vars[i] == "rt") && (any(dots[[i]] < 0))) stop("rt needs to contain only positive values.") 
     if (!is.vector(dots[[i]], "numeric")) stop(paste(vars[[i]], "needs to be a numeric vector!"))
     if (length(dots[[i]]) < 1) stop(paste(vars[[i]], "needs to have a length >= 1."))
   }
@@ -94,22 +94,22 @@ error_message_b_smaller_A <- "b cannot be smaller than A!"
 
 #' @rdname LBA
 #' @export dlba_norm
-dlba_norm <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE) {
+dlba_norm <- function(rt,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE) {
   #check_single_arg(A=A, b=b, t0=t0, mean_v=mean_v, sd_v=sd_v)
-  check_vector(t, A, b, t0, mean_v, sd_v)
-  # bring all arguments to length of t
-  nn <- length(t)
+  check_vector(rt, A, b, t0, mean_v, sd_v)
+  # bring all arguments to length of rt
+  nn <- length(rt)
   A <- rep(A, length.out = nn)
   b <- rep(b, length.out = nn)
   t0 <- rep(t0, length.out = nn)
   mean_v <- rep(mean_v, length.out = nn)
   sd_v <- rep(sd_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
-  dlba_norm_core(t = t, A = A, b = b, t0 = t0, mean_v = mean_v, sd_v = sd_v, posdrift = posdrift, robust = robust, nn = nn)
+  dlba_norm_core(rt = rt, A = A, b = b, t0 = t0, mean_v = mean_v, sd_v = sd_v, posdrift = posdrift, robust = robust, nn = nn)
 }
 
 ## this functions expects all arguments to have the samel length (which is nn)
-dlba_norm_core <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE, nn) {
+dlba_norm_core <- function(rt,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE, nn) {
   if (robust) { # robust == TRUE uses robust versions of the normal distributions
     pnorm1 <- pnormP
     dnorm1 <- dnormP
@@ -117,16 +117,16 @@ dlba_norm_core <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALS
     pnorm1 <- pnorm
     dnorm1 <- dnorm
   }
-  t <- rem_t0(t, t0) # rmove t0 from t
+  rt <- rem_t0(rt, t0) # rmove t0 from rt
   if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- rep(1, nn)
   
   if (any(A<1e-10)) {
     # for A<1e-10 save results in out_A
     A_small <- A<1e-10
-    out_A <- pmax(0, ((b[A_small]/t[A_small]^2)*dnorm1(b[A_small]/t[A_small],mean_v[A_small],sd=sd_v[A_small]))/denom[A_small], na.rm = TRUE) 
+    out_A <- pmax(0, ((b[A_small]/rt[A_small]^2)*dnorm1(b[A_small]/rt[A_small],mean_v[A_small],sd=sd_v[A_small]))/denom[A_small], na.rm = TRUE) 
     # calculate other results into out_o
-    zs <- t[!A_small]*sd_v[!A_small]
-    zu <- t[!A_small]*mean_v[!A_small]
+    zs <- rt[!A_small]*sd_v[!A_small]
+    zu <- rt[!A_small]*mean_v[!A_small]
     chiminuszu <- b[!A_small]-zu
     chizu <- chiminuszu/zs
     chizumax <- (chiminuszu-A[!A_small])/zs
@@ -137,8 +137,8 @@ dlba_norm_core <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALS
     out[A_small] <- out_A
     return(out) 
   } else {
-    zs <- t*sd_v
-    zu <- t*mean_v
+    zs <- rt*sd_v
+    zu <- rt*mean_v
     chiminuszu <- b-zu
     chizu <- chiminuszu/zs
     chizumax <- (chiminuszu-A)/zs
@@ -148,19 +148,19 @@ dlba_norm_core <- function(t,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALS
 
 #' @rdname LBA
 #' @export plba_norm
-plba_norm <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE) {
-  check_vector(t, A, b, t0, mean_v, sd_v)
-  nn <- length(t)
+plba_norm <- function(rt,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE) {
+  check_vector(rt, A, b, t0, mean_v, sd_v)
+  nn <- length(rt)
   A <- rep(A, length.out = nn)
   b <- rep(b, length.out = nn)
   t0 <- rep(t0, length.out = nn)
   mean_v <- rep(mean_v, length.out = nn)
   sd_v <- rep(sd_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
-  plba_norm_core(t = t, A = A, b = b, t0 = t0, mean_v = mean_v, sd_v = sd_v, posdrift = posdrift, robust = robust, nn = nn)
+  plba_norm_core(rt = rt, A = A, b = b, t0 = t0, mean_v = mean_v, sd_v = sd_v, posdrift = posdrift, robust = robust, nn = nn)
 }
 
-plba_norm_core <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE, nn) {
+plba_norm_core <- function(rt,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE, nn) {
   if (robust) { # robust == TRUE uses robust versions of the normal distributions
     pnorm1 <- pnormP
     dnorm1 <- dnormP
@@ -169,17 +169,17 @@ plba_norm_core <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE, 
     dnorm1 <- dnorm  
   }
 
-  t <- rem_t0(t, t0)
+  rt <- rem_t0(rt, t0)
   if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- 1
   
   if (any(A<1e-10)) {
     # for A<1e-10 save results in out_A
     A_small <- A<1e-10
-    out_A <- pmin(1, pmax(0, (pnorm1(b[A_small]/t[A_small],mean=mean_v[A_small],sd=sd_v[A_small],lower.tail=FALSE))/denom[A_small], na.rm=TRUE))
+    out_A <- pmin(1, pmax(0, (pnorm1(b[A_small]/rt[A_small],mean=mean_v[A_small],sd=sd_v[A_small],lower.tail=FALSE))/denom[A_small], na.rm=TRUE))
 
     # calculate other results into out_o
-    zs <- t[!A_small]*sd_v[!A_small]
-    zu <- t[!A_small]*mean_v[!A_small]
+    zs <- rt[!A_small]*sd_v[!A_small]
+    zu <- rt[!A_small]*mean_v[!A_small]
     chiminuszu <- b[!A_small]-zu
     xx <- chiminuszu-A[!A_small]
     chizu <- chiminuszu/zs
@@ -194,8 +194,8 @@ plba_norm_core <- function(t,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE, 
     out[A_small] <- out_A
     return(out)
   } else {
-    zs <- t*sd_v
-    zu <- t*mean_v
+    zs <- rt*sd_v
+    zu <- rt*mean_v
     chiminuszu <- b-zu
     xx <- chiminuszu-A
     chizu <- chiminuszu/zs
@@ -222,14 +222,14 @@ rlba_norm <- function(n,A,b,t0,mean_v, sd_v, st0=0,posdrift=TRUE) {
 
 #' @rdname LBA
 #' @export dlba_gamma
-dlba_gamma <- function(t,A,b,t0,shape_v,rate_v, scale_v) {
+dlba_gamma <- function(rt,A,b,t0,shape_v,rate_v, scale_v) {
   
   if (!missing(rate_v) && !missing(scale_v)) stop("specify 'rate_v' or 'scale_v', but not both")
   if (missing(rate_v)) rate_v <- 1/scale_v
   
-  check_vector(t, A, b=b, t0, shape_v, rate_v)
+  check_vector(rt, A, b=b, t0, shape_v, rate_v)
   
-  nn <- length(t)
+  nn <- length(rt)
   A <- rep(A, length.out = nn)
   b <- rep(b, length.out = nn)
   t0 <- rep(t0, length.out = nn)
@@ -237,15 +237,15 @@ dlba_gamma <- function(t,A,b,t0,shape_v,rate_v, scale_v) {
   rate_v <- rep(rate_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
   
-  dlba_gamma_core(t=t,A=A,b=b,t0=t0, shape_v=shape_v, rate_v=rate_v, nn=nn)
+  dlba_gamma_core(rt=rt,A=A,b=b,t0=t0, shape_v=shape_v, rate_v=rate_v, nn=nn)
   
 }
 
 
-dlba_gamma_core <- function(t,A,b,t0,shape_v, rate_v, nn) {
-  t <- rem_t0(t, t0)
-  min <- (b-A)/t
-  max <- b/t
+dlba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, nn) {
+  rt <- rem_t0(rt, t0)
+  min <- (b-A)/rt
+  max <- b/rt
   
   Gmax <- pgamma(max, shape_v, rate=rate_v)
   Gmin <- pgamma(min, shape_v, rate=rate_v)
@@ -253,18 +253,18 @@ dlba_gamma_core <- function(t,A,b,t0,shape_v, rate_v, nn) {
   Gmin2 <- pgamma(min, (shape_v+1), rate=rate_v)
   zgamma <- ( ((Gmax2-Gmin2)*gamma(shape_v+1))/((Gmax-Gmin)*rate_v*gamma(shape_v)) )
   
-  diffG <- function(t,point,shape_v, rate_v) {
-    (-point/(t^2))*dgamma(point/t,shape_v,rate = rate_v)
+  diffG <- function(rt,point,shape_v, rate_v) {
+    (-point/(rt^2))*dgamma(point/rt,shape_v,rate = rate_v)
   } #NB:point refers to the constants b OR b-A.
   u <- (Gmax2-Gmin2)
   v <- (Gmax-Gmin)
-  udash <- (diffG(t, b, shape_v+1, rate_v)- diffG(t, (b-A), shape_v+1, rate_v))
-  vdash <- (diffG(t, b, shape_v, rate_v)- diffG(t, (b-A), shape_v, rate_v))
+  udash <- (diffG(rt, b, shape_v+1, rate_v)- diffG(rt, (b-A), shape_v+1, rate_v))
+  vdash <- (diffG(rt, b, shape_v, rate_v)- diffG(rt, (b-A), shape_v, rate_v))
   const <- gamma(shape_v+1)/(rate_v*gamma(shape_v))
   diffzgamma <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
-  term1 <- (Gmax - Gmin)*(zgamma + (t*diffzgamma))
-  term2 <- diffG(t,b,shape_v,rate_v)*((zgamma*t)-b)
-  term3 <- diffG(t,(b-A),shape_v,rate_v)*(b-A-(zgamma*t))
+  term1 <- (Gmax - Gmin)*(zgamma + (rt*diffzgamma))
+  term2 <- diffG(rt,b,shape_v,rate_v)*((zgamma*rt)-b)
+  term3 <- diffG(rt,(b-A),shape_v,rate_v)*(b-A-(zgamma*rt))
   out.value <- ((term1+term2+term3)/A)
   out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
   return(pmax(0, out.value))
@@ -273,13 +273,13 @@ dlba_gamma_core <- function(t,A,b,t0,shape_v, rate_v, nn) {
 
 #' @rdname LBA
 #' @export plba_gamma  
-plba_gamma <- function(t,A,b,t0,shape_v, rate_v, scale_v) {
+plba_gamma <- function(rt,A,b,t0,shape_v, rate_v, scale_v) {
   if (!missing(rate_v) && !missing(scale_v)) stop("specify 'rate_v' or 'scale_v', but not both")
   if (missing(rate_v)) rate_v <- 1/scale_v
   
-  check_vector(t, A, b=b, t0, shape_v, rate_v)
+  check_vector(rt, A, b=b, t0, shape_v, rate_v)
   
-  nn <- length(t)
+  nn <- length(rt)
   A <- rep(A, length.out = nn)
   b <- rep(b, length.out = nn)
   t0 <- rep(t0, length.out = nn)
@@ -287,26 +287,26 @@ plba_gamma <- function(t,A,b,t0,shape_v, rate_v, scale_v) {
   rate_v <- rep(rate_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
   
-  plba_gamma_core(t=t,A=A,b=b,t0=t0,shape_v=shape_v, rate_v=rate_v, nn=nn)
+  plba_gamma_core(rt=rt,A=A,b=b,t0=t0,shape_v=shape_v, rate_v=rate_v, nn=nn)
 }
 
-plba_gamma_core <- function(t,A,b,t0,shape_v, rate_v, nn) {
+plba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, nn) {
   
-  t <- rem_t0(t, t0)
-  min <- (b-A)/t
-  max <- b/t
+  rt <- rem_t0(rt, t0)
+  min <- (b-A)/rt
+  max <- b/rt
   Gmax <- pgamma(max, shape_v, rate=rate_v)
   Gmin <- pgamma(min, shape_v, rate=rate_v)
   Gmax2 <- pgamma(max, (shape_v+1), rate=rate_v)
   Gmin2 <- pgamma(min, (shape_v+1), rate=rate_v)
   zgamma <- ((Gmax2-Gmin2)*gamma(shape_v+1))/((Gmax-Gmin)*rate_v*gamma(shape_v)) 
   
-  term1 <- ((t*zgamma) - b)/A
-  term2 <- (b-A-(t*zgamma))/A
+  term1 <- ((rt*zgamma) - b)/A
+  term2 <- (b-A-(rt*zgamma))/A
   pmax <- pgamma(max, shape_v, rate = rate_v)
   pmin <- pgamma(min, shape_v, rate = rate_v)
   out.value <- (1 + pmax*term1 + pmin*term2)
-  out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+  out.value[rt==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
   out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
   return(pmin(pmax(0, out.value), 1))
 }
@@ -328,10 +328,10 @@ rlba_gamma <- function(n,A,b,t0,shape_v, rate_v, scale_v, st0=0) {
 
 #' @rdname LBA
 #' @export dlba_frechet
-dlba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
+dlba_frechet <- function(rt,A,b,t0,shape_v, scale_v) {
 
-  check_vector(t, A, b, t0, shape_v, scale_v)
-  nn <- length(t)
+  check_vector(rt, A, b, t0, shape_v, scale_v)
+  nn <- length(rt)
   A <- rep(A, length.out = nn)
   b <- rep(b, length.out = nn)
   t0 <- rep(t0, length.out = nn)
@@ -339,44 +339,44 @@ dlba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
   scale_v <- rep(scale_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
   
-  dlba_frechet_core(t=t,A=A,b=b,t0=t0,shape_v=shape_v, scale_v=scale_v, nn=nn)
+  dlba_frechet_core(rt=rt,A=A,b=b,t0=t0,shape_v=shape_v, scale_v=scale_v, nn=nn)
 }
 
-dlba_frechet_core <- function(t,A,b,t0,shape_v, scale_v, nn) {
+dlba_frechet_core <- function(rt,A,b,t0,shape_v, scale_v, nn) {
   
-  t <- rem_t0(t, t0)
+  rt <- rem_t0(rt, t0)
   
   ps <- cbind(b, b-A, scale_v,shape_v)
   ps_below_zero <- apply(ps, 1, function(x) any(x <= 0))
   
-  # t <- pmax(t,0) #not needed, see rem_t0
-  t_old <- t
+  # rt <- pmax(rt,0) #not needed, see rem_t0
+  t_old <- rt
   
   out <- numeric(nn)
   
   if (sum(!ps_below_zero) > 0) {
-    t <- t[!ps_below_zero]
+    rt <- rt[!ps_below_zero]
     A <- A[!ps_below_zero]
     b <- b[!ps_below_zero]
     t0 <- t0[!ps_below_zero]
     shape_v <- shape_v[!ps_below_zero]
     scale_v <- scale_v[!ps_below_zero]
   
-    min <- (b-A)/t
-    max <- b/t
+    min <- (b-A)/rt
+    max <- b/rt
     Gmax <- pfrechet(max, loc=0, scale=scale_v, shape=shape_v)
     Gmin <- pfrechet(min, loc=0, scale=scale_v, shape=shape_v)
     D <- Gmax - Gmin
     gam <- gamma_inc(1-(1/shape_v), (1/scale_v*max)^(-shape_v))-gamma_inc(1-(1/shape_v), (1/scale_v*min)^(-shape_v))
     zfrechet <- gam/(1/scale_v*D)
-    diffG1 <- ((-b/(t^2))*dfrechet(b/t, loc=0, scale=scale_v, shape=shape_v))
-    diffG2 <- ((-(b-A)/(t^2))*dfrechet((b-A)/t, loc=0, scale=scale_v, shape=shape_v))    
+    diffG1 <- ((-b/(rt^2))*dfrechet(b/rt, loc=0, scale=scale_v, shape=shape_v))
+    diffG2 <- ((-(b-A)/(rt^2))*dfrechet((b-A)/rt, loc=0, scale=scale_v, shape=shape_v))    
     diffD <- diffG1 - diffG2    
-    diffgam <- (-shape_v*(((1/scale_v*b)^(-shape_v+1))/(t^(-shape_v+2)))*exp(-(1/scale_v*b/t)^(-shape_v))) - (-shape_v*(((1/scale_v*(b-A))^(-shape_v+1))/(t^(-shape_v+2)))*exp(-(1/scale_v*(b-A)/t)^(-shape_v)))
+    diffgam <- (-shape_v*(((1/scale_v*b)^(-shape_v+1))/(rt^(-shape_v+2)))*exp(-(1/scale_v*b/rt)^(-shape_v))) - (-shape_v*(((1/scale_v*(b-A))^(-shape_v+1))/(rt^(-shape_v+2)))*exp(-(1/scale_v*(b-A)/rt)^(-shape_v)))
     diffzfrechet <- ((1/scale_v)^(-1))*(((-D^(-2))*diffD)*gam + (diffgam*(D^(-1))))
-    term1 <- (Gmax - Gmin)*(zfrechet + (t*diffzfrechet))
-    term2 <- diffG1*((zfrechet*t)-b)
-    term3 <- diffG2*(b-A-(zfrechet*t))
+    term1 <- (Gmax - Gmin)*(zfrechet + (rt*diffzfrechet))
+    term2 <- diffG1*((zfrechet*rt)-b)
+    term3 <- diffG2*(b-A-(zfrechet*rt))
     out.value <- ((term1+term2+term3)/A)
     out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
     out[!ps_below_zero] <- out.value
@@ -386,9 +386,9 @@ dlba_frechet_core <- function(t,A,b,t0,shape_v, scale_v, nn) {
 
 #' @rdname LBA
 #' @export plba_frechet
-plba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
-  check_vector(t, A, b, t0, shape_v, scale_v)
-  nn <- length(t)
+plba_frechet <- function(rt,A,b,t0,shape_v, scale_v) {
+  check_vector(rt, A, b, t0, shape_v, scale_v)
+  nn <- length(rt)
   A <- rep(A, length.out = nn)
   b <- rep(b, length.out = nn)
   t0 <- rep(t0, length.out = nn)
@@ -396,39 +396,39 @@ plba_frechet <- function(t,A,b,t0,shape_v, scale_v) {
   scale_v <- rep(scale_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
   
-  plba_frechet_core(t=t,A=A,b=b,t0=t0,shape_v=shape_v, scale_v=scale_v, nn=nn)
+  plba_frechet_core(rt=rt,A=A,b=b,t0=t0,shape_v=shape_v, scale_v=scale_v, nn=nn)
 }
 
-plba_frechet_core <- function(t,A,b,t0,shape_v, scale_v, nn) {  
-  t <- rem_t0(t, t0)
+plba_frechet_core <- function(rt,A,b,t0,shape_v, scale_v, nn) {  
+  rt <- rem_t0(rt, t0)
   
   ps <- cbind(b, b-A, scale_v,shape_v)
   ps_below_zero <- apply(ps, 1, function(x) any(x <= 0))
   
-  # t <- pmax(t,0) #not needed, see rem_t0
-  t_old <- t
+  # rt <- pmax(rt,0) #not needed, see rem_t0
+  t_old <- rt
   
   out <- numeric(nn)
   
   if (sum(!ps_below_zero) > 0) {
     
-    t <- t[!ps_below_zero]
+    rt <- rt[!ps_below_zero]
     A <- A[!ps_below_zero]
     b <- b[!ps_below_zero]
     t0 <- t0[!ps_below_zero]
     shape_v <- shape_v[!ps_below_zero]
     scale_v <- scale_v[!ps_below_zero]
     
-    # t <- pmax(t,0) #not needed, see rem_t0
-    min <- (b-A)/t
-    max <- b/t
+    # rt <- pmax(rt,0) #not needed, see rem_t0
+    min <- (b-A)/rt
+    max <- b/rt
     pmax <- pfrechet(max, loc=0, scale=scale_v, shape=shape_v)
     pmin <- pfrechet(min, loc=0, scale=scale_v, shape=shape_v)
     zfrechet <- (gamma_inc(1-(1/shape_v),(1/scale_v*max)^(-shape_v))-gamma_inc(1-(1/shape_v),(1/scale_v*min)^(-shape_v)))/(1/scale_v*(pmax-pmin))    
-    term1 <- ((t*zfrechet) - b)/A
-    term2 <- (b-A-(t*zfrechet))/A 
+    term1 <- ((rt*zfrechet) - b)/A
+    term2 <- (b-A-(rt*zfrechet))/A 
     out.value <- (1 + pmax*term1 + pmin*term2)
-    out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+    out.value[rt==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
     out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
     out[!ps_below_zero] <- out.value
   }
@@ -453,9 +453,9 @@ rlba_frechet <- function(n,A,b,t0,shape_v, scale_v,st0=0){
 
 #' @rdname LBA
 #' @export dlba_lnorm
-dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
-  check_vector(t, A, b, t0, meanlog_v, sdlog_v)
-  nn <- length(t)
+dlba_lnorm <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
+  check_vector(rt, A, b, t0, meanlog_v, sdlog_v)
+  nn <- length(rt)
   A <- rep(A, length.out = nn)
   b <- rep(b, length.out = nn)
   t0 <- rep(t0, length.out = nn)
@@ -463,10 +463,10 @@ dlba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
   sd_v <- rep(sdlog_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
   
-  dlba_lnorm_core(t=t,A=A,b=b,t0=t0,meanlog_v=meanlog_v, sdlog_v=sdlog_v, robust = robust, nn=nn)
+  dlba_lnorm_core(rt=rt,A=A,b=b,t0=t0,meanlog_v=meanlog_v, sdlog_v=sdlog_v, robust = robust, nn=nn)
 }
 
-dlba_lnorm_core <- function(t,A,b,t0,meanlog_v, sdlog_v, robust=FALSE, nn) {
+dlba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust=FALSE, nn) {
   if (robust) { # robust == TRUE uses robust versions of the normal distributions
     pnorm1 <- pnormP
     dnorm1 <- dnormP
@@ -475,10 +475,10 @@ dlba_lnorm_core <- function(t,A,b,t0,meanlog_v, sdlog_v, robust=FALSE, nn) {
     dnorm1 <- dnorm  
   }
   
-  t <- rem_t0(t, t0)
+  rt <- rem_t0(rt, t0)
   
-  min <- (b-A)/t
-  max <- b/t
+  min <- (b-A)/rt
+  max <- b/rt
   
   zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnorm1((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnorm1((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnorm1((log(max)-meanlog_v)/sdlog_v)-pnorm1((log(min)-meanlog_v)/sdlog_v))
   Gmax <- plnorm(max,meanlog=meanlog_v,sdlog=sdlog_v) 
@@ -487,14 +487,14 @@ dlba_lnorm_core <- function(t,A,b,t0,meanlog_v, sdlog_v, robust=FALSE, nn) {
   u <- (pnorm1((log(max)-meanlog_v-(sdlog_v)^2)/sdlog_v)-pnorm1((log(min)-meanlog_v-(sdlog_v)^2)/sdlog_v))
   v <- (pnorm1((log(max)-meanlog_v)/sdlog_v)-pnorm1((log(min)-meanlog_v)/sdlog_v))
   
-  udash <- (((-1/(sdlog_v*t))*dnorm1((log(b/t)-meanlog_v-(sdlog_v)^2)/sdlog_v)) - ((-1/(sdlog_v*t))*dnorm1((log((b-A)/t)-meanlog_v-(sdlog_v)^2)/sdlog_v)))
-  vdash <- (((-1/(sdlog_v*t))*dnorm1((log(b/t)-meanlog_v)/sdlog_v)) - ((-1/(sdlog_v*t))*dnorm1((log((b-A)/t)-meanlog_v)/sdlog_v)))
+  udash <- (((-1/(sdlog_v*rt))*dnorm1((log(b/rt)-meanlog_v-(sdlog_v)^2)/sdlog_v)) - ((-1/(sdlog_v*rt))*dnorm1((log((b-A)/rt)-meanlog_v-(sdlog_v)^2)/sdlog_v)))
+  vdash <- (((-1/(sdlog_v*rt))*dnorm1((log(b/rt)-meanlog_v)/sdlog_v)) - ((-1/(sdlog_v*rt))*dnorm1((log((b-A)/rt)-meanlog_v)/sdlog_v)))
   const <- exp(meanlog_v+((sdlog_v)^2)/2)
   
   diffzlognorm <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
-  term1 <- (Gmax - Gmin)*(zlognorm + (t*diffzlognorm))
-  term2 <- ((-b/(t^2))*dlnorm(b/t,meanlog=meanlog_v,sdlog=sdlog_v))*((zlognorm*t)-b)
-  term3 <- (b-A-(zlognorm*t))*((-(b-A)/(t^2))*dlnorm((b-A)/t,meanlog=meanlog_v,sdlog=sdlog_v))
+  term1 <- (Gmax - Gmin)*(zlognorm + (rt*diffzlognorm))
+  term2 <- ((-b/(rt^2))*dlnorm(b/rt,meanlog=meanlog_v,sdlog=sdlog_v))*((zlognorm*rt)-b)
+  term3 <- (b-A-(zlognorm*rt))*((-(b-A)/(rt^2))*dlnorm((b-A)/rt,meanlog=meanlog_v,sdlog=sdlog_v))
   out.value <- ((term1+term2+term3)/A)
   out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
   return(pmax(0, out.value))
@@ -502,9 +502,9 @@ dlba_lnorm_core <- function(t,A,b,t0,meanlog_v, sdlog_v, robust=FALSE, nn) {
 
 #' @rdname LBA
 #' @export plba_lnorm
-plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
-  check_vector(t, A, b, t0, meanlog_v, sdlog_v)
-  nn <- length(t)
+plba_lnorm <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
+  check_vector(rt, A, b, t0, meanlog_v, sdlog_v)
+  nn <- length(rt)
   A <- rep(A, length.out = nn)
   b <- rep(b, length.out = nn)
   t0 <- rep(t0, length.out = nn)
@@ -512,26 +512,26 @@ plba_lnorm <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
   sd_v <- rep(sdlog_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
   
-  plba_lnorm_core(t=t,A=A,b=b,t0=t0,meanlog_v=meanlog_v, sdlog_v=sdlog_v, robust=robust, nn=nn)
+  plba_lnorm_core(rt=rt,A=A,b=b,t0=t0,meanlog_v=meanlog_v, sdlog_v=sdlog_v, robust=robust, nn=nn)
 }
 
-plba_lnorm_core <- function(t,A,b,t0,meanlog_v, sdlog_v, robust = FALSE, nn) {
+plba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE, nn) {
   if (robust) { # robust == TRUE uses robust versions of the normal distributions
     pnorm1 <- pnormP
   } else {
     pnorm1 <- pnorm 
   }
   
-  t <- rem_t0(t, t0)
-  min <- (b-A)/t
-  max <- b/t
+  rt <- rem_t0(rt, t0)
+  min <- (b-A)/rt
+  max <- b/rt
   zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnorm1((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnorm1((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnorm1((log(max)-meanlog_v)/sdlog_v)-pnorm1((log(min)-meanlog_v)/sdlog_v))
-  term1 <- ((t*zlognorm) - b)/A
-  term2 <- (b-A-(t*zlognorm))/A 
+  term1 <- ((rt*zlognorm) - b)/A
+  term2 <- (b-A-(rt*zlognorm))/A 
   pmax <- plnorm(max, meanlog=meanlog_v, sdlog=sdlog_v) 
   pmin <- plnorm(min, meanlog=meanlog_v, sdlog=sdlog_v)
   out.value <- (1 + pmax*term1 + pmin*term2)
-  out.value[t==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+  out.value[rt==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
   out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
   return(pmin(pmax(0, out.value), 1))
 }

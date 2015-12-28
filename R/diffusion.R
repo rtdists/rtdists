@@ -2,7 +2,7 @@
 #' 
 #' Density, distribution function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{z} (relative starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point). 
 #'
-#' @param t a vector of RTs.
+#' @param rt a vector of RTs.
 #' @param n is a desired number of observations.
 #' @param boundary character vector. Which boundary should be tested. Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default.
 #' 
@@ -21,7 +21,7 @@
 #'
 #' @return \code{drd} gives the density, \code{prd} gives the distribution function, and \code{rrd} generates random response times and decisions (returning a \code{data.frame} with columns \code{rts} (numeric) and \code{response} (factor)).
 #' 
-#' The length of the result is determined by \code{n} for \code{rrd}, and is equal to the length of \code{t} for \code{drd} and \code{prd}.
+#' The length of the result is determined by \code{n} for \code{rrd}, and is equal to the length of \code{rt} for \code{drd} and \code{prd}.
 #' 
 #' The distribution parameters (as well as \code{boundary} are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the boundary.
 #'
@@ -89,19 +89,19 @@ recalc_t0 <- function (t0, st0) { t0 <- t0 + st0/2 }
 
 #' @rdname Diffusion
 #' @export
-ddiffusion <- function (t, boundary = "upper", 
+ddiffusion <- function (rt, boundary = "upper", 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
                  precision = 3)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
   
-  nn <- length(t)
+  nn <- length(rt)
   # Build parameter matrix  
   # Convert boundaries to numeric
   boundary <- match.arg(boundary, choices=c("upper", "lower"),several.ok = TRUE)
   boundary <- rep(boundary, length.out = nn)
   numeric_bounds <- ifelse(boundary == "upper", 2L, 1L)
-  # all parameters brought to length of t
+  # all parameters brought to length of rt
   a <- rep(a, length.out = nn)
   v <- rep(v, length.out = nn)
   t0 <- rep(t0, length.out = nn)
@@ -121,7 +121,7 @@ ddiffusion <- function (t, boundary = "upper",
   if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
   
   uniques <- unique(params)
-  densities <- vector("numeric",length=length(t))  
+  densities <- vector("numeric",length=length(rt))  
   for (i in seq_len(nrow(uniques))) {
     ok_rows <- apply(params, 1, identical, y = uniques[i,])
     
@@ -131,7 +131,7 @@ ddiffusion <- function (t, boundary = "upper",
     output <- .C("dfastdm_b", 
                  as.integer (sum(ok_rows)),                       # 1  IN:  number of densities
                  as.vector  (uniques[i,1:8]),                     # 2  IN:  parameters
-                 as.vector  (t[ok_rows]),                         # 3  IN:  RTs
+                 as.vector  (rt[ok_rows]),                         # 3  IN:  RTs
                  as.double  (precision),                          # 4  IN:  precision
                  as.integer (uniques[i,9]),                       # 5  IN:  boundary
                  as.vector  (densities[ok_rows], mode="numeric")  # 6 OUT:  densities
@@ -143,23 +143,23 @@ ddiffusion <- function (t, boundary = "upper",
 
 #' @rdname Diffusion
 #' @export
-pdiffusion <- function (t, boundary = "upper", 
+pdiffusion <- function (rt, boundary = "upper", 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
                  precision = 3, maxt = 1e4) 
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
 
-  t[t>maxt] <- maxt
-  if(!all(t == sort(t)))  stop("t needs to be sorted")
+  rt[rt>maxt] <- maxt
+  if(!all(rt == sort(rt)))  stop("rt needs to be sorted")
 
   # Convert boundaries to numeric
-  nn <- length(t)
+  nn <- length(rt)
   # Build parameter matrix  
   # Convert boundaries to numeric
   boundary <- match.arg(boundary, choices=c("upper", "lower"),several.ok = TRUE)
   boundary <- rep(boundary, length.out = nn)
   numeric_bounds <- ifelse(boundary == "upper", 2L, 1L)
-  # all parameters brought to length of t
+  # all parameters brought to length of rt
   a <- rep(a, length.out = nn)
   v <- rep(v, length.out = nn)
   t0 <- rep(t0, length.out = nn)
@@ -179,14 +179,14 @@ pdiffusion <- function (t, boundary = "upper",
   if(!is.numeric(params)) stop("Parameters need to be numeric.")
   if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
   
-  pvalues <- vector("numeric", length=length(t))    
+  pvalues <- vector("numeric", length=length(rt))    
   uniques <- unique(params)
   for (i in seq_len(nrow(uniques))) {
     ok_rows <- apply(params, 1, identical, y = uniques[i,])
     output <- .C("pfastdm_b", 
                  as.integer (sum(ok_rows)),                          # 1  IN:  number of densities
                  as.vector  (uniques[i,1:8]),                        # 2  IN:  parameters
-                 as.vector  (t[ok_rows]),                            # 3  IN:  RTs
+                 as.vector  (rt[ok_rows]),                            # 3  IN:  RTs
                  as.double  (precision),                             # 4  IN:  precision
                  as.integer (uniques[i,9]),                          # 5  IN:  boundary
                  as.vector  (pvalues[ok_rows], mode="numeric")       # 6 OUT:  densities

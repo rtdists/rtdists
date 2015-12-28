@@ -13,3 +13,8 @@ Changes to Version 0.4-4
       The specifications of t0 now agree between LBA and diffusion model. 
       
     o density for diffusion model is now always positive.
+    
+    o first argument in most functions (vector of response times) renamed to rt
+      (was t before).
+      
+    
