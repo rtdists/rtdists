@@ -11,17 +11,17 @@
 #' @export
 drd <- function(...) {
   .Deprecated("ddiffusion", "rtdists", "drd was renamed to ddiffusion and is now deprecated.")
-  ddifussion(...)
+  ddiffusion(...)
 }
 #' @rdname deprecated
 #' @export
 prd <- function(...) {
   .Deprecated("pdiffusion", "rtdists", "prd was renamed to pdiffusion and is now deprecated.")
-  pdifussion(...)
+  pdiffusion(...)
 }
 #' @rdname deprecated
 #' @export
 rrd <- function(...) {
   .Deprecated("rdiffusion", "rtdists", "rrd was renamed to rdiffusion and is now deprecated.")
-  rdifussion(...)
+  rdiffusion(...)
 }

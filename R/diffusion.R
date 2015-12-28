@@ -4,7 +4,7 @@
 #'
 #' @param rt a vector of RTs.
 #' @param n is a desired number of observations.
-#' @param boundary character vector. Which boundary should be tested. Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default.
+#' @param boundary character vector. Which boundary should be tested? Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default. Alternatively, a numeric vector with values 1=lower and 2=upper. For convenience, /code{boundary} is converted via /code{as.numeric} also allowing factors (see examples). 
 #' 
 #' @param a threshold separation. Amount of information that is considered for a decision. Large values indicate a conservative decisional style. Typical range: 0.5 < \code{a} < 2
 #' @param v drift rate. Average slope of the information accumulation process. The drift gives information about the speed and direction of the accumulation of information. Large (absolute) values of drift indicate a good performance. If received information supports the response linked to the upper threshold the sign will be positive and vice versa. Typical range: -5 < \code{v} < 5
@@ -97,10 +97,17 @@ ddiffusion <- function (rt, boundary = "upper",
   
   nn <- length(rt)
   # Build parameter matrix  
-  # Convert boundaries to numeric
-  boundary <- match.arg(boundary, choices=c("upper", "lower"),several.ok = TRUE)
-  boundary <- rep(boundary, length.out = nn)
-  numeric_bounds <- ifelse(boundary == "upper", 2L, 1L)
+  # Convert boundaries to numeric if necessary
+  if (is.character(boundary)) {
+    boundary <- match.arg(boundary, choices=c("upper", "lower"),several.ok = TRUE)
+    numeric_bounds <- ifelse(boundary == "upper", 2L, 1L)
+    }
+  else {
+    boundary <- as.numeric(boundary)
+    if(any(!(boundary %in% 1:2))) stop("boundary needs to be either 'upper', 'lower', or as.numeric(boundary) %in% 1:2!")
+    numeric_bounds <- as.integer(boundary)
+  }
+  numeric_bounds <- rep(numeric_bounds, length.out = nn)
   # all parameters brought to length of rt
   a <- rep(a, length.out = nn)
   v <- rep(v, length.out = nn)
@@ -156,9 +163,16 @@ pdiffusion <- function (rt, boundary = "upper",
   nn <- length(rt)
   # Build parameter matrix  
   # Convert boundaries to numeric
-  boundary <- match.arg(boundary, choices=c("upper", "lower"),several.ok = TRUE)
-  boundary <- rep(boundary, length.out = nn)
-  numeric_bounds <- ifelse(boundary == "upper", 2L, 1L)
+  if (is.character(boundary)) {
+    boundary <- match.arg(boundary, choices=c("upper", "lower"),several.ok = TRUE)
+    numeric_bounds <- ifelse(boundary == "upper", 2L, 1L)
+    }
+  else {
+    boundary <- as.numeric(boundary)
+    if(any(!(boundary %in% 1:2))) stop("boundary needs to be either 'upper', 'lower', or as.numeric(boundary) %in% 1:2!")
+    numeric_bounds <- as.integer(boundary)
+  }
+  numeric_bounds <- rep(numeric_bounds, length.out = nn)
   # all parameters brought to length of rt
   a <- rep(a, length.out = nn)
   v <- rep(v, length.out = nn)

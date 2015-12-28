@@ -1,27 +1,29 @@
 
 ## identical calls (but different random values)
-rrd(10, a=1, v=2, t0=0.5)
-rrd(10, a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
+(rt1 <- rdiffusion(20, a=1, v=2, t0=0.5))
+(rt2 <- rdiffusion(20, a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0))
+
+# get density for random RTs:
+ddiffusion(rt1$rt, rt1$response, a=1, v=2, t0=0.5)  # boundary is factor
+ddiffusion(rt1$rt, as.numeric(rt1$response), a=1, v=2, t0=0.5) # boundary is numeric
+ddiffusion(rt1$rt, as.character(rt1$response), a=1, v=2, t0=0.5) # boundary is character
+
+ddiffusion(rt2$rt, rt2$response, a=1, v=2, t0=0.5)
 
 
 # plot density:
-curve(drd(x, a=1, v=2, t0=0.5, boundary = "upper"), 
+curve(ddiffusion(x, a=1, v=2, t0=0.5, boundary = "upper"), 
       xlim=c(0,3), main="Density of upper responses", ylab="density", xlab="response time")
-curve(drd(x, a=1, v=2, t0=0.5, st0=0.2, boundary = "upper"), 
+curve(ddiffusion(x, a=1, v=2, t0=0.5, st0=0.2, boundary = "upper"), 
       add=TRUE, lty = 2)
 legend("topright", legend=c("no", "yes"), title = "Starting Point Variability?", lty = 1:2)
 
 # plot cdf:
-curve(prd(x, a=1, v=2, t0=0.5, st0=0.2, boundary="u"), 
+curve(pdiffusion(x, a=1, v=2, t0=0.5, st0=0.2, boundary="u"), 
      xlim = c(0, 3),ylim = c(0,1), 
      ylab = "cumulative probability", xlab = "response time",
      main = "CDF of diffusion model with start point variability")
-curve(prd(x, a=1, v=2, t0=0.5, st0=0.2, boundary="l"), 
+curve(pdiffusion(x, a=1, v=2, t0=0.5, st0=0.2, boundary="l"), 
      add=TRUE, lty = 2)
 legend("topleft", legend=c("upper", "lower"), title="boundary", lty=1:2)
 
-
-rts <- rrd(10, a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
-drd(rts$rt, boundary = as.character(rts$response), a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
-drd(rts$rt, boundary = c("u", "l", "u", "u"), a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
-drd(rts$rt, boundary = c("u", "l", "u", "u"), a=1, v=runif(10, 1.5, 2.5), t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
