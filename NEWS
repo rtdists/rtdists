@@ -1,8 +1,11 @@
 
 Changes to Version 0.4-x
 
-    o PDF and CDF LBA functions more robust (now mostly return 0 instead of NaN)
-      for problematic parameter values (such as A = 0) [2015-09-17].
+    o added diLBA(), a fully vectorized version of n1PDF which has response as
+      second argument, allowing to get the density for each response and 
+      corr esponding response time in one step. As for the diffusion model 
+      (see below), this allows a likelihood function which only includes one 
+      call to the density function.
 
     o diffusion model functions are now completely vectorized and accept 
       vectors as parameters (including for boundary). This allows a likelihood
@@ -19,4 +22,5 @@ Changes to Version 0.4-x
     o first argument in most functions (vector of response times) renamed to rt
       (was t before).
       
-    
+    o PDF and CDF LBA functions more robust (now mostly return 0 instead of NaN)
+      for problematic parameter values (such as A = 0) [2015-09-17].
