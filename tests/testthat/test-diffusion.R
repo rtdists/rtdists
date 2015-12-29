@@ -143,7 +143,6 @@ test_that("ensure vectorised functions are equal to previous non-vectorised vers
 test_that("diffusion functions work with numeric and factor boundaries", {
   n_test <- 20
   rts <- rdiffusion(n_test, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0)
-  str(rts)
   expect_is(ddiffusion(rts$rt, boundary = rts$response, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), "numeric")
   expect_is(pdiffusion(sort(rts$rt), boundary = rts$response, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), "numeric")
   expect_is(ddiffusion(rts$rt, boundary = sample(1:2, 20, replace = TRUE), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), "numeric")

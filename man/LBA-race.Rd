@@ -15,9 +15,9 @@ n1CDF(rt, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
 \arguments{
 \item{rt}{a vector of RTs.}
 
-\item{A, b}{LBA parameters, see \code{\link{LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(rt)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators).}
+\item{A, b}{LBA parameters, see \code{\link{single-LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(rt)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators).}
 
-\item{t0}{\emph{one} scalar \code{t0} parameter (see \code{\link{LBA}}). Multiple or trialwise \code{t0} parameters are currently not implemented.}
+\item{t0}{\emph{one} scalar \code{t0} parameter (see \code{\link{single-LBA}}). Multiple or trialwise \code{t0} parameters are currently not implemented.}
 
 \item{...}{two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See examples.}
 

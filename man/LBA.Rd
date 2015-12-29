@@ -2,66 +2,30 @@
 % Please edit documentation in R/lba.r
 \name{LBA}
 \alias{LBA}
-\alias{dlba_frechet}
-\alias{dlba_gamma}
-\alias{dlba_lnorm}
-\alias{dlba_norm}
-\alias{plba_frechet}
-\alias{plba_gamma}
-\alias{plba_lnorm}
-\alias{plba_norm}
-\alias{rlba_frechet}
-\alias{rlba_gamma}
-\alias{rlba_lnorm}
-\alias{rlba_norm}
+\alias{diLBA}
 \title{The linear Ballistic Accumulator (LBA)}
 \usage{
-dlba_norm(rt, A, b, t0, mean_v, sd_v, posdrift = TRUE, robust = FALSE)
-
-plba_norm(rt, A, b, t0, mean_v, sd_v, posdrift = TRUE, robust = FALSE)
-
-rlba_norm(n, A, b, t0, mean_v, sd_v, st0 = 0, posdrift = TRUE)
-
-dlba_gamma(rt, A, b, t0, shape_v, rate_v, scale_v)
-
-plba_gamma(rt, A, b, t0, shape_v, rate_v, scale_v)
-
-rlba_gamma(n, A, b, t0, shape_v, rate_v, scale_v, st0 = 0)
-
-dlba_frechet(rt, A, b, t0, shape_v, scale_v)
-
-plba_frechet(rt, A, b, t0, shape_v, scale_v)
-
-rlba_frechet(n, A, b, t0, shape_v, scale_v, st0 = 0)
-
-dlba_lnorm(rt, A, b, t0, meanlog_v, sdlog_v, robust = FALSE)
-
-plba_lnorm(rt, A, b, t0, meanlog_v, sdlog_v, robust = FALSE)
-
-rlba_lnorm(n, A, b, t0, meanlog_v, sdlog_v, st0 = 0)
+diLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm",
+  "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE)
 }
 \arguments{
 \item{rt}{a vector of RTs.}
 
-\item{A}{start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.}
+\item{response}{integer vector. Specifying the response for a given RT.}
 
-\item{b}{response threshold. (\code{b} - \code{A}/2) is a measure of "response caution".}
+\item{A, b}{LBA parameters, see \code{\link{single-LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(rt)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators).}
 
-\item{t0}{non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution).}
+\item{t0}{\emph{one} scalar \code{t0} parameter (see \code{\link{single-LBA}}). Multiple or trialwise \code{t0} parameters are currently not implemented.}
 
-\item{mean_v, sd_v}{mean and standard deviation of normal distribution for drift rate (\code{norm}). See \code{\link{Normal}}}
+\item{...}{two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See examples.}
 
-\item{posdrift}{logical. Should driftrates be forced to be positive? Default is \code{TRUE}. (Uses truncated normal for random generation).}
+\item{st0}{\emph{one} scalar parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}).}
 
-\item{robust}{logical. Should robust normal distributions be used for \code{norm} and \code{lnorm}? Can be helpful in rare cases but is approximately three times slower than the non-robust versions. Default is \code{FALSE}.}
+\item{distribution}{character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.}
 
-\item{n}{desired number of observations (scalar integer).}
+\item{args.dist}{list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}).}
 
-\item{st0}{variability of non-decision time, such that \code{t0} is uniformly distributed between \code{t0} and \code{t0} + \code{st0}. Only available in random number generation functions \code{rlba_}.}
-
-\item{shape_v, rate_v, scale_v}{shape, rate, and scale of gamma (\code{gamma}) and scale and shape of Frechet (\code{frechet}) distributions for drift rate. See \code{\link{GammaDist}} or \code{\link[evd]{frechet}}. For Gamma, scale = 1/shape and shape = 1/scale.}
-
-\item{meanlog_v, sdlog_v}{mean and standard deviation of lognormal distribution on the log scale for drift rate (\code{lnorm}). See \code{\link{Lognormal}}.}
+\item{silent}{logical. Should the number of accumulators used be suppressed? Default is \code{FALSE} which prints the number of accumulators.}
 }
 \value{
 All functions starting with a \code{d} return the density (PDF), all functions starting with \code{p} return the distribution function (CDF), and all functions starting with \code{r} return random response times and responses (in a \code{data.frame}).
@@ -78,37 +42,42 @@ Density (i.e., \code{dlba_}) and distribution (i.e., \code{plba_}) functions are
 }
 \examples{
 
-## random number generation using different distributions for v:
-rlba_norm(10, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
-rlba_gamma(10, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3))
-rlba_frechet(10, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3))
-rlba_lnorm(10, A=0.5, b=1, t0 = 0.5, meanlog_v=c(1.2, 1), sdlog_v=c(0.2, 0.3))
+## generate random LBA data:
+rt1 <- rlba_norm(500, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
+head(rt1)
+prop.table(table(rt1$response))
 
-# use somewhat plausible values for plotting:
-A <- 0.2
-b <- 0.5
-t0 <- 0.3
+# original parameters have 'high' log-likelihood:
+sum(log(diLBA(rt1$rt, rt1$response, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))))
+sum(log(diLBA(rt1$rt, rt1$response, A=0.5, b=1, t0 = 0.5, mean_v=c(1.5, 0.6), sd_v=c(0.2,0.3))))
 
-# plot density:
-curve(dlba_norm(x, A=A, b=b, t0=t0, mean_v = 1.0, sd_v = 0.5), ylim = c(0, 4),
-      xlim=c(0,3), main="Density/PDF of LBA versions", ylab="density", xlab="response time")
-curve(dlba_gamma(x, A=A, b=b, t0=t0, shape_v=1, scale_v=1), add=TRUE, lty = 2)
-curve(dlba_frechet(x, A=A, b=b, t0=t0, shape_v=1,scale_v=1.0), add=TRUE, lty = 3)
-curve(dlba_lnorm(x, A=A, b=b, t0=t0, meanlog_v = 0.5, sdlog_v = 0.5), add=TRUE, lty = 4)
-legend("topright", legend=c("Normal", "Gamma", "Frechet", "Log-Normal"), 
-      title = expression("Distribution of"~~italic(v)), lty = 1:4)
+\dontrun{
+# can we recover the parameters?
+objective_fun <- function(par, rt, response, distribution = "norm") {
+  # simple parameters
+  spar <- par[!grepl("[12]$", names(par))]  
+  
+  # distribution parameters:
+  dist_par_names <- unique(sub("[12]$", "", grep("[12]$" ,names(par), value = TRUE)))
+  dist_par <- vector("list", length = length(dist_par_names))
+  names(dist_par) <- dist_par_names
+  for (i in dist_par_names) dist_par[[i]] <- unname(par[grep(i, names(par))])
+  
+  # get summed log-likelihood:
+  d <- do.call(diLBA, args = c(rt=list(rt), response=list(response), spar, dist_par, 
+                               distribution=distribution))
+  if (any(d == 0)) return(1e6)
+  else return(-sum(log(d)))
+}
 
+objective_fun(c(A=0.5, b=1, t0=0.5, mean_v1=1.2, mean_v2=1.0, sd_v1=0.2, sd_v2=0.3), 
+              rt=rt1$rt, response=rt1$response)
 
-# plot cdf:
-curve(plba_norm(x, A=A, b=b, t0=t0, mean_v=1.0, sd_v=1.0), 
-      xlim = c(0, 3),ylim = c(0,1), 
-      ylab = "cumulative probability", xlab = "response time",
-      main = "Distribution/CDF of LBA versions")
-curve(plba_gamma(x, A=A, b=b, t0=t0, shape_v=1,scale_v=1), add=TRUE, lty = 2)
-curve(plba_frechet(x, A=A, b=b, t0=t0, shape=1, scale=1), add=TRUE, lty = 3)
-curve(plba_lnorm(x, A=A, b=b, t0=t0, meanlog_v=0.5, sdlog_v = 0.5), add=TRUE, lty = 4)
-legend("bottomright", legend=c("Normal", "Gamma", "Frechet", "Log-Normal"), 
-       title = expression("Distribution of"~~italic(v)), lty = 1:4)
+init_par <- runif(7)
+names(init_par) <- c("A", "b", "t0", "mean_v1", "mean_v2", "sd_v1", "sd_v2")
+nlminb(objective_fun, start = init_par, rt=rt1$rt, response=rt1$response, lower = 0)
+
+}
 }
 \references{
 Brown, S. D., & Heathcote, A. (2008). The simplest complete model of choice response time: Linear ballistic accumulation. \emph{Cognitive Psychology}, 57(3), 153-178. doi:10.1016/j.cogpsych.2007.12.002
