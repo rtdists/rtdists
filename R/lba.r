@@ -1,24 +1,43 @@
 #' The linear Ballistic Accumulator (LBA)
 #' 
-#' Density, distribution function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}).
+#' Density, distribution function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the ith accumulator winning.  
 #' 
 #' @param rt a vector of RTs.
 #' @param response integer vector. Specifying the response for a given RT. 
-#' @param A,b LBA parameters, see \code{\link{single-LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(rt)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators).
-#' @param t0 \emph{one} scalar \code{t0} parameter (see \code{\link{single-LBA}}). Multiple or trialwise \code{t0} parameters are currently not implemented.
-#' @param st0 \emph{one} scalar parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}).
-#' @param ... two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See examples.
+#' @param n desired number of observations (scalar integer).
+#' @param A start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.
+#' @param b response threshold. (\code{b} - \code{A}/2) is a measure of "response caution". 
+#' @param t0 non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution).
+#' @param st0 variability of non-decision time, such that \code{t0} is uniformly distributed between \code{t0} and \code{t0} + \code{st0}. Default is 0.
+#' @param ... two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See details.
 #' @param distribution character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.
-#' @param args.dist list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}).
-#' @param silent logical. Should the number of accumulators used be suppressed? Default is \code{FALSE} which prints the number of accumulators.
+#' @param args.dist list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}, see \code{\link{single-LBA}}).
 #' 
+#' @details 
+#' \subsection{Parameters}{
+#' The following arguments are allowed as \code{...} drift rate parameters:
+#' \itemize{
+#' \item \code{mean_v,sd_v} mean and standard deviation of normal distribution for drift rate (\code{norm}). See \code{\link{Normal}}
+#' \item \code{shape_v,rate_v,scale_v} shape, rate, and scale of gamma (\code{gamma}) and scale and shape of Frechet (\code{frechet}) distributions for drift rate. See \code{\link{GammaDist}} or \code{\link[evd]{frechet}}. For Gamma, scale = 1/shape and shape = 1/scale.
+#' \item \code{meanlog_v,sdlog_v} mean and standard deviation of lognormal distribution on the log scale for drift rate (\code{lnorm}). See \code{\link{Lognormal}}.
+#' }
 #' 
-#' @details For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.\cr
+#' As said above, the accumulator parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}).
+#' 
+#' The other LBA parameters (i.e., \code{A}, \code{b}, and \code{t0}) can either be a single numeric vector (which will be recycled to reach \code{length(rt)} or \code{length(n)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
+#' 
+#' To make the difference between both paragraphs clear: Whereas for the accumulators both a single vector or a list corresponds to different accumulators, only the latter is true for the other parameters. For those (i.e., \code{A}, \code{b}, and \code{t0}) a single vector always corresponds to trialwise values and a list must be used for accumulator wise values.
+#' }
+#' 
+#' \subsection{RNG}{
+#' For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.\cr
 #' Note that for random number generation from a normal distribution for the driftrate the number of returned samples may be less than the number of requested samples if \code{posdrifts==FALSE}.
+#' }
 #' 
-#' @return All functions starting with a \code{d} return the density (PDF), all functions starting with \code{p} return the distribution function (CDF), and all functions starting with \code{r} return random response times and responses (in a \code{data.frame}).
 #' 
-#' @note Density (i.e., \code{dlba_}) and distribution (i.e., \code{plba_}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{rt}, parameters are recycled). Somewhat inconsistently, the random number generation functions \code{rlba_} accept only scalar inputs.
+#' @return \code{diLBA} returns the density (PDF), \code{piLBA} returns the distribution function (CDF), \code{riLBA} return random response times and responses (in a \code{data.frame}).
+#' 
+#' @note These are the top-level functions intended for end-users. To obtain the density and cumulative density the race functions are called for each response time with the corresponding winning accumulator as first accumulator (see \code{\link{LBA-race}}). 
 #' 
 #' @references 
 #' 
@@ -58,7 +77,7 @@ check_i_arguments <- function(arg, nn, n_v, dots = FALSE) {
 
 #' @rdname LBA
 #' @export 
-diLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE) {
+diLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list()) {
   dots <- list(...)
   if (is.null(names(dots))) stop("... arguments need to be named.")
   
@@ -70,6 +89,7 @@ diLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", 
   response <- rep(response, length.out = nn)
   A <- check_i_arguments(A, nn=nn, n_v=n_v)
   b <- check_i_arguments(b, nn=nn, n_v=n_v)
+  t0 <- check_i_arguments(t0, nn=nn, n_v=n_v)
   switch(distribution, 
          norm = {
            pdf <- dlba_norm_core
@@ -112,10 +132,73 @@ diLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", 
   )
   #browser()
   out <- vector("numeric", nn)
-  
   for (i in seq_len(n_v)) {
     sel <- trunc(response) == i
-    out[sel] <- do.call(n1PDF, args = c(rt=list(rt[sel]), A = list(A[c(i, seq_len(n_v)[-i])]), b = list(b[c(i, seq_len(n_v)[-i])]), t0 = t0, lapply(dots, function(x) x[c(i, seq_len(n_v)[-i])]), distribution=distribution, args.dist=args.dist, silent=TRUE))
+    out[sel] <- do.call(n1PDF, args = c(rt=list(rt[sel]), A = list(A[c(i, seq_len(n_v)[-i])]), b = list(b[c(i, seq_len(n_v)[-i])]), t0 = list(t0[c(i, seq_len(n_v)[-i])]), lapply(dots, function(x) x[c(i, seq_len(n_v)[-i])]), distribution=distribution, args.dist=args.dist, silent=TRUE))
   }
   return(out)
+}
+
+#' @rdname LBA
+#' @export
+riLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list()) {
+  dots <- list(...)
+  if (is.null(names(dots))) stop("... arguments need to be named.")
+  if (any(names(dots) == "")) stop("all ... arguments need to be named.")
+  n_v <- max(vapply(dots, length, 0))  # Number of responses
+  if (n_v < 2) stop("There need to be at least two accumulators/drift rates.")
+  nn <- n
+  distribution <- match.arg(distribution)
+  A <- check_i_arguments(A, nn=nn, n_v=n_v)
+  b <- check_i_arguments(b, nn=nn, n_v=n_v)
+  t0 <- check_i_arguments(t0, nn=nn, n_v=n_v)
+  switch(distribution, 
+         norm = {
+           rng <- rlba_norm
+           if (any(!(c("mean_v","sd_v") %in% names(dots)))) stop("mean_v and sd_v need to be passed for distribution = \"norm\"")
+           dots$mean_v <- check_i_arguments(dots$mean_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots$sd_v <- check_i_arguments(dots$sd_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("mean_v","sd_v")]
+         },
+         gamma = {
+           rng <- rlba_gamma
+           if (!("shape_v" %in% names(dots))) stop("shape_v needs to be passed for distribution = \"gamma\"")
+           if ((!("rate_v" %in% names(dots))) & (!("scale_v" %in% names(dots)))) stop("rate_v or scale_v need to be passed for distribution = \"gamma\"")
+           dots$shape_v <- check_i_arguments(dots$shape_v, nn=nn, n_v=n_v, dots = TRUE)
+           if ("scale_v" %in% names(dots)) {
+             dots$scale_v <- check_i_arguments(dots$scale_v, nn=nn, n_v=n_v, dots = TRUE)
+             if (is.list(dots$scale_v)) {
+               dots$rate_v <- lapply(dots$scale_v, function(x) 1/x)
+             } else dots$rate_v <- 1/dots$scale_v
+           } else dots$rate_v <- check_i_arguments(dots$rate_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("shape_v","rate_v")]
+         },
+         frechet = {
+           rng <- rlba_frechet
+           if (any(!(c("shape_v","scale_v") %in% names(dots)))) stop("shape_v and scale_v need to be passed for distribution = \"frechet\"")
+           dots$shape_v <- check_i_arguments(dots$shape_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots$scale_v <- check_i_arguments(dots$scale_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("shape_v","scale_v")]
+         },
+         lnorm = {
+           pdf <- rlba_lnorm
+           if (any(!(c("meanlog_v","sdlog_v") %in% names(dots)))) stop("meanlog_v and sdlog_v need to be passed for distribution = \"lnorm\"")
+           dots$meanlog_v <- check_i_arguments(dots$meanlog_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots$sdlog_v <- check_i_arguments(dots$sdlog_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("meanlog_v","sdlog_v")]
+         }
+  )
+  
+  tmp_acc <- as.data.frame(dots, optional = TRUE)
+  colnames(tmp_acc) <- sub("\\.c\\(.+", "", colnames(tmp_acc))
+  unique_acc <- unique(tmp_acc)
+  
+  out <- data.frame(rt = rep(0, n), response = 0)  
+  for (i in seq_len(nrow(unique_acc))) {
+    ok_rows <- apply(tmp_acc, 1, identical, y = as.matrix(unique_acc)[i,])
+    tmp_dots <- lapply(dots, function(x) sapply(x, "[[", i = which(ok_rows)[1]))
+    out[ok_rows,] <- do.call(rng, args = c(n=list(sum(ok_rows)), A = list(sapply(A, "[", i = ok_rows)), b = list(sapply(b, "[", i = ok_rows)), t0 = list(sapply(t0, "[", i = ok_rows)), tmp_dots, args.dist=args.dist))
+  }
+  
+  out
 }

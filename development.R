@@ -25,16 +25,18 @@ require(testthat)
 test()
 test_package("rtdists")  # no long tests of n1 functions
 test(filter = "bugs")
-test_file("tests/testthat/test-lba-math.R")
+test(filter = "input")
+test(filter = "lba")
 test_file("tests/testthat/test-diffusion.R")
+test_file("tests/testthat/test-ilba_basics.R")
+test_file("tests/testthat/test-lba-bugs.R")
+test_file("tests/testthat/test-lba-math.R")
+test_file("tests/testthat/test-lba_input.R")
+test_file("tests/testthat/test-lba_race.R")
+test_file("tests/testthat/test-lba_race_input.R")
 test_file("tests/testthat/test-rrd.R")
 
-#x <- .Random.seed
-test_file("tests/testthat/test-lba_race.R")
-
-.Random.seed <- x
-
-test_file("tests/testthat/test-lba_race_random_parameters.R")
+#test_file("tests/testthat/test-lba_race_random_parameters.R")
 
 ## Analyze problematic data:
 

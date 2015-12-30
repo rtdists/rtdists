@@ -3,47 +3,70 @@
 \name{LBA}
 \alias{LBA}
 \alias{diLBA}
+\alias{riLBA}
 \title{The linear Ballistic Accumulator (LBA)}
 \usage{
 diLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm",
-  "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE)
+  "gamma", "frechet", "lnorm"), args.dist = list())
+
+riLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
+  "frechet", "lnorm"), args.dist = list())
 }
 \arguments{
 \item{rt}{a vector of RTs.}
 
 \item{response}{integer vector. Specifying the response for a given RT.}
 
-\item{A, b}{LBA parameters, see \code{\link{single-LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(rt)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators).}
+\item{A}{start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.}
 
-\item{t0}{\emph{one} scalar \code{t0} parameter (see \code{\link{single-LBA}}). Multiple or trialwise \code{t0} parameters are currently not implemented.}
+\item{b}{response threshold. (\code{b} - \code{A}/2) is a measure of "response caution".}
 
-\item{...}{two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See examples.}
+\item{t0}{non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution).}
 
-\item{st0}{\emph{one} scalar parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}).}
+\item{...}{two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See details.}
+
+\item{st0}{variability of non-decision time, such that \code{t0} is uniformly distributed between \code{t0} and \code{t0} + \code{st0}. Default is 0.}
 
 \item{distribution}{character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.}
 
-\item{args.dist}{list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}).}
+\item{args.dist}{list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}, see \code{\link{single-LBA}}).}
 
-\item{silent}{logical. Should the number of accumulators used be suppressed? Default is \code{FALSE} which prints the number of accumulators.}
+\item{n}{desired number of observations (scalar integer).}
 }
 \value{
-All functions starting with a \code{d} return the density (PDF), all functions starting with \code{p} return the distribution function (CDF), and all functions starting with \code{r} return random response times and responses (in a \code{data.frame}).
+\code{diLBA} returns the density (PDF), \code{piLBA} returns the distribution function (CDF), \code{riLBA} return random response times and responses (in a \code{data.frame}).
 }
 \description{
-Density, distribution function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}).
+Density, distribution function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the ith accumulator winning.
 }
 \details{
+\subsection{Parameters}{
+The following arguments are allowed as \code{...} drift rate parameters:
+\itemize{
+\item \code{mean_v,sd_v} mean and standard deviation of normal distribution for drift rate (\code{norm}). See \code{\link{Normal}}
+\item \code{shape_v,rate_v,scale_v} shape, rate, and scale of gamma (\code{gamma}) and scale and shape of Frechet (\code{frechet}) distributions for drift rate. See \code{\link{GammaDist}} or \code{\link[evd]{frechet}}. For Gamma, scale = 1/shape and shape = 1/scale.
+\item \code{meanlog_v,sdlog_v} mean and standard deviation of lognormal distribution on the log scale for drift rate (\code{lnorm}). See \code{\link{Lognormal}}.
+}
+
+As said above, the accumulator parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}).
+
+The other LBA parameters (i.e., \code{A}, \code{b}, and \code{t0}) can either be a single numeric vector (which will be recycled to reach \code{length(rt)} or \code{length(n)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
+
+To make the difference between both paragraphs clear: Whereas for the accumulators both a single vector or a list corresponds to different accumulators, only the latter is true for the other parameters. For those (i.e., \code{A}, \code{b}, and \code{t0}) a single vector always corresponds to trialwise values and a list must be used for accumulator wise values.
+}
+
+\subsection{RNG}{
 For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.\cr
 Note that for random number generation from a normal distribution for the driftrate the number of returned samples may be less than the number of requested samples if \code{posdrifts==FALSE}.
 }
+}
 \note{
-Density (i.e., \code{dlba_}) and distribution (i.e., \code{plba_}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{rt}, parameters are recycled). Somewhat inconsistently, the random number generation functions \code{rlba_} accept only scalar inputs.
+These are the top-level functions intended for end-users. To obtain the density and cumulative density the race functions are called for each response time with the corresponding winning accumulator as first accumulator (see \code{\link{LBA-race}}).
 }
 \examples{
 
 ## generate random LBA data:
-rt1 <- rlba_norm(500, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
+rt1 <- riLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
 head(rt1)
 prop.table(table(rt1$response))
 

@@ -1,15 +1,19 @@
 
 Changes to Version 0.4-x
 
-    o added diLBA(), a fully vectorized version of n1PDF which has response as
+    o added diLBA() and riLBA().
+      diLBA() is a fully vectorized versions of n1PDF which has response as
       second argument, allowing to get the density for each response and 
       corr esponding response time in one step. As for the diffusion model 
       (see below), this allows a likelihood function which only includes one 
       call to the density function.
+      riLBA() is a fully vectorized version of the RNG functions and should be 
+      used from now on as top-level function.
 
     o diffusion model functions are now completely vectorized and accept 
-      vectors as parameters (including for boundary). This allows a likelihood
-      function which only includes one call to the density function.
+      vectors as parameters (including for boundary). As for the LBA, this 
+      allows a likelihood function which only includes one call to the density
+      function.
       
     o boundary parameter for diffusion functions accept numeric/factor vectors.
       

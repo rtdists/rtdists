@@ -4,7 +4,6 @@
 #' 
 #' @param rt a vector of RTs.
 #' @param n desired number of observations (scalar integer).
-#' 
 #' @param A start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.
 #' @param b response threshold. (\code{b} - \code{A}/2) is a measure of "response caution". 
 #' @param t0 non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution).
@@ -18,12 +17,11 @@
 #' @param robust logical. Should robust normal distributions be used for \code{norm} and \code{lnorm}? Can be helpful in rare cases but is approximately three times slower than the non-robust versions. Default is \code{FALSE}.
 #' 
 #' 
-#' @details For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.\cr
-#' Note that for random number generation from a normal distribution for the driftrate the number of returned samples may be less than the number of requested samples if \code{posdrifts==FALSE}.
+#' @details These functions are mainly for internal purposes. We do not recommend to use them. Use the high-level functions described in \code{LBA} instead.
 #' 
 #' @return All functions starting with a \code{d} return the density (PDF), all functions starting with \code{p} return the distribution function (CDF), and all functions starting with \code{r} return random response times and responses (in a \code{data.frame}).
 #' 
-#' @note Density (i.e., \code{dlba_}) and distribution (i.e., \code{plba_}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{rt}, parameters are recycled). Somewhat inconsistently, the random number generation functions \code{rlba_} accept only scalar inputs.
+#' @note Density (i.e., \code{dlba_}), distribution (i.e., \code{plba_}), and random derivative (i.e., \code{rlba_}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{rt}, parameters are recycled). Furthermore, the random derivative functions also accept a matrix of length \code{n} in which each column corresponds to a accumulator specific value (see \code{\link{riLBA}} for a more user-friendly way).
 #' 
 #' @references 
 #' 
@@ -52,10 +50,12 @@ dnormP <- function(x,mean=0,sd=1) ifelse(abs(x)<7,dnorm(x,mean=mean,sd=sd),0)
 make_r <- function(drifts, n,b,A,n_v,t0,st0=0) {
   drifts <- drifts[1:n,]
   drifts[drifts<0] <- 0
-  starts <- matrix(runif(min=0,max=A,n=n*n_v),ncol=n_v,byrow=TRUE)
-  ttf <- t((b-t(starts)))/drifts
-  rt <- apply(ttf,1,min)+t0+runif(min=0,max=st0,n=n)
-  resp <- apply(ttf,1,which.min)
+  if (is.null(dim(A))) starts <- matrix(runif(min=0,max=A,n=n*n_v),ncol=n_v,byrow=TRUE)
+  else starts <- apply(A, c(1,2), function(x) runif(min=0, max = x, 1))
+  if (is.null(dim(b))) ttf <- t((b-t(starts)))/drifts
+  else ttf <- (b-starts)/drifts
+  rt <- apply(ttf+t0,1,min)+runif(min=0,max=st0,n=n)
+  resp <- apply(ttf+t0,1,which.min)
   bad <- !is.finite(rt)
   if (any(bad)) {
     warning(paste(sum(bad),"infinite RTs removed and less than", n, "rts returned"))
@@ -209,8 +209,9 @@ plba_norm_core <- function(rt,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE,
 #' @rdname single-LBA
 #' @export rlba_norm
 rlba_norm <- function(n,A,b,t0,mean_v, sd_v, st0=0,posdrift=TRUE) {
-  check_single_arg(n, A, b, t0, st0)
-  if (b < A) stop(error_message_b_smaller_A)
+  #check_single_arg(n, A, b, t0, st0)
+  check_single_arg(n)
+  if (any(b < A)) stop(error_message_b_smaller_A)
   n_v <- max(length(mean_v), length(sd_v))
   if (posdrift) drifts <- matrix(rtnorm(n=n*n_v, mean=mean_v, sd=sd_v, lower=0),ncol=n_v,byrow=TRUE)  
   else drifts <- matrix(rnorm(n=n*n_v, mean=mean_v, sd=sd_v),ncol=n_v,byrow=TRUE)
@@ -314,8 +315,8 @@ plba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, nn) {
 #' @rdname single-LBA
 #' @export rlba_gamma
 rlba_gamma <- function(n,A,b,t0,shape_v, rate_v, scale_v, st0=0) {
-  check_single_arg(n, A, b, t0, st0)
-  if (b < A) stop(error_message_b_smaller_A)
+  check_single_arg(n, st0)
+  if (any(b < A)) stop(error_message_b_smaller_A)
   if (!missing(rate_v) && !missing(scale_v)) stop("specify 'rate_v' or 'scale_v', but not both")
   if (missing(rate_v)) rate_v <- 1/scale_v
   n_v <- max(length(shape_v), length(rate_v))  
@@ -440,8 +441,8 @@ plba_frechet_core <- function(rt,A,b,t0,shape_v, scale_v, nn) {
 #' @rdname single-LBA
 #' @export rlba_frechet
 rlba_frechet <- function(n,A,b,t0,shape_v, scale_v,st0=0){
-  check_single_arg(n, A, b, t0, st0)
-  if (b < A) stop(error_message_b_smaller_A)
+  check_single_arg(n, st0)
+  if (any(b < A)) stop(error_message_b_smaller_A)
   n_v <- max(length(shape_v), length(scale_v))
   drifts <- matrix(rfrechet(n=n*n_v, loc=0, scale=scale_v, shape=shape_v),ncol=n_v,byrow=TRUE)
   
@@ -539,8 +540,8 @@ plba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE, nn) {
 #' @rdname single-LBA
 #' @export rlba_lnorm
 rlba_lnorm <- function(n,A,b,t0,meanlog_v, sdlog_v, st0=0){
-  check_single_arg(n, A, b, t0, st0)
-  if (b < A) stop(error_message_b_smaller_A)
+  check_single_arg(n, st0)
+  if (any(b < A)) stop(error_message_b_smaller_A)
   n_v <- max(length(meanlog_v), length(sdlog_v))
   drifts=matrix(rlnorm(n=n*n_v,meanlog = meanlog_v,sdlog=sdlog_v),ncol=n_v,byrow=TRUE)
   make_r(drifts=drifts, n=n, b=b, A=A, n_v=n_v, t0=t0, st0=st0)

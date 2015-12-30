@@ -1,6 +1,6 @@
 
 ## generate random LBA data:
-rt1 <- rlba_norm(500, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
+rt1 <- riLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
 head(rt1)
 prop.table(table(rt1$response))
 

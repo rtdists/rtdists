@@ -70,11 +70,10 @@ All functions starting with a \code{d} return the density (PDF), all functions s
 Density, distribution function, and random generation for a single accumulator of the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}).
 }
 \details{
-For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.\cr
-Note that for random number generation from a normal distribution for the driftrate the number of returned samples may be less than the number of requested samples if \code{posdrifts==FALSE}.
+These functions are mainly for internal purposes. We do not recommend to use them. Use the high-level functions described in \code{LBA} instead.
 }
 \note{
-Density (i.e., \code{dlba_}) and distribution (i.e., \code{plba_}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{rt}, parameters are recycled). Somewhat inconsistently, the random number generation functions \code{rlba_} accept only scalar inputs.
+Density (i.e., \code{dlba_}), distribution (i.e., \code{plba_}), and random derivative (i.e., \code{rlba_}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{rt}, parameters are recycled). Furthermore, the random derivative functions also accept a matrix of length \code{n} in which each column corresponds to a accumulator specific value (see \code{\link{riLBA}} for a more user-friendly way).
 }
 \examples{
 

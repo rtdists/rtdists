@@ -90,7 +90,7 @@ context("LBA input")
 
 test_that("_norm input works as they should", {
   expect_error(rlba_norm("10", A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3)))
-  expect_error(rlba_norm(10, A=c(0.5, 0.6), b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3)))    
+  expect_is(rlba_norm(10, A=c(0.5, 0.6), b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3)), "data.frame")    
   x <- rlba_norm(10, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
   expect_error(plba_norm(x$response, A=as.character(seq(0.2, 0.5, length.out = 10)), b=0.5, t0 = 0.5, mean_v=1.2, sd_v=0.2))
   expect_is(plba_norm(x$response, A=seq(0.2, 0.5, length.out = 10), b=0.5, t0 = seq(0.5, 0.7, 0.1), mean_v=1.2, sd_v=0.2), "numeric")
@@ -98,7 +98,7 @@ test_that("_norm input works as they should", {
 
 test_that("_gamma input works as they should", {
   expect_error(rlba_gamma("10", A=0.5, b=1, t0 = 0.5, shape_v =c(1.2, 1), scale_v =c(0.2,0.3)), regexp = "numeric and finite")
-  expect_error(rlba_gamma(10, A=c(0.5, 0.6), b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3)), "length") 
+  expect_is(rlba_gamma(10, A=c(0.5, 0.6), b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3)), "data.frame") 
   x <- rlba_gamma(10, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3))
   expect_error(plba_gamma(x$response, A=as.character(seq(0.2, 0.5, length.out = 10)), b=0.5, t0 = 0.5, shape_v=1.2, scale_v=0.2), "numeric")
   expect_is(plba_gamma(x$response, A=seq(0.2, 0.5, length.out = 10), b=0.5, t0 = seq(0.5, 0.7, 0.1), shape_v=1.2, scale_v=0.2), "numeric")
@@ -106,7 +106,7 @@ test_that("_gamma input works as they should", {
 
 test_that("_frechet input works as they should", {
   expect_error(rlba_frechet("10", A=0.5, b=1, t0 = 0.5, shape_v =c(1.2, 1), scale_v =c(0.2,0.3)), regexp = "numeric and finite")
-  expect_error(rlba_frechet(10, A=c(0.5, 0.6), b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3)), "length") 
+  expect_is(rlba_frechet(10, A=c(0.5, 0.6), b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3)), "data.frame") 
   x <- rlba_frechet(10, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3))
   expect_error(plba_frechet(x$response, A=as.character(seq(0.2, 0.5, length.out = 10)), b=0.5, t0 = 0.5, shape_v=1.2, scale_v=0.2), "numeric")
   expect_is(plba_frechet(x$response, A=seq(0.2, 0.5, length.out = 10), b=0.5, t0 = seq(0.5, 0.7, 0.1), shape_v=1.2, scale_v=0.2), "numeric")
@@ -114,7 +114,7 @@ test_that("_frechet input works as they should", {
 
 test_that("_lnorm input works as they should", {
   expect_error(rlba_lnorm("10", A=0.5, b=1, t0 = 0.5, meanlog_v =c(1.2, 1), sdlog_v =c(0.2,0.3)), regexp = "numeric and finite")
-  expect_error(rlba_lnorm(10, A=c(0.5, 0.6), b=1, t0 = 0.5, meanlog_v=c(1.2, 1), sdlog_v=c(0.2,0.3)), "length") 
+  expect_is(rlba_lnorm(10, A=c(0.5, 0.6), b=1, t0 = 0.5, meanlog_v=c(1.2, 1), sdlog_v=c(0.2,0.3)), "data.frame") 
   x <- rlba_lnorm(10, A=0.5, b=1, t0 = 0.5, meanlog_v=c(1.2, 1), sdlog_v=c(0.2,0.3))
   expect_error(plba_lnorm(x$response, A=as.character(seq(0.2, 0.5, length.out = 10)), b=0.5, t0 = 0.5, meanlog_v=1.2, sdlog_v=0.2), "numeric")
   expect_is(plba_lnorm(x$response, A=seq(0.2, 0.5, length.out = 10), b=0.5, t0 = seq(0.5, 0.7, 0.1), meanlog_v=1.2, sdlog_v=0.2), "numeric")

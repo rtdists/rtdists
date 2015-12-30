@@ -4,7 +4,7 @@ context("iLBA works correctly")
 
 test_that("norm", {
   n <- 100
-  x <- rlba_norm(n, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
+  x <- riLBA(n, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
   
   ex1_n1pdf <- vector("numeric", n)
   ex1_n1pdf[x$response == 1] <- n1PDF(x$rt[x$response == 1], A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3), distribution = "norm", silent = TRUE)
