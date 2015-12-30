@@ -3,7 +3,7 @@
 #' n1PDF and n1CDF take RTs, the distribution functions of the \link{LBA}, and corresponding parameter values and put them throughout the race equations and return the likelihood for the first accumulator winning (hence n1) in a set of accumulators.  
 #'
 #' @param rt a vector of RTs.
-#' @param A,b LBA parameters, see \code{\link{single-LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(rt)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators).
+#' @param A,b LBA parameters, see \code{\link{single-LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(rt)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
 #' @param t0 \emph{one} scalar \code{t0} parameter (see \code{\link{single-LBA}}). Multiple or trialwise \code{t0} parameters are currently not implemented.
 #' @param st0 \emph{one} scalar parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}).
 #' @param ... two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See examples.
@@ -35,12 +35,12 @@ n1PDFfixedt0 <- function(rt,A,b, t0, ..., pdf, cdf, args.dist = list()) {
   n_v <- max(vapply(dots, length, 0))  # Number of responses
   if (n_v>2) {
     tmp=array(dim=c(length(rt),n_v-1))
-    for (i in 2:n_v) tmp[,i-1] <- do.call(cdf, args = c(rt=list(rt), A=if(is.list(A)) A[i] else list(A), b=if(is.list(b)) b[i] else list(b), t0 = t0, sapply(dots, "[[", i = i, simplify = FALSE), args.dist = args.dist, nn=nn))
+    for (i in 2:n_v) tmp[,i-1] <- do.call(cdf, args = c(rt=list(rt), A=if(is.list(A)) A[i] else list(A), b=if(is.list(b)) b[i] else list(b), t0 = if(is.list(t0)) t0[i] else list(t0), sapply(dots, "[[", i = i, simplify = FALSE), args.dist = args.dist, nn=nn))
     G <- apply(1-tmp,1,prod)
   } else {
-    G <- 1-do.call(cdf, args = c(rt=list(rt), A=if(is.list(A)) A[2] else list(A), b=if(is.list(b)) b[2] else list(b), t0 = unname(t0), sapply(dots, "[[", i = 2, simplify = FALSE), args.dist, nn=nn))
+    G <- 1-do.call(cdf, args = c(rt=list(rt), A=if(is.list(A)) A[2] else list(A), b=if(is.list(b)) b[2] else list(b), t0 = if(is.list(t0)) t0[2] else list(t0), sapply(dots, "[[", i = 2, simplify = FALSE), args.dist, nn=nn))
   }
-  G*do.call(pdf, args = c(rt=list(rt), A=if(is.list(A)) A[1] else list(A), b=if(is.list(b)) b[1] else list(b), t0 = unname(t0), sapply(dots, "[[", i = 1, simplify = FALSE), args.dist, nn=nn))
+  G*do.call(pdf, args = c(rt=list(rt), A=if(is.list(A)) A[1] else list(A), b=if(is.list(b)) b[1] else list(b), t0 = if(is.list(t0)) t0[1] else list(t0), sapply(dots, "[[", i = 1, simplify = FALSE), args.dist, nn=nn))
 }
 
 #sapply(dots, rep_dots, which = 1, nn = nn, simplify = FALSE)
@@ -80,11 +80,12 @@ n1PDF <- function(rt, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "f
   if(!silent) message(paste("Results based on", n_v, "accumulators/drift rates."))
   if (n_v < 2) stop("There need to be at least two accumulators/drift rates.")
   distribution <- match.arg(distribution)
-  check_single_arg(t0 = t0)
+  #check_single_arg(t0 = t0)
   nn <- length(rt)
   #browser()
   A <- check_n1_arguments(A, nn=nn, n_v=n_v)
   b <- check_n1_arguments(b, nn=nn, n_v=n_v)
+  t0 <- check_n1_arguments(t0, nn=nn, n_v=n_v)
   switch(distribution, 
          norm = {
            pdf <- dlba_norm_core

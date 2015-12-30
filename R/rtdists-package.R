@@ -4,7 +4,7 @@
 #' Package: \tab rtdists\cr
 #' Type: \tab Package\cr
 #' Version: \tab 0.4-7\cr
-#' Date: \tab 2015-12-29\cr
+#' Date: \tab 2015-12-30\cr
 #' Depends: \tab R (>= 3.0.0)\cr
 #' License: \tab GPL (>=3)\cr
 #' URL: \tab https://github.com/rtdists/rtdists/\cr
