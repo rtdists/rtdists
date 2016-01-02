@@ -16,6 +16,6 @@
 #' @name rtdists-package
 #' @docType package
 #' @title The rtdists Package
-#' @author Scott Brown, Matthew Gretton, Andrew Heathcote, Henrik Singmann, with contributions from Andreas Voss, Jochen Voss, Andrew Terry
+#' @author Henrik Singmann, Scott Brown, Matthew Gretton, Andrew Heathcote, with contributions from Andreas Voss, Jochen Voss, Andrew Terry
 #' @keywords package
 NULL

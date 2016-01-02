@@ -5,7 +5,7 @@
 \alias{diLBA}
 \alias{piLBA}
 \alias{riLBA}
-\title{The linear Ballistic Accumulator (LBA)}
+\title{The Linear Ballistic Accumulator (LBA)}
 \usage{
 diLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm",
   "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE)

@@ -60,13 +60,13 @@ roxy.package(
     Type = "Package",
     Title = "Response Time Distributions",
     AuthorsR = "c(
+        person(given=\"Henrik\", family=\"Singmann\", email=\"singmann+rtdists@gmail.com\", role=c(\"aut\", \"cre\")),
         person(given=\"Scott\", family=\"Brown\", role=c(\"aut\")),
         person(given=\"Matthew\", family=\"Gretton\", role=c(\"aut\")),
         person(given=\"Andrew\", family=\"Heathcote\", role=c(\"aut\")),
         person(given=\"Andreas\", family=\"Voss\", role=c(\"ctb\")),
         person(given=\"Jochen\", family=\"Voss\", role=c(\"ctb\")),
-        person(given=\"Andrew\", family=\"Terry\", role=c(\"ctb\")),
-        person(given=\"Henrik\", family=\"Singmann\", email=\"singmann+rtdists@gmail.com\", role=c(\"aut\", \"cre\"))
+        person(given=\"Andrew\", family=\"Terry\", role=c(\"ctb\"))
     )",
     Depends = "R (>= 3.0.0)",
     Suggests = "testthat, glba",

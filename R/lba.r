@@ -1,4 +1,4 @@
-#' The linear Ballistic Accumulator (LBA)
+#' The Linear Ballistic Accumulator (LBA)
 #' 
 #' Density, distribution function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the ith accumulator winning.  
 #' 
