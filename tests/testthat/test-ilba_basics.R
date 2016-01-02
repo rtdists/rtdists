@@ -2,7 +2,7 @@
 
 context("iLBA works correctly")
 
-test_that("norm", {
+test_that("diLBA norm is identical to n1PDF", {
   n <- 100
   x <- riLBA(n, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
   
@@ -31,3 +31,25 @@ test_that("norm", {
   expect_identical(ex4_n1pdf, ex4_dilba)
   
 })
+
+
+test_that("piLBA norm is identical to n1CDF", {
+  x <- seq(0, 3, by =0.1)
+  
+  o1a <- n1CDF(x, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3), distribution = "norm", silent = TRUE)
+  o1b <- n1CDF(x, A=0.5, b=1, t0 = 0.5, mean_v=c(1, 1.2), sd_v=c(0.3,0.2), distribution = "norm", silent = TRUE)
+  o1c <- piLBA(c(x, x), rep(1:2, each = length(x)), A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3), distribution = "norm", silent = TRUE)
+  expect_identical(c(o1a, o1b), o1c)
+  
+  o2a <- n1CDF(x, A=0.5, b=1, t0 = list(0.5, 0.2), mean_v=c(1.2, 1), sd_v=c(0.2,0.3), distribution = "norm", silent = TRUE)
+  o2b <- n1CDF(x, A=0.5, b=1, t0 = list(0.2, 0.5), mean_v=c(1, 1.2), sd_v=c(0.3,0.2), distribution = "norm", silent = TRUE)
+  o2c <- piLBA(c(x, x), rep(1:2, each = length(x)), A=0.5, b=1, t0 = list(0.5, 0.2), mean_v=c(1.2, 1), sd_v=c(0.2,0.3), distribution = "norm", silent = TRUE)
+  expect_identical(c(o2a, o2b), o2c)
+  
+  o3a <- n1CDF(x, A=list(seq(0.5, 0.6, length.out = length(x)), 0.2), b=1, t0 = list(0.5, 0.2), mean_v=c(1.2, 1), sd_v=c(0.2,0.3), distribution = "norm", silent = TRUE)
+  o3b <- n1CDF(x, A=list(0.2, seq(0.5, 0.6, length.out = length(x))), b=1, t0 = list(0.2, 0.5), mean_v=c(1, 1.2), sd_v=c(0.3,0.2), distribution = "norm", silent = TRUE)
+  o3c <- piLBA(c(x, x), rep(1:2, each = length(x)), A=list(seq(0.5, 0.6, length.out = length(x)), 0.2), b=1, t0 = list(0.5, 0.2), mean_v=c(1.2, 1), sd_v=c(0.2,0.3), distribution = "norm", silent = TRUE)
+  expect_identical(c(o2a, o2b), o2c)
+  
+})
+

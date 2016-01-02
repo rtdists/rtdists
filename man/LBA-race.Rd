@@ -15,9 +15,9 @@ n1CDF(rt, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
 \arguments{
 \item{rt}{a vector of RTs.}
 
-\item{A, b}{LBA parameters, see \code{\link{single-LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(rt)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.}
+\item{A, b}{LBA parameters, see \code{\link{LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(rt)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.}
 
-\item{t0}{\emph{one} scalar \code{t0} parameter (see \code{\link{single-LBA}}). Multiple or trialwise \code{t0} parameters are currently not implemented.}
+\item{t0}{\emph{one} scalar \code{t0} parameter (see \code{\link{LBA}}). Multiple or trialwise \code{t0} parameters are currently not implemented.}
 
 \item{...}{two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See examples.}
 
@@ -45,7 +45,7 @@ In other words, this is just the PDF/CDF for the winning accumulator at time \eq
 ## check random generated values against race functions:
 
 ## 1. Without st0:
-r_lba <- rlba_norm(1e4, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=0.2)
+r_lba <- riLBA(1e4, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=0.2)
 x <- seq(0.5, 4, length.out = 100) # for plotting
 # PDF
 y <- n1PDF(x, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2) # PDF
@@ -63,7 +63,7 @@ ks.test(r_lba$rt[r_lba$response==1], normalised_n1CDF, A=0.5, b=1, t0 = 0.5,
 }
 
 ## 2. With st0 = 0.2:
-r_lba <- rlba_norm(1e4, A=0.5, b=1, t0 = 0.5, st0 = 0.2, mean_v=c(1.2, 1), sd_v=0.2)
+r_lba <- riLBA(1e4, A=0.5, b=1, t0 = 0.5, st0 = 0.2, mean_v=c(1.2, 1), sd_v=0.2)
 x <- seq(0.5, 4, length.out = 100) # for plotting
 # PDF
 y <- n1PDF(x, A=0.5, b=1, t0 = 0.5, st0 = 0.2, mean_v=c(1.2, 1.0), sd_v=0.2) # PDF
@@ -82,7 +82,7 @@ ks.test(r_lba$rt[r_lba$response==1], normalised_n1CDF, A=0.5, b=1, t0 = 0.5,
 
 ## Other examples:
 
-xx <- rlba_norm(10, A=0.5, b=1, t0 = 0.5, mean_v=1.2, sd_v=0.2)
+xx <- riLBA(10, A=0.5, b=1, t0 = 0.5, mean_v=1.2, sd_v=0.2)
 
 # default uses normal distribution for drift rate:
 n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
@@ -123,5 +123,6 @@ n1PDF(xx$rt, A=0.5, b=1, t0 = c(0.5), mean_v=c(1.2, 1.0), sd_v=0.2)
 n1PDF(xx$rt, A=0.5, b=1, t0 = c(0.5, 0.6), mean_v=c(1.2, 1.0), sd_v=0.2) # per trial only
 n1PDF(xx$rt, A=0.5, b=1, t0 = list(0.5, 0.6), mean_v=c(1.2, 1.0), sd_v=0.2) # per drift rate only
 n1PDF(xx$rt, A=0.5, b=1, t0 = list(c(0.4, 0.5), c(0.5, 0.6)), mean_v=c(1.2, 1.0), sd_v=0.2)
+
 }
 

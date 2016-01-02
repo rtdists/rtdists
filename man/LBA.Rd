@@ -3,19 +3,23 @@
 \name{LBA}
 \alias{LBA}
 \alias{diLBA}
+\alias{piLBA}
 \alias{riLBA}
 \title{The linear Ballistic Accumulator (LBA)}
 \usage{
 diLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm",
-  "gamma", "frechet", "lnorm"), args.dist = list())
+  "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE)
+
+piLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm",
+  "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE)
 
 riLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
-  "frechet", "lnorm"), args.dist = list())
+  "frechet", "lnorm"), args.dist = list(), silent = FALSE)
 }
 \arguments{
 \item{rt}{a vector of RTs.}
 
-\item{response}{integer vector. Specifying the response for a given RT.}
+\item{response}{integer vector. Specifying the response for a given RT. Will be recycled if necessary. Cannot contain values larger than the number of accumulators.}
 
 \item{A}{start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.}
 
@@ -30,6 +34,8 @@ riLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
 \item{distribution}{character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.}
 
 \item{args.dist}{list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}, see \code{\link{single-LBA}}).}
+
+\item{silent}{logical. Should the number of accumulators used be suppressed? Default is \code{FALSE} which prints the number of accumulators.}
 
 \item{n}{desired number of observations (scalar integer).}
 }
@@ -48,7 +54,7 @@ The following arguments are allowed as \code{...} drift rate parameters:
 \item \code{meanlog_v,sdlog_v} mean and standard deviation of lognormal distribution on the log scale for drift rate (\code{lnorm}). See \code{\link{Lognormal}}.
 }
 
-As said above, the accumulator parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}).
+As described above, the accumulator parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}).
 
 The other LBA parameters (i.e., \code{A}, \code{b}, and \code{t0}) can either be a single numeric vector (which will be recycled to reach \code{length(rt)} or \code{length(n)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
 
@@ -66,16 +72,13 @@ These are the top-level functions intended for end-users. To obtain the density 
 \examples{
 
 ## generate random LBA data:
-rt1 <- riLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
+rt1 <- riLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
 head(rt1)
 prop.table(table(rt1$response))
 
 # original parameters have 'high' log-likelihood:
-sum(log(diLBA(rt1$rt, rt1$response, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))))
-sum(log(diLBA(rt1$rt, rt1$response, A=0.5, b=1, t0 = 0.5, mean_v=c(1.5, 0.6), sd_v=c(0.2,0.3))))
+sum(log(diLBA(rt1$rt, rt1$response, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))))
 
-\dontrun{
-# can we recover the parameters?
 objective_fun <- function(par, rt, response, distribution = "norm") {
   # simple parameters
   spar <- par[!grepl("[12]$", names(par))]  
@@ -84,23 +87,49 @@ objective_fun <- function(par, rt, response, distribution = "norm") {
   dist_par_names <- unique(sub("[12]$", "", grep("[12]$" ,names(par), value = TRUE)))
   dist_par <- vector("list", length = length(dist_par_names))
   names(dist_par) <- dist_par_names
-  for (i in dist_par_names) dist_par[[i]] <- unname(par[grep(i, names(par))])
-  
+  for (i in dist_par_names) dist_par[[i]] <- as.list(unname(par[grep(i, names(par))]))
+  dist_par$sd_v <- c(1, dist_par$sd_v) # fix first sd to 1
+
   # get summed log-likelihood:
   d <- do.call(diLBA, args = c(rt=list(rt), response=list(response), spar, dist_par, 
-                               distribution=distribution))
-  if (any(d == 0)) return(1e6)
+                               distribution=distribution, silent=TRUE))
+  if (any(d < 0e-10)) return(1e6) 
   else return(-sum(log(d)))
 }
 
-objective_fun(c(A=0.5, b=1, t0=0.5, mean_v1=1.2, mean_v2=1.0, sd_v1=0.2, sd_v2=0.3), 
+# gives same value as manual calculation above:
+objective_fun(c(A=0.5, b=1, t0=0.5, mean_v1=2.4, mean_v2=1.6, sd_v2=1.2), 
               rt=rt1$rt, response=rt1$response)
 
-init_par <- runif(7)
-names(init_par) <- c("A", "b", "t0", "mean_v1", "mean_v2", "sd_v1", "sd_v2")
+\dontrun{
+# can we recover the parameters?
+init_par <- runif(6)
+names(init_par) <- c("A", "b", "t0", "mean_v1", "mean_v2",  "sd_v2")
 nlminb(objective_fun, start = init_par, rt=rt1$rt, response=rt1$response, lower = 0)
-
 }
+
+
+# plot cdf (2 accumulators):
+curve(piLBA(x, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)), 
+     xlim = c(0, 2), ylim = c(0,1), 
+     ylab = "cumulative probability", xlab = "response time",
+     main = "Defective CDFs of LBA")
+curve(piLBA(x, response = 2, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)), 
+     add=TRUE, lty = 2)
+legend("topleft", legend=c("1", "2"), title="Response", lty=1:2)
+
+
+# plot cdf (3 accumulators):
+curve(piLBA(x, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
+     xlim = c(0, 2), ylim = c(0,1), 
+     ylab = "cumulative probability", xlab = "response time",
+     main = "Defective CDFs of LBA")
+curve(piLBA(x, response = 2, A=0.5, b=1, t0 = 0.5,  mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
+     add=TRUE, lty = 2)
+curve(piLBA(x, response = 3, A=0.5, b=1, t0 = 0.5,  mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
+     add=TRUE, lty = 3)
+legend("topleft", legend=c("1", "2", "3"), title="Response", lty=1:2)
+
 }
 \references{
 Brown, S. D., & Heathcote, A. (2008). The simplest complete model of choice response time: Linear ballistic accumulation. \emph{Cognitive Psychology}, 57(3), 153-178. doi:10.1016/j.cogpsych.2007.12.002

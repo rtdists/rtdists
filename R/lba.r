@@ -3,7 +3,7 @@
 #' Density, distribution function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the ith accumulator winning.  
 #' 
 #' @param rt a vector of RTs.
-#' @param response integer vector. Specifying the response for a given RT. 
+#' @param response integer vector. Specifying the response for a given RT. Will be recycled if necessary. Cannot contain values larger than the number of accumulators.
 #' @param n desired number of observations (scalar integer).
 #' @param A start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.
 #' @param b response threshold. (\code{b} - \code{A}/2) is a measure of "response caution". 
@@ -12,6 +12,7 @@
 #' @param ... two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See details.
 #' @param distribution character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.
 #' @param args.dist list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}, see \code{\link{single-LBA}}).
+#' @param silent logical. Should the number of accumulators used be suppressed? Default is \code{FALSE} which prints the number of accumulators.
 #' 
 #' @details 
 #' \subsection{Parameters}{
@@ -22,7 +23,7 @@
 #' \item \code{meanlog_v,sdlog_v} mean and standard deviation of lognormal distribution on the log scale for drift rate (\code{lnorm}). See \code{\link{Lognormal}}.
 #' }
 #' 
-#' As said above, the accumulator parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}).
+#' As described above, the accumulator parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}).
 #' 
 #' The other LBA parameters (i.e., \code{A}, \code{b}, and \code{t0}) can either be a single numeric vector (which will be recycled to reach \code{length(rt)} or \code{length(n)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
 #' 
@@ -71,19 +72,20 @@ check_i_arguments <- function(arg, nn, n_v, dots = FALSE) {
       arg[[i]] <- rep(arg[[i]], length.out=nn)
     }
   }
-  if (length(arg) != n_v) stop(paste("size of", varname, "does not correspond to number of accumulators."))
+  #if (length(arg) != n_v) stop(paste("size of", varname, "does not correspond to number of accumulators."))
   return(arg)
 }
 
 #' @rdname LBA
 #' @export 
-diLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list()) {
+diLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE) {
   dots <- list(...)
   if (is.null(names(dots))) stop("... arguments need to be named.")
   
   nn <- length(rt)
-  n_v <- max(response)
-  if (!is.numeric(response) || length(unique(response)) != n_v) stop("response needs to be a numeric vector with consecutive integers starting at 1.")
+  n_v <- max(vapply(dots, length, 0))  # Number of responses
+  if(!silent) message(paste("Results based on", n_v, "accumulators/drift rates."))
+  if (!is.numeric(response) || max(response) > n_v) stop("response needs to be a numeric vector of integers up to number of accumulators.")
   if (n_v < 2) stop("There need to be at least two accumulators/drift rates.")
   distribution <- match.arg(distribution)
   response <- rep(response, length.out = nn)
@@ -92,16 +94,12 @@ diLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", 
   t0 <- check_i_arguments(t0, nn=nn, n_v=n_v)
   switch(distribution, 
          norm = {
-           pdf <- dlba_norm_core
-           cdf <- plba_norm_core
            if (any(!(c("mean_v","sd_v") %in% names(dots)))) stop("mean_v and sd_v need to be passed for distribution = \"norm\"")
            dots$mean_v <- check_i_arguments(dots$mean_v, nn=nn, n_v=n_v, dots = TRUE)
            dots$sd_v <- check_i_arguments(dots$sd_v, nn=nn, n_v=n_v, dots = TRUE)
            dots <- dots[c("mean_v","sd_v")]
          },
          gamma = {
-           pdf <- dlba_gamma_core
-           cdf <- plba_gamma_core
            if (!("shape_v" %in% names(dots))) stop("shape_v needs to be passed for distribution = \"gamma\"")
            if ((!("rate_v" %in% names(dots))) & (!("scale_v" %in% names(dots)))) stop("rate_v or scale_v need to be passed for distribution = \"gamma\"")
            dots$shape_v <- check_i_arguments(dots$shape_v, nn=nn, n_v=n_v, dots = TRUE)
@@ -114,16 +112,12 @@ diLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", 
            dots <- dots[c("shape_v","rate_v")]
          },
          frechet = {
-           pdf <- dlba_frechet_core
-           cdf <- plba_frechet_core
            if (any(!(c("shape_v","scale_v") %in% names(dots)))) stop("shape_v and scale_v need to be passed for distribution = \"frechet\"")
            dots$shape_v <- check_i_arguments(dots$shape_v, nn=nn, n_v=n_v, dots = TRUE)
            dots$scale_v <- check_i_arguments(dots$scale_v, nn=nn, n_v=n_v, dots = TRUE)
            dots <- dots[c("shape_v","scale_v")]
          },
          lnorm = {
-           pdf <- dlba_lnorm_core
-           cdf <- plba_lnorm_core
            if (any(!(c("meanlog_v","sdlog_v") %in% names(dots)))) stop("meanlog_v and sdlog_v need to be passed for distribution = \"lnorm\"")
            dots$meanlog_v <- check_i_arguments(dots$meanlog_v, nn=nn, n_v=n_v, dots = TRUE)
            dots$sdlog_v <- check_i_arguments(dots$sdlog_v, nn=nn, n_v=n_v, dots = TRUE)
@@ -131,22 +125,88 @@ diLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", 
          }
   )
   #browser()
+  for (i in seq_len(length(dots))) {
+    if (length(dots[[i]]) < n_v) dots[[i]] <- rep(dots[[i]],length.out=n_v)
+  }
   out <- vector("numeric", nn)
-  for (i in seq_len(n_v)) {
-    sel <- trunc(response) == i
+  for (i in unique(response)) {
+    sel <- response == i
     out[sel] <- do.call(n1PDF, args = c(rt=list(rt[sel]), A = list(A[c(i, seq_len(n_v)[-i])]), b = list(b[c(i, seq_len(n_v)[-i])]), t0 = list(t0[c(i, seq_len(n_v)[-i])]), lapply(dots, function(x) x[c(i, seq_len(n_v)[-i])]), distribution=distribution, args.dist=args.dist, silent=TRUE))
+  }
+  return(out)
+}
+
+
+#' @rdname LBA
+#' @export 
+piLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE) {
+  dots <- list(...)
+  if (is.null(names(dots))) stop("... arguments need to be named.")
+  
+  nn <- length(rt)
+  n_v <- max(vapply(dots, length, 0))  # Number of responses
+  if(!silent) message(paste("Results based on", n_v, "accumulators/drift rates."))
+  if (!is.numeric(response) || max(response) > n_v) stop("response needs to be a numeric vector of integers up to number of accumulators.")
+  if (n_v < 2) stop("There need to be at least two accumulators/drift rates.")
+  distribution <- match.arg(distribution)
+  response <- rep(response, length.out = nn)
+  A <- check_i_arguments(A, nn=nn, n_v=n_v)
+  b <- check_i_arguments(b, nn=nn, n_v=n_v)
+  t0 <- check_i_arguments(t0, nn=nn, n_v=n_v)
+  switch(distribution, 
+         norm = {
+           if (any(!(c("mean_v","sd_v") %in% names(dots)))) stop("mean_v and sd_v need to be passed for distribution = \"norm\"")
+           dots$mean_v <- check_i_arguments(dots$mean_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots$sd_v <- check_i_arguments(dots$sd_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("mean_v","sd_v")]
+         },
+         gamma = {
+           if (!("shape_v" %in% names(dots))) stop("shape_v needs to be passed for distribution = \"gamma\"")
+           if ((!("rate_v" %in% names(dots))) & (!("scale_v" %in% names(dots)))) stop("rate_v or scale_v need to be passed for distribution = \"gamma\"")
+           dots$shape_v <- check_i_arguments(dots$shape_v, nn=nn, n_v=n_v, dots = TRUE)
+           if ("scale_v" %in% names(dots)) {
+             dots$scale_v <- check_i_arguments(dots$scale_v, nn=nn, n_v=n_v, dots = TRUE)
+             if (is.list(dots$scale_v)) {
+               dots$rate_v <- lapply(dots$scale_v, function(x) 1/x)
+             } else dots$rate_v <- 1/dots$scale_v
+           } else dots$rate_v <- check_i_arguments(dots$rate_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("shape_v","rate_v")]
+         },
+         frechet = {
+           if (any(!(c("shape_v","scale_v") %in% names(dots)))) stop("shape_v and scale_v need to be passed for distribution = \"frechet\"")
+           dots$shape_v <- check_i_arguments(dots$shape_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots$scale_v <- check_i_arguments(dots$scale_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("shape_v","scale_v")]
+         },
+         lnorm = {
+           if (any(!(c("meanlog_v","sdlog_v") %in% names(dots)))) stop("meanlog_v and sdlog_v need to be passed for distribution = \"lnorm\"")
+           dots$meanlog_v <- check_i_arguments(dots$meanlog_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots$sdlog_v <- check_i_arguments(dots$sdlog_v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots[c("meanlog_v","sdlog_v")]
+         }
+  )
+  #browser()
+  for (i in seq_len(length(dots))) {
+    if (length(dots[[i]]) < n_v) dots[[i]] <- rep(dots[[i]],length.out=n_v)
+  }
+  out <- vector("numeric", nn)
+  for (i in unique(response)) {
+    sel <- response == i
+    if(!all(rt[sel] == sort(rt[sel])))  stop("rt needs to be sorted (per response)")
+    out[sel] <- do.call(n1CDF, args = c(rt=list(rt[sel]), A = list(A[c(i, seq_len(n_v)[-i])]), b = list(b[c(i, seq_len(n_v)[-i])]), t0 = list(t0[c(i, seq_len(n_v)[-i])]), lapply(dots, function(x) x[c(i, seq_len(n_v)[-i])]), distribution=distribution, args.dist=args.dist, silent=TRUE))
   }
   return(out)
 }
 
 #' @rdname LBA
 #' @export
-riLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list()) {
+riLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE) {
   dots <- list(...)
   if (is.null(names(dots))) stop("... arguments need to be named.")
   if (any(names(dots) == "")) stop("all ... arguments need to be named.")
   n_v <- max(vapply(dots, length, 0))  # Number of responses
-  if (n_v < 2) stop("There need to be at least two accumulators/drift rates.")
+  if(!silent) message(paste("Results based on", n_v, "accumulators/drift rates."))
+  #if (n_v < 2) stop("There need to be at least two accumulators/drift rates.")
   nn <- n
   distribution <- match.arg(distribution)
   A <- check_i_arguments(A, nn=nn, n_v=n_v)
@@ -188,6 +248,9 @@ riLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "frech
            dots <- dots[c("meanlog_v","sdlog_v")]
          }
   )
+  for (i in seq_len(length(dots))) {
+    if (length(dots[[i]]) < n_v) dots[[i]] <- rep(dots[[i]],length.out=n_v)
+  }
   
   tmp_acc <- as.data.frame(dots, optional = TRUE)
   colnames(tmp_acc) <- sub("\\.c\\(.+", "", colnames(tmp_acc))
@@ -197,7 +260,7 @@ riLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "frech
   for (i in seq_len(nrow(unique_acc))) {
     ok_rows <- apply(tmp_acc, 1, identical, y = as.matrix(unique_acc)[i,])
     tmp_dots <- lapply(dots, function(x) sapply(x, "[[", i = which(ok_rows)[1]))
-    out[ok_rows,] <- do.call(rng, args = c(n=list(sum(ok_rows)), A = list(sapply(A, "[", i = ok_rows)), b = list(sapply(b, "[", i = ok_rows)), t0 = list(sapply(t0, "[", i = ok_rows)), tmp_dots, args.dist=args.dist))
+    out[ok_rows,] <- do.call(rng, args = c(n=list(sum(ok_rows)), A = list(sapply(A, "[", i = ok_rows)), b = list(sapply(b, "[", i = ok_rows)), t0 = list(sapply(t0, "[", i = ok_rows)), st0 = list(st0), tmp_dots, args.dist=args.dist))
   }
   
   out

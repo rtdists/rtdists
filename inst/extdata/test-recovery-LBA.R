@@ -14,7 +14,7 @@ objective_fun <- function(par, rt, response, distribution = "norm") {
 
   # get summed log-likelihood:
   d <- do.call(diLBA, args = c(rt=list(rt), response=list(response), spar, dist_par, 
-                               distribution=distribution))
+                               distribution=distribution, silent=TRUE))
   if (any(d < 0e-10)) return(1e6)
   else return(-sum(log(d)))
 }

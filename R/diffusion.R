@@ -23,9 +23,11 @@
 #' 
 #' The length of the result is determined by \code{n} for \code{rrd}, and is equal to the length of \code{rt} for \code{drd} and \code{prd}.
 #' 
-#' The distribution parameters (as well as \code{boundary} are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the boundary.
+#' The distribution parameters (as well as \code{boundary}) are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the boundary.
 #'
 #' @details The Ratcliff diffusion model (Ratcliff, 1978) is a mathematical model for two-choice discrimination tasks. It is based on the assumption that information is accumulated continuously until one of two decision thresholds is hit. For more information, see Voss, Rothermund, and Voss (2004), Voss, Nagler, and Lerche (2013), or Wagenmakers (2009).
+#' 
+#' @note RTs need to be sorted (in increasing order) for \code{pdiffusion}.
 #' 
 #' @references Ratcliff, R. (1978). A theory of memory retrieval. \emph{Psychological Review}, 85(2), 59-108.
 #' 

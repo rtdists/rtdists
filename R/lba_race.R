@@ -3,9 +3,8 @@
 #' n1PDF and n1CDF take RTs, the distribution functions of the \link{LBA}, and corresponding parameter values and put them throughout the race equations and return the likelihood for the first accumulator winning (hence n1) in a set of accumulators.  
 #'
 #' @param rt a vector of RTs.
-#' @param A,b LBA parameters, see \code{\link{single-LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(rt)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
-#' @param t0 \emph{one} scalar \code{t0} parameter (see \code{\link{single-LBA}}). Multiple or trialwise \code{t0} parameters are currently not implemented.
-#' @param st0 \emph{one} scalar parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}).
+#' @param A,b,t0 LBA parameters, see \code{\link{LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(rt)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
+#' @param st0 \emph{one} scalar parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}). (Note that at the moment only a global scalar t0 is supported if st0 is not 0.)
 #' @param ... two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See examples.
 #' @param distribution character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.
 #' @param args.dist list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}).
@@ -210,11 +209,12 @@ n1CDF <- function(rt,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "fre
   if(!silent) message(paste("Results based on", n_v, "accumulators/drift rates."))
   if (n_v < 2) stop("There need to be at least two accumulators/drift rates.")
   distribution <- match.arg(distribution)
-  check_single_arg(t0 = t0)
+  #check_single_arg(t0 = t0)
   nn <- length(rt)
   #browser()
   A <- check_n1_arguments(A, nn=nn, n_v=n_v)
   b <- check_n1_arguments(b, nn=nn, n_v=n_v)
+  t0 <- check_n1_arguments(t0, nn=nn, n_v=n_v)
   switch(distribution, 
          norm = {
            pdf <- dlba_norm_core
@@ -275,7 +275,7 @@ n1CDF <- function(rt,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "fre
       outs[i]=0
       next
     }
-    tmp_obj <- do.call(integrate, args=c(f=n1PDF_core,lower=bounds[i],upper=bounds[i+1],subdivisions=1000, A=ret_arg(A, i), b=ret_arg(b, i), t0 = list(t0), st0 = list(st0), sapply(dots, function(z, i) sapply(z, "[[", i = i, simplify=FALSE), i=i, simplify=FALSE), pdf = pdf, cdf = cdf, stop.on.error = FALSE, args.dist = list(args.dist)))
+    tmp_obj <- do.call(integrate, args=c(f=n1PDF_core,lower=bounds[i],upper=bounds[i+1],subdivisions=1000, A=ret_arg(A, i), b=ret_arg(b, i), t0 = ret_arg(t0, i), st0 = list(st0), sapply(dots, function(z, i) sapply(z, "[[", i = i, simplify=FALSE), i=i, simplify=FALSE), pdf = pdf, cdf = cdf, stop.on.error = FALSE, args.dist = list(args.dist)))
     if (tmp_obj$message != "OK") {
       warning(tmp_obj$message)
     }
