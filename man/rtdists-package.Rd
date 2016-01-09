@@ -12,7 +12,7 @@ Response Time Distributions.
 Package: \tab rtdists\cr
 Type: \tab Package\cr
 Version: \tab 0.4-7\cr
-Date: \tab 2016-01-02\cr
+Date: \tab 2016-01-09\cr
 Depends: \tab R (>= 3.0.0)\cr
 License: \tab GPL (>=3)\cr
 URL: \tab https://github.com/rtdists/rtdists/\cr

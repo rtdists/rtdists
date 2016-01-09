@@ -30,6 +30,18 @@ test_that("diLBA norm is identical to n1PDF", {
   ex4_dilba <- diLBA(x$rt, x$response, A=list(c(0.5, 0.6), c(0.6, 0.5)), b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3), distribution = "norm")
   expect_identical(ex4_n1pdf, ex4_dilba)
   
+  ex5_n1pdf <- vector("numeric", n)
+  ex5_n1pdf[x$response == 1] <- n1PDF(x$rt[x$response == 1], A=list(c(0.5, 0.6), c(0.6, 0.5)), b=1, t0 = list(0.5, 0.3), mean_v=c(1.2, 1), sd_v=c(0.2,0.3), distribution = "norm", silent = TRUE)
+  ex5_n1pdf[x$response == 2] <- n1PDF(x$rt[x$response == 2], A=list(c(0.6, 0.5), c(0.5, 0.6)), b=1, t0 = list(0.3, 0.5), mean_v=c(1, 1.2), sd_v=c(0.3,0.2), distribution = "norm", silent = TRUE)
+  ex5_dilba <- diLBA(x$rt, x$response, A=list(c(0.5, 0.6), c(0.6, 0.5)), b=1, t0 = list(0.5, 0.3), mean_v=c(1.2, 1), sd_v=c(0.2,0.3), distribution = "norm")
+  expect_identical(ex5_n1pdf, ex5_dilba)
+  
+  ex6_n1pdf <- vector("numeric", n)
+  ex6_n1pdf[x$response == 1] <- n1PDF(x$rt[x$response == 1], A=list(c(0.5, 0.6), c(0.6, 0.5)), b=1, t0 = list(0.5, 0.3), mean_v=c(1.2, 1), sd_v=c(0.2,0.3), distribution = "norm", silent = TRUE, st0 = 0.2)
+  ex6_n1pdf[x$response == 2] <- n1PDF(x$rt[x$response == 2], A=list(c(0.6, 0.5), c(0.5, 0.6)), b=1, t0 = list(0.3, 0.5), mean_v=c(1, 1.2), sd_v=c(0.3,0.2), distribution = "norm", silent = TRUE, st0 = 0.2)
+  ex6_dilba <- diLBA(x$rt, x$response, A=list(c(0.5, 0.6), c(0.6, 0.5)), b=1, t0 = list(0.5, 0.3), mean_v=c(1.2, 1), sd_v=c(0.2,0.3), distribution = "norm", st0 = 0.2)
+  expect_identical(ex6_n1pdf, ex6_dilba)
+  
 })
 
 
