@@ -54,7 +54,7 @@ make_r <- function(drifts, n,b,A,n_v,t0,st0=0) {
   else starts <- apply(A, c(1,2), function(x) runif(min=0, max = x, 1))
   if (is.null(dim(b))) ttf <- t((b-t(starts)))/drifts
   else ttf <- (b-starts)/drifts
-  rt <- apply(ttf+t0,1,min)+runif(min=0,max=st0,n=n)
+  rt <- apply(ttf+t0+runif(min=0,max=st0,n=n),1,min)
   resp <- apply(ttf+t0,1,which.min)
   bad <- !is.finite(rt)
   if (any(bad)) {
@@ -315,7 +315,7 @@ plba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, nn) {
 #' @rdname single-LBA
 #' @export rlba_gamma
 rlba_gamma <- function(n,A,b,t0,shape_v, rate_v, scale_v, st0=0) {
-  check_single_arg(n, st0)
+  check_single_arg(n)
   if (any(b < A)) stop(error_message_b_smaller_A)
   if (!missing(rate_v) && !missing(scale_v)) stop("specify 'rate_v' or 'scale_v', but not both")
   if (missing(rate_v)) rate_v <- 1/scale_v
@@ -441,7 +441,7 @@ plba_frechet_core <- function(rt,A,b,t0,shape_v, scale_v, nn) {
 #' @rdname single-LBA
 #' @export rlba_frechet
 rlba_frechet <- function(n,A,b,t0,shape_v, scale_v,st0=0){
-  check_single_arg(n, st0)
+  check_single_arg(n)
   if (any(b < A)) stop(error_message_b_smaller_A)
   n_v <- max(length(shape_v), length(scale_v))
   drifts <- matrix(rfrechet(n=n*n_v, loc=0, scale=scale_v, shape=shape_v),ncol=n_v,byrow=TRUE)
@@ -540,7 +540,7 @@ plba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE, nn) {
 #' @rdname single-LBA
 #' @export rlba_lnorm
 rlba_lnorm <- function(n,A,b,t0,meanlog_v, sdlog_v, st0=0){
-  check_single_arg(n, st0)
+  check_single_arg(n)
   if (any(b < A)) stop(error_message_b_smaller_A)
   n_v <- max(length(meanlog_v), length(sdlog_v))
   drifts=matrix(rlnorm(n=n*n_v,meanlog = meanlog_v,sdlog=sdlog_v),ncol=n_v,byrow=TRUE)

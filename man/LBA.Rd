@@ -29,7 +29,7 @@ riLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
 
 \item{...}{two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See details.}
 
-\item{st0}{variability of non-decision time, such that \code{t0} is uniformly distributed between \code{t0} and \code{t0} + \code{st0}. Default is 0.}
+\item{st0}{variability of non-decision time, such that \code{t0} is uniformly distributed between \code{t0} and \code{t0} + \code{st0}. Default is 0. Can be trialwise, and will be recycled to length of \code{rt}.}
 
 \item{distribution}{character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.}
 
@@ -56,9 +56,11 @@ The following arguments are allowed as \code{...} drift rate parameters:
 
 As described above, the accumulator parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}).
 
-The other LBA parameters (i.e., \code{A}, \code{b}, and \code{t0}) can either be a single numeric vector (which will be recycled to reach \code{length(rt)} or \code{length(n)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
+The other LBA parameters (i.e., \code{A}, \code{b}, and \code{t0}, with the exception of \code{st0}) can either be a single numeric vector (which will be recycled to reach \code{length(rt)} or \code{length(n)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
 
 To make the difference between both paragraphs clear: Whereas for the accumulators both a single vector or a list corresponds to different accumulators, only the latter is true for the other parameters. For those (i.e., \code{A}, \code{b}, and \code{t0}) a single vector always corresponds to trialwise values and a list must be used for accumulator wise values.
+
+\code{st0} can only vary trialwise. \code{st0} not equal to zero will considerably slow done everything.
 }
 
 \subsection{RNG}{

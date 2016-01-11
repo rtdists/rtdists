@@ -8,7 +8,7 @@
 #' @param A start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.
 #' @param b response threshold. (\code{b} - \code{A}/2) is a measure of "response caution". 
 #' @param t0 non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution).
-#' @param st0 variability of non-decision time, such that \code{t0} is uniformly distributed between \code{t0} and \code{t0} + \code{st0}. Default is 0.
+#' @param st0 variability of non-decision time, such that \code{t0} is uniformly distributed between \code{t0} and \code{t0} + \code{st0}. Default is 0. Can be trialwise, and will be recycled to length of \code{rt}.
 #' @param ... two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See details.
 #' @param distribution character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.
 #' @param args.dist list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}, see \code{\link{single-LBA}}).
@@ -25,9 +25,11 @@
 #' 
 #' As described above, the accumulator parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}).
 #' 
-#' The other LBA parameters (i.e., \code{A}, \code{b}, and \code{t0}) can either be a single numeric vector (which will be recycled to reach \code{length(rt)} or \code{length(n)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
+#' The other LBA parameters (i.e., \code{A}, \code{b}, and \code{t0}, with the exception of \code{st0}) can either be a single numeric vector (which will be recycled to reach \code{length(rt)} or \code{length(n)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
 #' 
 #' To make the difference between both paragraphs clear: Whereas for the accumulators both a single vector or a list corresponds to different accumulators, only the latter is true for the other parameters. For those (i.e., \code{A}, \code{b}, and \code{t0}) a single vector always corresponds to trialwise values and a list must be used for accumulator wise values.
+#' 
+#' \code{st0} can only vary trialwise. \code{st0} not equal to zero will considerably slow done everything.
 #' }
 #' 
 #' \subsection{RNG}{
@@ -212,6 +214,7 @@ riLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "frech
   A <- check_i_arguments(A, nn=nn, n_v=n_v)
   b <- check_i_arguments(b, nn=nn, n_v=n_v)
   t0 <- check_i_arguments(t0, nn=nn, n_v=n_v)
+  st0 <- rep(unname(st0), length.out = nn)
   switch(distribution, 
          norm = {
            rng <- rlba_norm
@@ -260,7 +263,7 @@ riLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "frech
   for (i in seq_len(nrow(unique_acc))) {
     ok_rows <- apply(tmp_acc, 1, identical, y = as.matrix(unique_acc)[i,])
     tmp_dots <- lapply(dots, function(x) sapply(x, "[[", i = which(ok_rows)[1]))
-    out[ok_rows,] <- do.call(rng, args = c(n=list(sum(ok_rows)), A = list(sapply(A, "[", i = ok_rows)), b = list(sapply(b, "[", i = ok_rows)), t0 = list(sapply(t0, "[", i = ok_rows)), st0 = list(st0), tmp_dots, args.dist=args.dist))
+    out[ok_rows,] <- do.call(rng, args = c(n=list(sum(ok_rows)), A = list(sapply(A, "[", i = ok_rows)), b = list(sapply(b, "[", i = ok_rows)), t0 = list(sapply(t0, "[", i = ok_rows)), st0 = list(st0[ok_rows]), tmp_dots, args.dist=args.dist))
   }
   
   out

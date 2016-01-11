@@ -4,7 +4,7 @@
 #'
 #' @param rt a vector of RTs.
 #' @param A,b,t0 LBA parameters, see \code{\link{LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(rt)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
-#' @param st0 \emph{one} scalar parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}).
+#' @param st0 parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}). Can be trialwise, and will be recycled to length of \code{rt}.
 #' @param ... two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See examples.
 #' @param distribution character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.
 #' @param args.dist list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}).
@@ -85,6 +85,7 @@ n1PDF <- function(rt, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "f
   A <- check_n1_arguments(A, nn=nn, n_v=n_v)
   b <- check_n1_arguments(b, nn=nn, n_v=n_v)
   t0 <- check_n1_arguments(t0, nn=nn, n_v=n_v)
+  st0 <- rep(unname(st0), length.out = nn)
   switch(distribution, 
          norm = {
            pdf <- dlba_norm_core
@@ -129,19 +130,19 @@ n1PDF <- function(rt, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "f
   for (i in seq_len(length(dots))) {
     if (length(dots[[i]]) < n_v) dots[[i]] <- rep(dots[[i]],length.out=n_v)
   }
-  if (length(st0)>1) {
-    warning("st0 set to st0[1]. Only one non-decision time variability permitted.")
-    st0 <- st0[1] # Only ONE non-decision time.
-  }
+#   if (length(st0)>1) {
+#     warning("st0 set to st0[1]. Only one non-decision time variability permitted.")
+#     st0 <- st0[1] # Only ONE non-decision time.
+#   }
   #browser()
-  do.call(n1PDF_core, args = c(rt=list(rt), A=list(A), b=list(b), t0 = list(t0), st0 = unname(st0), dots, pdf=pdf, cdf=cdf, args.dist = list(args.dist)))
+  do.call(n1PDF_core, args = c(rt=list(rt), A=list(A), b=list(b), t0 = list(t0), st0 = list(st0), dots, pdf=pdf, cdf=cdf, args.dist = list(args.dist)))
 }
 
 
 n1PDF_core <- function(rt, A, b, t0, ..., st0, pdf, cdf, args.dist = list()) {
   dots <- list(...)
   #browser()
-  if (st0==0) return(do.call(n1PDFfixedt0, args = c(rt=list(rt), A=list(A), b=list(b), t0 = list(t0), dots, pdf=pdf, cdf=cdf, args.dist = list(args.dist))))
+  if (all(st0==0)) return(do.call(n1PDFfixedt0, args = c(rt=list(rt), A=list(A), b=list(b), t0 = list(t0), dots, pdf=pdf, cdf=cdf, args.dist = list(args.dist))))
   else {
     tmpf <- function(rt, A, b, t0, st0, ..., pdf, cdf, args.dist = list()) {
       #browser()
@@ -150,11 +151,13 @@ n1PDF_core <- function(rt, A, b, t0, ..., st0, pdf, cdf, args.dist = list()) {
       #rt=list(pmax(rt-t0, 0))
     }
     outs <- vector("numeric", length = length(rt))
-    #browser()
+    if (length(st0) == 1) st0 <- rep(st0, length.out = length(rt))
     for (i in 1:length(rt)) {
-      tmp <- do.call(integrate, args=c(f=tmpf, lower=unname(rt[i]-st0), upper=unname(rt[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), pdf=pdf, cdf=cdf, args.dist = list(args.dist), stop.on.error = FALSE, st0 = list(st0)))
-      if (tmp$message != "OK") warning(paste("n1PDF:", tmp$message))
-      outs[i] <- tmp$value
+      if (st0[i] != 0) {
+        tmp <- do.call(integrate, args=c(f=tmpf, lower=unname(rt[i]-st0[i]), upper=unname(rt[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), pdf=pdf, cdf=cdf, args.dist = list(args.dist), stop.on.error = FALSE, st0 = list(st0[i])))
+        if (tmp$message != "OK") warning(paste("n1PDF:", tmp$message))
+        outs[i] <- tmp$value
+      } else outs[i] <- do.call(n1PDFfixedt0, args = c(rt=list(rt[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), pdf=pdf, cdf=cdf, args.dist = list(args.dist)))
     }
     return(outs)
   }
@@ -216,6 +219,7 @@ n1CDF <- function(rt,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "fre
   A <- check_n1_arguments(A, nn=nn, n_v=n_v)
   b <- check_n1_arguments(b, nn=nn, n_v=n_v)
   t0 <- check_n1_arguments(t0, nn=nn, n_v=n_v)
+  st0 <- rep(unname(st0), length.out = nn)
   switch(distribution, 
          norm = {
            pdf <- dlba_norm_core
@@ -260,13 +264,13 @@ n1CDF <- function(rt,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "fre
   for (i in seq_len(length(dots))) {
     if (length(dots[[i]]) < n_v) dots[[i]] <- rep(dots[[i]],length.out=n_v)
   }
-  if (length(st0)>1) {
-    warning("st0 set to st0[1]. Only one non-decision time variability permitted.")
-    st0 <- st0[1] # Only ONE non-decision time.
-  }
-  if (st0<1e-6) {
-    if(!isTRUE(all.equal(0, st0))) warning("st0 set to 0. Integral can fail for small st0.")
-    st0=0
+#   if (length(st0)>1) {
+#     warning("st0 set to st0[1]. Only one non-decision time variability permitted.")
+#     st0 <- st0[1] # Only ONE non-decision time.
+#   }
+  if (any(st0<1e-6)) {
+    if (any(sapply(st0[st0<1e-6], function(x) !isTRUE(all.equal(x, 0))))) warning("st0 set to 0 for values < 1e-6. Integral can fail for small st0.")
+    st0[st0<1e-6] <- 0
   } # 
   outs <- numeric(length(rt))
   bounds <- c(0,rt)
@@ -276,7 +280,7 @@ n1CDF <- function(rt,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "fre
       outs[i]=0
       next
     }
-    tmp_obj <- do.call(integrate, args=c(f=n1PDF_core,lower=bounds[i],upper=bounds[i+1],subdivisions=1000, A=ret_arg(A, i), b=ret_arg(b, i), t0 = ret_arg(t0, i), st0 = list(st0), sapply(dots, function(z, i) sapply(z, "[[", i = i, simplify=FALSE), i=i, simplify=FALSE), pdf = pdf, cdf = cdf, stop.on.error = FALSE, args.dist = list(args.dist)))
+    tmp_obj <- do.call(integrate, args=c(f=n1PDF_core,lower=bounds[i],upper=bounds[i+1],subdivisions=1000, A=ret_arg(A, i), b=ret_arg(b, i), t0 = ret_arg(t0, i), st0 = list(st0[i]), sapply(dots, function(z, i) sapply(z, "[[", i = i, simplify=FALSE), i=i, simplify=FALSE), pdf = pdf, cdf = cdf, stop.on.error = FALSE, args.dist = list(args.dist)))
     if (tmp_obj$message != "OK") {
       warning(tmp_obj$message)
     }
