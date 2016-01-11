@@ -143,16 +143,16 @@ n1PDF_core <- function(rt, A, b, t0, ..., st0, pdf, cdf, args.dist = list()) {
   #browser()
   if (st0==0) return(do.call(n1PDFfixedt0, args = c(rt=list(rt), A=list(A), b=list(b), t0 = list(t0), dots, pdf=pdf, cdf=cdf, args.dist = list(args.dist))))
   else {
-    tmpf <- function(rt, A, b, t0, ..., pdf, cdf, args.dist = list()) {
+    tmpf <- function(rt, A, b, t0, st0, ..., pdf, cdf, args.dist = list()) {
       #browser()
       dots2 <- list(...)
       do.call(n1PDFfixedt0, args = c(rt=list(rt), A=list(A), b=list(b), t0 = list(t0), dots2, pdf=pdf, cdf=cdf, args.dist = list(args.dist)))/st0
       #rt=list(pmax(rt-t0, 0))
     }
-    outs=numeric(length(rt))
+    outs <- vector("numeric", length = length(rt))
     #browser()
-    for (i in 1:length(outs)) {
-      tmp <- do.call(integrate, args=c(f=tmpf, lower=unname(rt[i]-st0), upper=unname(rt[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), pdf=pdf, cdf=cdf, args.dist = list(args.dist), stop.on.error = FALSE))
+    for (i in 1:length(rt)) {
+      tmp <- do.call(integrate, args=c(f=tmpf, lower=unname(rt[i]-st0), upper=unname(rt[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), pdf=pdf, cdf=cdf, args.dist = list(args.dist), stop.on.error = FALSE, st0 = list(st0)))
       if (tmp$message != "OK") warning(paste("n1PDF:", tmp$message))
       outs[i] <- tmp$value
     }
