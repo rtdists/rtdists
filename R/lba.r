@@ -23,13 +23,13 @@
 #' \item \code{meanlog_v,sdlog_v} mean and standard deviation of lognormal distribution on the log scale for drift rate (\code{lnorm}). See \code{\link{Lognormal}}.
 #' }
 #' 
-#' As described above, the accumulator parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}).
+#' As described above, the accumulator parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}).
 #' 
 #' The other LBA parameters (i.e., \code{A}, \code{b}, and \code{t0}, with the exception of \code{st0}) can either be a single numeric vector (which will be recycled to reach \code{length(rt)} or \code{length(n)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
 #' 
 #' To make the difference between both paragraphs clear: Whereas for the accumulators both a single vector or a list corresponds to different accumulators, only the latter is true for the other parameters. For those (i.e., \code{A}, \code{b}, and \code{t0}) a single vector always corresponds to trialwise values and a list must be used for accumulator wise values.
 #' 
-#' \code{st0} can only vary trialwise. \code{st0} not equal to zero will considerably slow done everything.
+#' \code{st0} can only vary trialwise (via a vector). And it should be noted that \code{st0} not equal to zero will considerably slow done everything.
 #' }
 #' 
 #' \subsection{RNG}{
@@ -264,6 +264,7 @@ riLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "frech
     ok_rows <- apply(tmp_acc, 1, identical, y = as.matrix(unique_acc)[i,])
     tmp_dots <- lapply(dots, function(x) sapply(x, "[[", i = which(ok_rows)[1]))
     out[ok_rows,] <- do.call(rng, args = c(n=list(sum(ok_rows)), A = list(sapply(A, "[", i = ok_rows)), b = list(sapply(b, "[", i = ok_rows)), t0 = list(sapply(t0, "[", i = ok_rows)), st0 = list(st0[ok_rows]), tmp_dots, args.dist=args.dist))
+    #print(str(c(n=list(sum(ok_rows)), A = list(sapply(A, "[", i = ok_rows)), b = list(sapply(b, "[", i = ok_rows)), t0 = list(sapply(t0, "[", i = ok_rows)), st0 = list(st0[ok_rows]), tmp_dots, args.dist=args.dist)))
   }
   
   out

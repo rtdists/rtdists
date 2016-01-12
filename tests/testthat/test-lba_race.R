@@ -221,5 +221,14 @@ test_that("Norm: n1CDF corresponds to random derivates with accumulatorwise para
   #if (any(sapply(list(t1, t2, t3, t4, t5), function(x) !is.null(x$warning)))) browser()
 })
 
+test_that("riLBA works with trial wise input", {
+  set.seed(1)
+  rt1 <- riLBA(100, A=rep(c(0.5, 0.4), each = 50), b=rep(c(1, 1.4), each = 50), t0 = rep(c(0.2, 0.4), each = 50), mean_v=list(rep(c(1.5, 0.9), each = 50), rep(c(0.9, 1.5), each = 50)), sd_v=list(rep(c(0.2, 0.4), each = 50), rep(c(0.3, 0.5), each = 50)), st0 = rep(c(0.1, 0.2), each = 50))
+  set.seed(1)
+  rt2a <- riLBA(50, A=0.5, b=1, t0 = 0.2, mean_v=c(1.5, 0.9), sd_v=list(0.2, 0.3), st0 = 0.1)
+  rt2b <- riLBA(50, A=0.4, b=1.4, t0 = 0.4, mean_v=c(0.9, 1.5), sd_v=c(0.4, 0.5), st0 = 0.2)
+  expect_identical(rt1, rbind(rt2a, rt2b))
+  
+})
 
 .Random.seed <<- x
