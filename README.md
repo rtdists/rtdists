@@ -26,7 +26,7 @@ Note, for installing the development version package `devtools` is needed which 
 require(rtdists)
 
 ## LBA: recovers parameters
-rt1 <- riLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+rt1 <- rLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
 head(rt1)
 #          rt response
 # 1 0.9618439        1
@@ -52,7 +52,7 @@ objective_fun <- function(par, rt, response, distribution = "norm") {
   dist_par$sd_v <- c(1, dist_par$sd_v) 
 
   # get summed log-likelihood:
-  d <- do.call(diLBA, args = c(rt=list(rt), response=list(response), spar, dist_par, 
+  d <- do.call(dLBA, args = c(rt=list(rt), response=list(response), spar, dist_par, 
                                distribution=distribution, silent=TRUE))
   if (any(d < 0e-10)) return(1e6)
   else return(-sum(log(d)))
