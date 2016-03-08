@@ -38,7 +38,7 @@
 #' }
 #' 
 #' 
-#' @return \code{diLBA} returns the density (PDF), \code{piLBA} returns the distribution function (CDF), \code{riLBA} return random response times and responses (in a \code{data.frame}).
+#' @return \code{dLBA} returns the density (PDF), \code{pLBA} returns the distribution function (CDF), \code{rLBA} return random response times and responses (in a \code{data.frame}).
 #' 
 #' @note These are the top-level functions intended for end-users. To obtain the density and cumulative density the race functions are called for each response time with the corresponding winning accumulator as first accumulator (see \code{\link{LBA-race}}). 
 #' 
@@ -80,7 +80,7 @@ check_i_arguments <- function(arg, nn, n_v, dots = FALSE) {
 
 #' @rdname LBA
 #' @export 
-diLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE) {
+dLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE) {
   dots <- list(...)
   if (is.null(names(dots))) stop("... arguments need to be named.")
   
@@ -141,7 +141,7 @@ diLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", 
 
 #' @rdname LBA
 #' @export 
-piLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE) {
+pLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE) {
   dots <- list(...)
   if (is.null(names(dots))) stop("... arguments need to be named.")
   
@@ -202,7 +202,7 @@ piLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", 
 
 #' @rdname LBA
 #' @export
-riLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE) {
+rLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE) {
   dots <- list(...)
   if (is.null(names(dots))) stop("... arguments need to be named.")
   if (any(names(dots) == "")) stop("all ... arguments need to be named.")

@@ -195,8 +195,8 @@ test_that("Norm: n1CDF corresponds to random derivates with accumulatorwise para
   v1 <- runif(4, 0.5, 1.5)
   v2 <- runif(4, 0.1, 0.5)
   st0 <- runif(1, 0.1, 0.5)
-  r_lba1 <- riLBA(samples, A=list(A[1], A[2]), b=list(b[1], b[2]), t0 = list(t0[1], t0[2]), mean_v=v1[1:2], sd_v=v2[1:2])
-  r_lba2 <- riLBA(samples, A=list(A[3], A[4]), b=list(b[3], b[4]), t0 = list(t0[3], t0[4]), mean_v=v1[3:4], sd_v=v2[3:4], st0 = st0[1])
+  r_lba1 <- rLBA(samples, A=list(A[1], A[2]), b=list(b[1], b[2]), t0 = list(t0[1], t0[2]), mean_v=v1[1:2], sd_v=v2[1:2])
+  r_lba2 <- rLBA(samples, A=list(A[3], A[4]), b=list(b[3], b[4]), t0 = list(t0[3], t0[4]), mean_v=v1[3:4], sd_v=v2[3:4], st0 = st0[1])
   t1 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=list(A[1], A[2]), b=list(b[1], b[2]), t0 = list(t0[1]+0.1, t0[2]+0.1), mean_v=v1[1:2], sd_v=v2[1:2]))
   expect_less_than(t1$value$p.value, p_min)
   conditional_save_t(t1, "norm")
@@ -221,12 +221,12 @@ test_that("Norm: n1CDF corresponds to random derivates with accumulatorwise para
   #if (any(sapply(list(t1, t2, t3, t4, t5), function(x) !is.null(x$warning)))) browser()
 })
 
-test_that("riLBA works with trial wise input", {
+test_that("rLBA works with trial wise input", {
   set.seed(1)
-  rt1 <- riLBA(100, A=rep(c(0.5, 0.4), each = 50), b=rep(c(1, 1.4), each = 50), t0 = rep(c(0.2, 0.4), each = 50), mean_v=list(rep(c(1.5, 0.9), each = 50), rep(c(0.9, 1.5), each = 50)), sd_v=list(rep(c(0.2, 0.4), each = 50), rep(c(0.3, 0.5), each = 50)), st0 = rep(c(0.1, 0.2), each = 50))
+  rt1 <- rLBA(100, A=rep(c(0.5, 0.4), each = 50), b=rep(c(1, 1.4), each = 50), t0 = rep(c(0.2, 0.4), each = 50), mean_v=list(rep(c(1.5, 0.9), each = 50), rep(c(0.9, 1.5), each = 50)), sd_v=list(rep(c(0.2, 0.4), each = 50), rep(c(0.3, 0.5), each = 50)), st0 = rep(c(0.1, 0.2), each = 50))
   set.seed(1)
-  rt2a <- riLBA(50, A=0.5, b=1, t0 = 0.2, mean_v=c(1.5, 0.9), sd_v=list(0.2, 0.3), st0 = 0.1)
-  rt2b <- riLBA(50, A=0.4, b=1.4, t0 = 0.4, mean_v=c(0.9, 1.5), sd_v=c(0.4, 0.5), st0 = 0.2)
+  rt2a <- rLBA(50, A=0.5, b=1, t0 = 0.2, mean_v=c(1.5, 0.9), sd_v=list(0.2, 0.3), st0 = 0.1)
+  rt2b <- rLBA(50, A=0.4, b=1.4, t0 = 0.4, mean_v=c(0.9, 1.5), sd_v=c(0.4, 0.5), st0 = 0.2)
   expect_identical(rt1, rbind(rt2a, rt2b))
   
 })

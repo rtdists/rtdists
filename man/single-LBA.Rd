@@ -73,7 +73,7 @@ Density, distribution function, and random generation for a single accumulator o
 These functions are mainly for internal purposes. We do not recommend to use them. Use the high-level functions described in \code{LBA} instead.
 }
 \note{
-Density (i.e., \code{dlba_}), distribution (i.e., \code{plba_}), and random derivative (i.e., \code{rlba_}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{rt}, parameters are recycled). Furthermore, the random derivative functions also accept a matrix of length \code{n} in which each column corresponds to a accumulator specific value (see \code{\link{riLBA}} for a more user-friendly way).
+Density (i.e., \code{dlba_}), distribution (i.e., \code{plba_}), and random derivative (i.e., \code{rlba_}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{rt}, parameters are recycled). Furthermore, the random derivative functions also accept a matrix of length \code{n} in which each column corresponds to a accumulator specific value (see \code{\link{rLBA}} for a more user-friendly way).
 }
 \examples{
 

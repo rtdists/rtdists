@@ -2,19 +2,19 @@
 % Please edit documentation in R/lba.r
 \name{LBA}
 \alias{LBA}
-\alias{diLBA}
-\alias{piLBA}
-\alias{riLBA}
+\alias{dLBA}
+\alias{pLBA}
+\alias{rLBA}
 \title{The Linear Ballistic Accumulator (LBA)}
 \usage{
-diLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm",
-  "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE)
-
-piLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm",
-  "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE)
-
-riLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
+dLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
   "frechet", "lnorm"), args.dist = list(), silent = FALSE)
+
+pLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
+  "frechet", "lnorm"), args.dist = list(), silent = FALSE)
+
+rLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma", "frechet",
+  "lnorm"), args.dist = list(), silent = FALSE)
 }
 \arguments{
 \item{rt}{a vector of RTs.}
@@ -40,7 +40,7 @@ riLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
 \item{n}{desired number of observations (scalar integer).}
 }
 \value{
-\code{diLBA} returns the density (PDF), \code{piLBA} returns the distribution function (CDF), \code{riLBA} return random response times and responses (in a \code{data.frame}).
+\code{dLBA} returns the density (PDF), \code{pLBA} returns the distribution function (CDF), \code{rLBA} return random response times and responses (in a \code{data.frame}).
 }
 \description{
 Density, distribution function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the ith accumulator winning.
