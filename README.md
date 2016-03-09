@@ -54,7 +54,7 @@ objective_fun <- function(par, rt, response, distribution = "norm") {
   # get summed log-likelihood:
   d <- do.call(dLBA, args = c(rt=list(rt), response=list(response), spar, dist_par, 
                                distribution=distribution, silent=TRUE))
-  if (any(d < 0e-10)) return(1e6)
+  if (any(d == 0)) return(1e6)
   else return(-sum(log(d)))
 }
 
@@ -63,7 +63,7 @@ objective_fun(c(A=0.5, b=1, t0=0.5, mean_v1=2.4, mean_v2=1.6, sd_v1=1.2),
               rt=rt1$rt, response=rt1$response)
 # [1] -80.07828
 
-init_par <- runif(6)
+init_par <- c(runif(3, 0, 0.5), runif(3, 0.5, 2))
 names(init_par) <- c("A", "b", "t0", "mean_v1", "mean_v2", "sd_v2")
 nlminb(objective_fun, start = init_par, rt=rt1$rt, response=rt1$response, lower = 0)
 # $par
