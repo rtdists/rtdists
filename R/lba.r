@@ -3,7 +3,7 @@
 #' Density, distribution function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the ith accumulator winning.  
 #' 
 #' @param rt a vector of RTs.
-#' @param response integer vector. Specifying the response for a given RT. Will be recycled if necessary. Cannot contain values larger than the number of accumulators.
+#' @param response integer vector. Specifying the response for a given RT. Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth.
 #' @param n desired number of observations (scalar integer).
 #' @param A start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.
 #' @param b response threshold. (\code{b} - \code{A}/2) is a measure of "response caution". 
@@ -88,6 +88,7 @@ dLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "
   n_v <- max(vapply(dots, length, 0))  # Number of responses
   if(!silent) message(paste("Results based on", n_v, "accumulators/drift rates."))
   if (!is.numeric(response) || max(response) > n_v) stop("response needs to be a numeric vector of integers up to number of accumulators.")
+  if (any(response < 1)) stop("the first response/accumulator must have value 1.")
   if (n_v < 2) stop("There need to be at least two accumulators/drift rates.")
   distribution <- match.arg(distribution)
   response <- rep(response, length.out = nn)

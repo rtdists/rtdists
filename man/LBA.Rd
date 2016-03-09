@@ -19,7 +19,7 @@ rLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma", "frechet",
 \arguments{
 \item{rt}{a vector of RTs.}
 
-\item{response}{integer vector. Specifying the response for a given RT. Will be recycled if necessary. Cannot contain values larger than the number of accumulators.}
+\item{response}{integer vector. Specifying the response for a given RT. Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth.}
 
 \item{A}{start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.}
 
