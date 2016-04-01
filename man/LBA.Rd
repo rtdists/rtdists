@@ -4,6 +4,7 @@
 \alias{LBA}
 \alias{dLBA}
 \alias{pLBA}
+\alias{qLBA}
 \alias{rLBA}
 \title{The Linear Ballistic Accumulator (LBA)}
 \usage{
@@ -13,13 +14,17 @@ dLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
 pLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
   "frechet", "lnorm"), args.dist = list(), silent = FALSE)
 
+qLBA(p, response, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
+  "frechet", "lnorm"), args.dist = list(), silent = FALSE, interval = c(0,
+  10))
+
 rLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma", "frechet",
   "lnorm"), args.dist = list(), silent = FALSE)
 }
 \arguments{
-\item{rt}{a vector of RTs.}
+\item{rt}{vector of RTs.}
 
-\item{response}{integer vector. Specifying the response for a given RT. Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth.}
+\item{response}{integer vector of winning accumulators/responses corresponding to the vector of RTs/p (i.e., used for specifying the response for a given RT/probability). Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth.}
 
 \item{A}{start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.}
 
@@ -37,13 +42,17 @@ rLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma", "frechet",
 
 \item{silent}{logical. Should the number of accumulators used be suppressed? Default is \code{FALSE} which prints the number of accumulators.}
 
+\item{p}{vector of probabilities.}
+
+\item{interval}{a vector containing the end-points of the interval to be searched for the desired quantiles (i.e., RTs) in \code{qLBA}. Default is \code{c(0, 10)}.}
+
 \item{n}{desired number of observations (scalar integer).}
 }
 \value{
-\code{dLBA} returns the density (PDF), \code{pLBA} returns the distribution function (CDF), \code{rLBA} return random response times and responses (in a \code{data.frame}).
+\code{dLBA} returns the density (PDF), \code{pLBA} returns the distribution function (CDF), \code{qLBA} returns the quantile/RT, \code{rLBA} return random response times and responses (in a \code{data.frame}).
 }
 \description{
-Density, distribution function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the ith accumulator winning.
+Density, distribution function, quantile function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the accumulator given in the response argument winning.
 }
 \details{
 \subsection{Parameters}{
@@ -63,6 +72,12 @@ To make the difference between both paragraphs clear: Whereas for the accumulato
 \code{st0} can only vary trialwise (via a vector). And it should be noted that \code{st0} not equal to zero will considerably slow done everything.
 }
 
+\subsection{Quantile Function}{
+Due to the bivariate nature of the LBA, single accumulators only return defective CDFs that do not reach 1. Only the sum of all accumulators reaches 1. Therefore, \code{qLBA} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at \code{Inf} (see examples). 
+
+Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probabiliy and the value returned from \code{pLBA} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
+}
+
 \subsection{RNG}{
 For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.\cr
 Note that for random number generation from a normal distribution for the driftrate the number of returned samples may be less than the number of requested samples if \code{posdrifts==FALSE}.
@@ -74,12 +89,12 @@ These are the top-level functions intended for end-users. To obtain the density 
 \examples{
 
 ## generate random LBA data:
-rt1 <- riLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+rt1 <- rLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
 head(rt1)
 prop.table(table(rt1$response))
 
 # original parameters have 'high' log-likelihood:
-sum(log(diLBA(rt1$rt, rt1$response, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))))
+sum(log(dLBA(rt1$rt, rt1$response, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))))
 
 objective_fun <- function(par, rt, response, distribution = "norm") {
   # simple parameters
@@ -93,7 +108,7 @@ objective_fun <- function(par, rt, response, distribution = "norm") {
   dist_par$sd_v <- c(1, dist_par$sd_v) # fix first sd to 1
 
   # get summed log-likelihood:
-  d <- do.call(diLBA, args = c(rt=list(rt), response=list(response), spar, dist_par, 
+  d <- do.call(dLBA, args = c(rt=list(rt), response=list(response), spar, dist_par, 
                                distribution=distribution, silent=TRUE))
   if (any(d < 0e-10)) return(1e6) 
   else return(-sum(log(d)))
@@ -112,26 +127,36 @@ nlminb(objective_fun, start = init_par, rt=rt1$rt, response=rt1$response, lower 
 
 
 # plot cdf (2 accumulators):
-curve(piLBA(x, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)), 
+curve(pLBA(x, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)), 
      xlim = c(0, 2), ylim = c(0,1), 
      ylab = "cumulative probability", xlab = "response time",
      main = "Defective CDFs of LBA")
-curve(piLBA(x, response = 2, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)), 
+curve(pLBA(x, response = 2, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)), 
      add=TRUE, lty = 2)
 legend("topleft", legend=c("1", "2"), title="Response", lty=1:2)
 
 
 # plot cdf (3 accumulators):
-curve(piLBA(x, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
+curve(pLBA(x, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
      xlim = c(0, 2), ylim = c(0,1), 
      ylab = "cumulative probability", xlab = "response time",
      main = "Defective CDFs of LBA")
-curve(piLBA(x, response = 2, A=0.5, b=1, t0 = 0.5,  mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
+curve(pLBA(x, response = 2, A=0.5, b=1, t0 = 0.5,  mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
      add=TRUE, lty = 2)
-curve(piLBA(x, response = 3, A=0.5, b=1, t0 = 0.5,  mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
+curve(pLBA(x, response = 3, A=0.5, b=1, t0 = 0.5,  mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
      add=TRUE, lty = 3)
 legend("topleft", legend=c("1", "2", "3"), title="Response", lty=1:2)
 
+
+## qLBA can only return values up to maximal predicted probability:
+pLBA(Inf, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+# [1] 0.6604696
+
+qLBA(0.66, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+# 2.559532
+
+qLBA(0.67, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+# NA
 }
 \references{
 Brown, S. D., & Heathcote, A. (2008). The simplest complete model of choice response time: Linear ballistic accumulation. \emph{Cognitive Psychology}, 57(3), 153-178. doi:10.1016/j.cogpsych.2007.12.002

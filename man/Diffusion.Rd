@@ -5,6 +5,7 @@
 \alias{ddiffusion}
 \alias{diffusion}
 \alias{pdiffusion}
+\alias{qdiffusion}
 \alias{rdiffusion}
 \title{The Ratcliff Diffusion Model}
 \usage{
@@ -13,6 +14,9 @@ ddiffusion(rt, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
 
 pdiffusion(rt, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
   sv = 0, st0 = 0, precision = 3, maxt = 10000)
+
+qdiffusion(p, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
+  sv = 0, st0 = 0, precision = 3, maxt = 10000, interval = c(0, 10))
 
 rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
   precision = 3)
@@ -58,6 +62,12 @@ When given vectorised parameters, n is the number of replicates for each paramet
 }
 \details{
 The Ratcliff diffusion model (Ratcliff, 1978) is a mathematical model for two-choice discrimination tasks. It is based on the assumption that information is accumulated continuously until one of two decision thresholds is hit. For more information, see Voss, Rothermund, and Voss (2004), Voss, Nagler, and Lerche (2013), or Wagenmakers (2009).
+
+\subsection{Quantile Function}{
+Due to the bivariate nature of the diffusion model, the diffusion processes reaching each boundary only return the defective CDF that does not reach 1. Only the sum of the CDF for both boundaries reaches 1. Therefore, \code{qdiffusion} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at a high value or \code{Inf} (the latter can be slow). See examples. 
+
+Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probabiliy and the value returned from \code{pdiffusion} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
+}
 }
 \note{
 RTs need to be sorted (in increasing order) for \code{pdiffusion}.
@@ -92,6 +102,18 @@ curve(pdiffusion(x, a=1, v=2, t0=0.5, st0=0.2, boundary="l"),
      add=TRUE, lty = 2)
 legend("topleft", legend=c("upper", "lower"), title="boundary", lty=1:2)
 
+
+### qLBA can only return values up to maximal predicted probability:
+# maximum probability for a given set
+pdiffusion(20, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, boundary="u")
+# [1] 0.8705141
+# pdiffusion(Inf, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, boundary="u") # equal but much slower
+
+qdiffusion(0.87, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, boundary="u")
+# [1] 1.769253
+
+qdiffusion(0.88, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, boundary="u")
+# NA
 }
 \author{
 Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, and Henrik Singmann.
