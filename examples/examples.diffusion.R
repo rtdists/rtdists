@@ -32,7 +32,10 @@ legend("topleft", legend=c("upper", "lower"), title="boundary", lty=1:2)
 # maximum probability for a given set
 pdiffusion(20, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, boundary="u")
 # [1] 0.8705141
-# pdiffusion(Inf, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, boundary="u") # equal but much slower
+
+# equal but much slower:
+# pdiffusion(Inf, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, boundary="u") 
+# [1] 0.8705141
 
 qdiffusion(0.87, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, boundary="u")
 # [1] 1.769253

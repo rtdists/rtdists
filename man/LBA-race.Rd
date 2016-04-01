@@ -43,7 +43,7 @@ In other words, this is just the PDF/CDF for the winning accumulator at time \eq
 ## check random generated values against race functions:
 
 ## 1. Without st0:
-r_lba <- riLBA(1e4, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=0.2)
+r_lba <- rLBA(1e4, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=0.2)
 x <- seq(0.5, 4, length.out = 100) # for plotting
 # PDF
 y <- n1PDF(x, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2) # PDF
@@ -61,7 +61,7 @@ ks.test(r_lba$rt[r_lba$response==1], normalised_n1CDF, A=0.5, b=1, t0 = 0.5,
 }
 
 ## 2. With st0 = 0.2:
-r_lba <- riLBA(1e4, A=0.5, b=1, t0 = 0.5, st0 = 0.2, mean_v=c(1.2, 1), sd_v=0.2)
+r_lba <- rLBA(1e4, A=0.5, b=1, t0 = 0.5, st0 = 0.2, mean_v=c(1.2, 1), sd_v=0.2)
 x <- seq(0.5, 4, length.out = 100) # for plotting
 # PDF
 y <- n1PDF(x, A=0.5, b=1, t0 = 0.5, st0 = 0.2, mean_v=c(1.2, 1.0), sd_v=0.2) # PDF
@@ -80,7 +80,7 @@ ks.test(r_lba$rt[r_lba$response==1], normalised_n1CDF, A=0.5, b=1, t0 = 0.5,
 
 ## Other examples:
 
-xx <- riLBA(10, A=0.5, b=1, t0 = 0.5, mean_v=1.2, sd_v=0.2)
+xx <- rLBA(10, A=0.5, b=1, t0 = 0.5, mean_v=1.2, sd_v=0.2)
 
 # default uses normal distribution for drift rate:
 n1PDF(xx$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
