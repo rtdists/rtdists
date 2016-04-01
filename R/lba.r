@@ -1,9 +1,10 @@
 #' The Linear Ballistic Accumulator (LBA)
 #' 
-#' Density, distribution function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the ith accumulator winning.  
+#' Density, distribution function, quantile function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the accumulator given in the response argument winning.  
 #' 
-#' @param rt a vector of RTs.
-#' @param response integer vector. Specifying the response for a given RT. Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth.
+#' @param rt vector of RTs.
+#' @param response integer vector of winning accumulators/responses corresponding to the vector of RTs/p (i.e., used for specifying the response for a given RT/probability). Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth.
+#' @param p vector of probabilities.
 #' @param n desired number of observations (scalar integer).
 #' @param A start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.
 #' @param b response threshold. (\code{b} - \code{A}/2) is a measure of "response caution". 
@@ -13,6 +14,7 @@
 #' @param distribution character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.
 #' @param args.dist list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}, see \code{\link{single-LBA}}).
 #' @param silent logical. Should the number of accumulators used be suppressed? Default is \code{FALSE} which prints the number of accumulators.
+#' @param interval a vector containing the end-points of the interval to be searched for the desired quantiles (i.e., RTs) in \code{qLBA}. Default is \code{c(0, 10)}.
 #' 
 #' @details 
 #' \subsection{Parameters}{
@@ -32,13 +34,19 @@
 #' \code{st0} can only vary trialwise (via a vector). And it should be noted that \code{st0} not equal to zero will considerably slow done everything.
 #' }
 #' 
+#' \subsection{Quantile Function}{
+#' Due to the bivariate nature of the LBA, single accumulators only return defective CDFs that do not reach 1. Only the sum of all accumulators reaches 1. Therefore, \code{qLBA} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at \code{Inf} (see examples). 
+#' 
+#' Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probabiliy and the value returned from \code{pLBA} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
+#' }
+#' 
 #' \subsection{RNG}{
 #' For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.\cr
 #' Note that for random number generation from a normal distribution for the driftrate the number of returned samples may be less than the number of requested samples if \code{posdrifts==FALSE}.
 #' }
 #' 
 #' 
-#' @return \code{dLBA} returns the density (PDF), \code{pLBA} returns the distribution function (CDF), \code{rLBA} return random response times and responses (in a \code{data.frame}).
+#' @return \code{dLBA} returns the density (PDF), \code{pLBA} returns the distribution function (CDF), \code{qLBA} returns the quantile/RT, \code{rLBA} return random response times and responses (in a \code{data.frame}).
 #' 
 #' @note These are the top-level functions intended for end-users. To obtain the density and cumulative density the race functions are called for each response time with the corresponding winning accumulator as first accumulator (see \code{\link{LBA-race}}). 
 #' 
@@ -200,6 +208,44 @@ pLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "
   }
   return(out)
 }
+
+# rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE
+inv_cdf_lba <- function(x, response, A, b, t0, ..., st0, distribution, args.dist, value) {
+  abs(value - pLBA(rt=x, response=response, A=A, b = b, t0 = t0, ..., st0=st0, distribution=distribution, args.dist=args.dist, silent=TRUE))
+}
+
+
+#' @rdname LBA
+#' @export 
+qLBA <-  function(p, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE, interval = c(0, 10)) {
+  dots <- list(...)
+  if (is.null(names(dots))) stop("... arguments need to be named.")
+  
+  nn <- length(p)
+  n_v <- max(vapply(dots, length, 0))  # Number of responses
+  if(!silent) message(paste("Results based on", n_v, "accumulators/drift rates."))
+  if (!is.numeric(response) || max(response) > n_v) stop("response needs to be a numeric vector of integers up to number of accumulators.")
+  if (any(response < 1)) stop("the first response/accumulator must have value 1.")
+  if (n_v < 2) stop("There need to be at least two accumulators/drift rates.")
+  distribution <- match.arg(distribution)
+  response <- rep(response, length.out = nn)
+  A <- check_i_arguments(A, nn=nn, n_v=n_v)
+  b <- check_i_arguments(b, nn=nn, n_v=n_v)
+  t0 <- check_i_arguments(t0, nn=nn, n_v=n_v)
+  st0 <- rep(st0, length.out = nn)
+  out <- vector("numeric", nn)
+  for (i in seq_len(nn)) {
+    tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(interval), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5))
+    #browser()
+    if (tmp$objective > 0.0001) {
+      warning("Cannot obtain RT that is less than 0.0001 away from desired p = ", p[i], ".\nIncrease interval or obtain for different response.", call. = FALSE)
+      out[i] <- NA
+    } else out[i] <- tmp[[1]]
+  }
+  return(out)
+}
+
+
 
 #' @rdname LBA
 #' @export

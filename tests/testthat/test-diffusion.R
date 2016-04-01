@@ -150,3 +150,14 @@ test_that("diffusion functions work with numeric and factor boundaries", {
   expect_error(ddiffusion(rts$rt, sample(1:3, 20, replace = TRUE), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), "boundary")
   expect_error(pdiffusion(sort(rts$rt), sample(1:3, 20, replace = TRUE), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), "boundary")
 })
+
+
+test_that("qdiffusion is equivalent to manual calculation",{
+  p11_fit <- structure(list(par = structure(c(1.32060063610882, 3.27271614698074, 0.338560144920614, 0.34996447540773, 0.201794924457386, 1.05516829794661), .Names = c("a", "v", "t0", "sz", "st0", "sv"))))
+  q <- c(0.1, 0.3, 0.5, 0.7, 0.9
+  prop_correct <- do.call(pdiffusion, args = c(rt = 20, as.list(p11_fit$par), boundary = "upper"))
+
+  expect_equal(qdiffusion(q*prop_correct, boundary = "upper", a=p11_fit$par["a"], v=p11_fit$par["v"], t0=p11_fit$par["t0"], sz=p11_fit$par["sz"], st0=p11_fit$par["st0"], sv=p11_fit$par["sv"]),c(0.496360781904238, 0.573700985861292, 0.636165042003583, 0.714822449217467, 0.881706249900822))
+  
+  expect_equal(suppressWarnings(qdiffusion(q*prop_correct, boundary = "lower", a=p11_fit$par["a"], v=p11_fit$par["v"], t0=p11_fit$par["t0"], sz=p11_fit$par["sz"], st0=p11_fit$par["st0"], sv=p11_fit$par["sv"])),as.numeric(rep(NA, 5)))
+})

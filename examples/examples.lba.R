@@ -1,11 +1,11 @@
 
 ## generate random LBA data:
-rt1 <- riLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+rt1 <- rLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
 head(rt1)
 prop.table(table(rt1$response))
 
 # original parameters have 'high' log-likelihood:
-sum(log(diLBA(rt1$rt, rt1$response, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))))
+sum(log(dLBA(rt1$rt, rt1$response, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))))
 
 objective_fun <- function(par, rt, response, distribution = "norm") {
   # simple parameters
@@ -19,7 +19,7 @@ objective_fun <- function(par, rt, response, distribution = "norm") {
   dist_par$sd_v <- c(1, dist_par$sd_v) # fix first sd to 1
 
   # get summed log-likelihood:
-  d <- do.call(diLBA, args = c(rt=list(rt), response=list(response), spar, dist_par, 
+  d <- do.call(dLBA, args = c(rt=list(rt), response=list(response), spar, dist_par, 
                                distribution=distribution, silent=TRUE))
   if (any(d < 0e-10)) return(1e6) 
   else return(-sum(log(d)))
@@ -38,23 +38,33 @@ nlminb(objective_fun, start = init_par, rt=rt1$rt, response=rt1$response, lower 
 
 
 # plot cdf (2 accumulators):
-curve(piLBA(x, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)), 
+curve(pLBA(x, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)), 
      xlim = c(0, 2), ylim = c(0,1), 
      ylab = "cumulative probability", xlab = "response time",
      main = "Defective CDFs of LBA")
-curve(piLBA(x, response = 2, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)), 
+curve(pLBA(x, response = 2, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)), 
      add=TRUE, lty = 2)
 legend("topleft", legend=c("1", "2"), title="Response", lty=1:2)
 
 
 # plot cdf (3 accumulators):
-curve(piLBA(x, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
+curve(pLBA(x, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
      xlim = c(0, 2), ylim = c(0,1), 
      ylab = "cumulative probability", xlab = "response time",
      main = "Defective CDFs of LBA")
-curve(piLBA(x, response = 2, A=0.5, b=1, t0 = 0.5,  mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
+curve(pLBA(x, response = 2, A=0.5, b=1, t0 = 0.5,  mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
      add=TRUE, lty = 2)
-curve(piLBA(x, response = 3, A=0.5, b=1, t0 = 0.5,  mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
+curve(pLBA(x, response = 3, A=0.5, b=1, t0 = 0.5,  mean_v=c(2.4, 1.6, 1.0), sd_v=c(1,1.2, 2.0)), 
      add=TRUE, lty = 3)
 legend("topleft", legend=c("1", "2", "3"), title="Response", lty=1:2)
 
+
+## qLBA can only return values up to maximal predicted probability:
+pLBA(Inf, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+# [1] 0.6604696
+
+qLBA(0.66, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+# 2.559532
+
+qLBA(0.67, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+# NA
