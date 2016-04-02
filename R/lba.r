@@ -59,6 +59,7 @@
 #' Heathcote, A., & Love, J. (2012). Linear deterministic accumulator models of simple choice. \emph{Frontiers in Psychology}, 3, 292. doi:10.3389/fpsyg.2012.00292
 #' 
 #' @name LBA
+#' @importFrom stats optimize
 #' 
 #' @example examples/examples.lba.R
 #' 

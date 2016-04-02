@@ -52,6 +52,7 @@
 #'
 #' @name Diffusion
 #' @importFrom utils head
+#' @importFrom stats optimize
 #' @aliases diffusion
 #' 
 #' @example examples/examples.diffusion.R
