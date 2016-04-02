@@ -1,6 +1,6 @@
 #' The Ratcliff Diffusion Model
 #' 
-#' Density, distribution function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{z} (relative starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point). 
+#' Density, distribution function, quantile function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{z} (relative starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point). 
 #'
 #' @param rt a vector of RTs.
 #' @param n is a desired number of observations.
@@ -21,13 +21,15 @@
 #' @param maxt maximum \code{rt} allowed, used to stop integration problems (\code{prd} only).
 #' @param interval a vector containing the end-points of the interval to be searched for the desired quantiles (i.e., RTs) in \code{qdiffusion}. Default is \code{c(0, 10)}.
 #'
-#' @return \code{drd} gives the density, \code{prd} gives the distribution function, and \code{rrd} generates random response times and decisions (returning a \code{data.frame} with columns \code{rts} (numeric) and \code{response} (factor)).
+#' @return \code{ddiffusion} gives the density, \code{pdiffusion} gives the distribution function, \code{qdiffusion} gives the quantile function (i.e., predicted RTs), and \code{rdiffusion} generates random response times and decisions (returning a \code{data.frame} with columns \code{rts} (numeric) and \code{response} (factor)).
 #' 
 #' The length of the result is determined by \code{n} for \code{rrd}, and is equal to the length of \code{rt} for \code{drd} and \code{prd}.
 #' 
 #' The distribution parameters (as well as \code{boundary}) are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the boundary.
 #'
 #' @details The Ratcliff diffusion model (Ratcliff, 1978) is a mathematical model for two-choice discrimination tasks. It is based on the assumption that information is accumulated continuously until one of two decision thresholds is hit. For more information, see Voss, Rothermund, and Voss (2004), Voss, Nagler, and Lerche (2013), or Wagenmakers (2009).
+#' 
+#' All functions are fully vectorized acros all parameters as well as the boundary. This allows for trialwise parameters for each parameter. 
 #' 
 #' \subsection{Quantile Function}{
 #' Due to the bivariate nature of the diffusion model, the diffusion processes reaching each boundary only return the defective CDF that does not reach 1. Only the sum of the CDF for both boundaries reaches 1. Therefore, \code{qdiffusion} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at a high value or \code{Inf} (the latter can be slow). See examples. 
@@ -46,7 +48,7 @@
 #' Wagenmakers, E.-J. (2009). Methodological and empirical developments for the Ratcliff diffusion model of response times and accuracy. \emph{European Journal of Cognitive Psychology}, 21(5), 641-671.
 #' 
 #' 
-#' @author Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, and Henrik Singmann.
+#' @author Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, and Henrik Singmann. \code{qdiffusion} by Henrik Singmann.
 #'
 #' @useDynLib rtdists, dfastdm_b, pfastdm_b, rfastdm
 #'
@@ -257,8 +259,7 @@ qdiffusion <- function (p, boundary = "upper",
   return(out)
 }
 
-#' When given vectorised parameters, n is the number of replicates for each parameter set
-#'
+## When given vectorised parameters, n is the number of replicates for each parameter set
 #' @rdname Diffusion
 #' @export
 rdiffusion <- function (n, 

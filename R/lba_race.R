@@ -17,6 +17,8 @@
 #' 
 #' In other words, this is just the PDF/CDF for the winning accumulator at time \eqn{t} times the probability that no other accumulators have finished at time \eqn{t}.
 #' 
+#' @seealso For more user-friendly functions that return the PDF or CDF for the corresponding (and not first) accumulator winning see /code{/link{LBA}}.
+#' 
 #' @name LBA-race
 #' @importFrom stats integrate
 #' 

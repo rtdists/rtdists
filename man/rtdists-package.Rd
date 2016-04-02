@@ -18,7 +18,7 @@ License: \tab GPL (>=3)\cr
 URL: \tab https://github.com/rtdists/rtdists/\cr
 }
 
-Provides response time distributions (density/PDF, distribution function/CDF, and random generation): (a) Ratcliff diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distribution underlying the drift rate.
+Provides response time distributions (density/PDF, distribution function/CDF, quantile function, and random generation): (a) Ratcliff diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distribution underlying the drift rate.
 }
 \author{
 Henrik Singmann, Scott Brown, Matthew Gretton, Andrew Heathcote, with contributions from Andreas Voss, Jochen Voss, Andrew Terry

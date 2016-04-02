@@ -123,4 +123,7 @@ n1PDF(xx$rt, A=0.5, b=1, t0 = list(0.5, 0.6), mean_v=c(1.2, 1.0), sd_v=0.2) # pe
 n1PDF(xx$rt, A=0.5, b=1, t0 = list(c(0.4, 0.5), c(0.5, 0.6)), mean_v=c(1.2, 1.0), sd_v=0.2)
 
 }
+\seealso{
+For more user-friendly functions that return the PDF or CDF for the corresponding (and not first) accumulator winning see /code{/link{LBA}}.
+}
 

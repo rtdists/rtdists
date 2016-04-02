@@ -70,7 +70,7 @@ All functions starting with a \code{d} return the density (PDF), all functions s
 Density, distribution function, and random generation for a single accumulator of the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}).
 }
 \details{
-These functions are mainly for internal purposes. We do not recommend to use them. Use the high-level functions described in \code{LBA} instead.
+These functions are mainly for internal purposes. We do not recommend to use them. Use the high-level functions described in \code{/link{LBA}} instead.
 }
 \note{
 Density (i.e., \code{dlba_}), distribution (i.e., \code{plba_}), and random derivative (i.e., \code{rlba_}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{rt}, parameters are recycled). Furthermore, the random derivative functions also accept a matrix of length \code{n} in which each column corresponds to a accumulator specific value (see \code{\link{rLBA}} for a more user-friendly way).

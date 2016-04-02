@@ -17,7 +17,7 @@
 #' @param robust logical. Should robust normal distributions be used for \code{norm} and \code{lnorm}? Can be helpful in rare cases but is approximately three times slower than the non-robust versions. Default is \code{FALSE}.
 #' 
 #' 
-#' @details These functions are mainly for internal purposes. We do not recommend to use them. Use the high-level functions described in \code{LBA} instead.
+#' @details These functions are mainly for internal purposes. We do not recommend to use them. Use the high-level functions described in \code{/link{LBA}} instead.
 #' 
 #' @return All functions starting with a \code{d} return the density (PDF), all functions starting with \code{p} return the distribution function (CDF), and all functions starting with \code{r} return random response times and responses (in a \code{data.frame}).
 #' 

@@ -1,32 +1,35 @@
 
-Changes to Version 0.4-x
+Changes to Version 0.4-x (released April 2016)
 
-    o added diLBA() and riLBA().
-      diLBA() is a fully vectorized versions of n1PDF which has response as
+    o Added dLBA(), pLBA(), qLBA(), and rLBA().
+      dLBA() is a fully vectorized versions of n1PDF which has response as
       second argument, allowing to get the density for each response and 
-      corr esponding response time in one step. As for the diffusion model 
+      corresponding response time in one step. As for the diffusion model 
       (see below), this allows a likelihood function which only includes one 
-      call to the density function.
-      riLBA() is a fully vectorized version of the RNG functions and should be 
-      used from now on as top-level function.
+      call to the density function. pLBA() and qLBA() are the correpsonding CDF 
+      and quantile functions, respectively. rLBA() is a fully vectorized version 
+      of the RNG functions and should be used from now on as top-level function.
       
     o t0 in the LBA now accepts accumulator and trialwise parameters just as A 
-      and b.
-
-    o diffusion model functions are now completely vectorized and accept 
+      and b. st0 now accepts trialwise parameter (not accumulator wise).
+  
+    o Diffusion model function have been renamed to ddiffusion, pdiffusion, 
+      and rdiffusion. Added quantile function for diffusion model, qdiffusion.
+    
+    o Diffusion model functions are now completely vectorized and accept 
       vectors as parameters (including for boundary). As for the LBA, this 
       allows a likelihood function which only includes one call to the density
-      function.
+      function (see examples). 
       
-    o boundary parameter for diffusion functions accept numeric/factor vectors.
+    o Boundary parameter for diffusion functions accept numeric/factor vectors.
       
     o t0 in the diffusion model now corresponds to the lower bound of the 
       uniform distribution from which t0 is drawn (it was the mean before). 
       The specifications of t0 now agree between LBA and diffusion model. 
       
-    o density for diffusion model is now always positive.
+    o Density for diffusion model is now always positive.
     
-    o first argument in most functions (vector of response times) renamed to rt
+    o First argument in most functions (vector of response times) renamed to rt
       (was t before).
       
     o PDF and CDF LBA functions more robust (now mostly return 0 instead of NaN)

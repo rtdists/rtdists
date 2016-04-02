@@ -53,19 +53,19 @@ rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
 \item{n}{is a desired number of observations.}
 }
 \value{
-\code{drd} gives the density, \code{prd} gives the distribution function, and \code{rrd} generates random response times and decisions (returning a \code{data.frame} with columns \code{rts} (numeric) and \code{response} (factor)).
+\code{ddiffusion} gives the density, \code{pdiffusion} gives the distribution function, \code{qdiffusion} gives the quantile function (i.e., predicted RTs), and \code{rdiffusion} generates random response times and decisions (returning a \code{data.frame} with columns \code{rts} (numeric) and \code{response} (factor)).
 
 The length of the result is determined by \code{n} for \code{rrd}, and is equal to the length of \code{rt} for \code{drd} and \code{prd}.
 
 The distribution parameters (as well as \code{boundary}) are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the boundary.
 }
 \description{
-Density, distribution function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{z} (relative starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point).
-
-When given vectorised parameters, n is the number of replicates for each parameter set
+Density, distribution function, quantile function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{z} (relative starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point).
 }
 \details{
 The Ratcliff diffusion model (Ratcliff, 1978) is a mathematical model for two-choice discrimination tasks. It is based on the assumption that information is accumulated continuously until one of two decision thresholds is hit. For more information, see Voss, Rothermund, and Voss (2004), Voss, Nagler, and Lerche (2013), or Wagenmakers (2009).
+
+All functions are fully vectorized acros all parameters as well as the boundary. This allows for trialwise parameters for each parameter. 
 
 \subsection{Quantile Function}{
 Due to the bivariate nature of the diffusion model, the diffusion processes reaching each boundary only return the defective CDF that does not reach 1. Only the sum of the CDF for both boundaries reaches 1. Therefore, \code{qdiffusion} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at a high value or \code{Inf} (the latter can be slow). See examples. 
@@ -79,16 +79,39 @@ RTs need to be sorted (in increasing order) for \code{pdiffusion}.
 \examples{
 
 ## identical calls (but different random values)
-(rt1 <- rdiffusion(20, a=1, v=2, t0=0.5))
-(rt2 <- rdiffusion(20, a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0))
-
+rt1 <- rdiffusion(500, a=1, v=2, t0=0.5)
+head(rt1)
+rt2 <- rdiffusion(500, a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
+head(rt2)
+  
 # get density for random RTs:
-ddiffusion(rt1$rt, rt1$response, a=1, v=2, t0=0.5)  # boundary is factor
-ddiffusion(rt1$rt, as.numeric(rt1$response), a=1, v=2, t0=0.5) # boundary is numeric
-ddiffusion(rt1$rt, as.character(rt1$response), a=1, v=2, t0=0.5) # boundary is character
+sum(log(ddiffusion(rt1$rt, rt1$response, a=1, v=2, t0=0.5)))  # boundary is factor
+sum(log(ddiffusion(rt1$rt, as.numeric(rt1$response), a=1, v=2, t0=0.5))) # boundary is numeric
+sum(log(ddiffusion(rt1$rt, as.character(rt1$response), a=1, v=2, t0=0.5))) # boundary is character
 
-ddiffusion(rt2$rt, rt2$response, a=1, v=2, t0=0.5)
+sum(log(ddiffusion(rt2$rt, rt2$response, a=1, v=2, t0=0.5)))
 
+# can we recover the parameters?
+ll_diffusion <- function(pars, rt, boundary) 
+{
+  densities <- tryCatch(
+    ddiffusion(rt, boundary=boundary, 
+               a=pars[1], v=pars[2], t0=pars[3], 
+               z=0.5, sz=pars[4], 
+               st0=pars[5], sv=pars[6]), 
+    error = function(e) 0)
+  if (any(densities == 0)) return(1e6)
+  return(-sum(log(densities)))
+}
+
+\dontrun{
+start <- c(runif(2, 0.5, 3), 0.1, runif(3, 0, 0.5))
+names(start) <- c("a", "v", "t0", "sz", "st0", "sv")
+recov <- nlminb(start, ll_diffusion, lower = 0, rt=rt1$rt, boundary=rt1$response)
+round(recov$par, 3)
+#     a     v    t0    sz   st0    sv 
+# 1.017 2.186 0.505 0.345 0.000 0.000 
+}
 
 # plot density:
 curve(ddiffusion(x, a=1, v=2, t0=0.5, boundary = "upper"), 
@@ -123,7 +146,7 @@ qdiffusion(0.88, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, boundary="u")
 # NA
 }
 \author{
-Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, and Henrik Singmann.
+Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, and Henrik Singmann. \code{qdiffusion} by Henrik Singmann.
 }
 \references{
 Ratcliff, R. (1978). A theory of memory retrieval. \emph{Psychological Review}, 85(2), 59-108.

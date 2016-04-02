@@ -1,15 +1,38 @@
 
 ## identical calls (but different random values)
-(rt1 <- rdiffusion(20, a=1, v=2, t0=0.5))
-(rt2 <- rdiffusion(20, a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0))
-
+rt1 <- rdiffusion(500, a=1, v=2, t0=0.5)
+head(rt1)
+rt2 <- rdiffusion(500, a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
+head(rt2)
+  
 # get density for random RTs:
-ddiffusion(rt1$rt, rt1$response, a=1, v=2, t0=0.5)  # boundary is factor
-ddiffusion(rt1$rt, as.numeric(rt1$response), a=1, v=2, t0=0.5) # boundary is numeric
-ddiffusion(rt1$rt, as.character(rt1$response), a=1, v=2, t0=0.5) # boundary is character
+sum(log(ddiffusion(rt1$rt, rt1$response, a=1, v=2, t0=0.5)))  # boundary is factor
+sum(log(ddiffusion(rt1$rt, as.numeric(rt1$response), a=1, v=2, t0=0.5))) # boundary is numeric
+sum(log(ddiffusion(rt1$rt, as.character(rt1$response), a=1, v=2, t0=0.5))) # boundary is character
 
-ddiffusion(rt2$rt, rt2$response, a=1, v=2, t0=0.5)
+sum(log(ddiffusion(rt2$rt, rt2$response, a=1, v=2, t0=0.5)))
 
+# can we recover the parameters?
+ll_diffusion <- function(pars, rt, boundary) 
+{
+  densities <- tryCatch(
+    ddiffusion(rt, boundary=boundary, 
+               a=pars[1], v=pars[2], t0=pars[3], 
+               z=0.5, sz=pars[4], 
+               st0=pars[5], sv=pars[6]), 
+    error = function(e) 0)
+  if (any(densities == 0)) return(1e6)
+  return(-sum(log(densities)))
+}
+
+\dontrun{
+start <- c(runif(2, 0.5, 3), 0.1, runif(3, 0, 0.5))
+names(start) <- c("a", "v", "t0", "sz", "st0", "sv")
+recov <- nlminb(start, ll_diffusion, lower = 0, rt=rt1$rt, boundary=rt1$response)
+round(recov$par, 3)
+#     a     v    t0    sz   st0    sv 
+# 1.017 2.186 0.505 0.345 0.000 0.000 
+}
 
 # plot density:
 curve(ddiffusion(x, a=1, v=2, t0=0.5, boundary = "upper"), 
