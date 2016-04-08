@@ -1,4 +1,6 @@
-
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/rtdists)](http://cran.r-project.org/package=rtdists)
+![](http://cranlogs.r-pkg.org/badges/rtdists)
+[![Travis-CI Build Status](https://travis-ci.org/rtdists/rtdists.svg?branch=master)](https://travis-ci.org/rtdists/rtdists)
 
 rtdists: Response time distributions in R
 ====
