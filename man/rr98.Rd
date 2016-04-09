@@ -43,9 +43,8 @@ another.
 
 \subsection{Stimuli}{ 
 The stimulus display for Experiment 1 was a square that was 64
-pixels on each side and subtended 3.8° of visual angle on a PC-VGA
-monitor. Figure 3a [missing] shows examples of two stimuli; the left example is
-low in brightness; the right is high. In each square, 3,072 randomly
+pixels on each side and subtended 3.8 degree of visual angle on a PC-VGA
+monitor. [...] In each square, 3,072 randomly
 chosen pixels were neutral gray, like the background, and the remaining 
 1,024 pixels were either black or white; the proportion of white to
 black pixels provided the brightness manipulation. There were 33
@@ -56,18 +55,18 @@ and .625 (high brightness), and they each had a standard deviation of .1875.
 }
 
 \subsection{Procedure}{
-A subject’s task was to decide, on each trial, from which distribution, 
+A subject's task was to decide, on each trial, from which distribution, 
 high or low brightness in Experiment 1, the observed
 stimulus (stimuli) had been sampled. Subjects made their decision by
 pressing one of two response keys. On each trial, a 500-ms foreperiod, 
 during which the display consisted solely of neutral gray, was followed 
 by presentation of the stimulus; presentation was terminated by
-the subject’s response. In Experiment 1, speed-versus-accuracy
+the subject's response. In Experiment 1, speed-versus-accuracy
 instructions were manipulated. For some blocks of trials, subjects
-were instructed to respond as quickly as possible, and a “too slow”
+were instructed to respond as quickly as possible, and a "too slow"
 message followed every response longer than 550 ms. For other
 blocks of trials, subjects were instructed to be as accurate as possible,
-and a “bad error” message followed incorrect responses to stimuli
+and a "bad error" message followed incorrect responses to stimuli
 from the extreme ends of the distributions. Experiment 1 had ten 35-min 
 sessions, and Experiments 2 and 3 had four sessions. In Experiment 1, 
 subjects switched from emphasis on speed to emphasis on
@@ -76,7 +75,7 @@ accuracy every 204 trials. Each session consisted of eight blocks of
 session consisted of eight blocks of 102 trials, for a total of 3,264 trials
 per subject in each experiment. For all trials in each experiment, subjects 
 were instructed to maintain a high level of accuracy while
-responding quickly, and an “error” message indicated incorrect
+responding quickly, and an "error" message indicated incorrect
 responses. Responses were followed by a 300-ms blank interval, and
 the error message was displayed for 300 ms after the blank interval.
 }
