@@ -1,0 +1,22 @@
+Ratcliff and Rouder Luminance Discrimination Data.
+
+Col 1: participant
+Col 2: Session 
+Col 3: Distribution we drew strength from 1=dark, 2=light
+Col 4: Strength, 0..33 with 0 darkest and 33 lightest
+Col 5: Speed vs. Accuracy Instruction , 0=speed, 1=acc
+Col 6: Response 0=dark, 1=light, 2=other
+Col 7: Response time in ms.
+Col 8: Trial # within a block, 
+       Trial #0 indicates a break and should not be analyzed.  Its RT
+       is the time taken in the break and does not reflect performance.
+
+
+Note, we did not analyze:
+a. the first sesison for ea. participant
+b. the first 20 trials of each session
+c. the first trial of each block 
+   (each change in speed accuracy starts a new block)
+d. RTs outside of (200ms,2500ms)
+
+Questions? rouderj@missouri.edu

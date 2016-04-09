@@ -11,8 +11,8 @@ Response Time Distributions.
 \tabular{ll}{
 Package: \tab rtdists\cr
 Type: \tab Package\cr
-Version: \tab 0.4-9\cr
-Date: \tab 2016-04-02\cr
+Version: \tab 0.5-0\cr
+Date: \tab 2016-04-09\cr
 Depends: \tab R (>= 3.0.0)\cr
 License: \tab GPL (>=3)\cr
 URL: \tab https://github.com/rtdists/rtdists/\cr
