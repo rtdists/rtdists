@@ -4,3 +4,5 @@ README.md
 development.R
 examples
 issues
+^CONDUCT\.md$
+^\.travis\.yml$
