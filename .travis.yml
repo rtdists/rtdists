@@ -3,3 +3,6 @@
 language: r
 warnings_are_errors: true
 sudo: required
+
+install:
+  - ./travis-tool.sh install_aptget libgsl0-dev 
