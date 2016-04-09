@@ -1,4 +1,4 @@
-#' Data from Experiment 1 (Wagenmakers, Ratcliff, Gomez, & McKoon, 2008)
+#' Speed-Accuracy Data from Wagenmakers, Ratcliff, Gomez, & McKoon (2008, Experiment 1)
 #' 
 #' Responses and response times from an experiment in which instruction manipulated speed and accuracy between blocks. This data was also analyzed by Heathcote and Love (2012) who were the first to use the 17 participants also included here. 
 #' 

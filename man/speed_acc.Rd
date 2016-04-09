@@ -3,7 +3,7 @@
 \docType{data}
 \name{speed_acc}
 \alias{speed_acc}
-\title{Data from Experiment 1 (Wagenmakers, Ratcliff, Gomez, & McKoon, 2008)}
+\title{Speed-Accuracy Data from Wagenmakers, Ratcliff, Gomez, & McKoon (2008, Experiment 1)}
 \format{A \code{data.frame} with 31,522 obs. and 9 variables:
 \describe{
  \item{id}{participant id}
