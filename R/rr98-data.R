@@ -1,6 +1,6 @@
 #' Ratcliff and Rouder (1998, Exp. 1) Luminance Discrimination Data 
 #' 
-#' Responses and response times from an experiment in which three participants were asked to decide whether the overall brightness of pixel arrays displayed on a computer monitor was "high" or "low". In addition instruction manipulated speed and accuracy between blocks. 
+#' Responses and response times from an experiment in which three participants were asked to decide whether the overall brightness of pixel arrays displayed on a computer monitor was "high" or "low". In addition, instruction manipulated speed and accuracy between blocks. 
 #' 
 #' @details The Experiment is described in the following by Ratcliff and Rouder (1998, pp. 349):
 #' 
@@ -55,11 +55,20 @@
 #' the error message was displayed for 300 ms after the blank interval.
 #' }
 #' 
+#' @note The data is already prepared following Ratcliff and Rouder (1998) by removing the following trials:
+#' \itemize{
+#' \item{the first sesison for each participant}
+#' \item{the first 20 trials of each session}
+#' \item{the first trial of each block (each change in speed accuracy starts a new block)}
+#' }
+#' To fully replicate the data used by Ratcliff and Rouder (1998) one only needs to remove the trials that are \code{TRUE} in column \code{outlier} (i.e., RTs outside of (200ms, 2500ms)). The full raw data is also available as part of this package, see:\cr
+#' \code{system.file("extdata", "rr98-data", package = "rtdists")} and \code{system.file("extdata", "rr98-data.codes", package = "rtdists")}
+#' 
 #' @docType data
 #' @keywords dataset
 #' @name rr98
 #' @usage rr98
-#' @format A \code{data.frame} with 24,575 obs. and 10 variables:
+#' @format A \code{data.frame} with 24,358 obs. and 10 variables:
 #' \describe{
 #'  \item{id}{participant id, factor with three levels}
 #'  \item{session}{session number, integer}
@@ -68,7 +77,7 @@
 #'  \item{instruction}{factor with two levels: \code{"accuracy"} for blocks with accuracy instructions; \code{"speed"} for blocks with speed instruction}
 #'  \item{source}{factor with two levels: distribution strength was drawn from, \code{"dark"} and \code{"light"}}
 #'  \item{strength}{proportion of white to black pixels were varied by 33 equally spaced proportions from zero (all 1,024 pixels were black) to 1 (all 1,024 pixels were white). with 0 darkest and 33 lightest. Integer.}
-#'  \item{response}{factor with two levels: "dark" or "light"}
+#'  \item{response}{factor with two levels: \code{"dark"} and \code{"light"}}
 #'  \item{rt}{response time in seconds}
 #'  \item{outlier}{boolean indicating whether or not the response was conisdered an outlier by Ratcliff and Rouder (1998), i.e., RTs outside of (200ms, 2500ms)}
 #' }
