@@ -29,8 +29,11 @@ rr98$instruction <- factor(rr98$instruction, 0:1, c("speed", "accuracy"))
 rr98$response <- factor(rr98$response, 0:1, c("dark", "light"))
 rr98$rt <- rr98$rt/1000
 rr98$block <- as.integer(rr98$block)
+rr98$correct <- rr98$source == rr98$response
+rr98$response_num <- ifelse(rr98$response == "dark", 1L, 2L)
 
-rr98 <- rr98[,c("id", "session", "block", "trial", "instruction", "source", "strength", "response", "rt", "outlier")]
+rr98 <- rr98[,c("id", "session", "block", "trial", "instruction", "source", "strength", "response", "response_num", "correct", "rt", "outlier")]
+rownames(rr98) <- NULL
 
 str(rr98)
 
