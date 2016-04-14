@@ -131,3 +131,29 @@ all.equal(out_vector, out_vector_2) #TRUE
 all.equal(out_loop_1, out_vector_2) #TRUE
 
 
+
+
+#### just a single iteration:
+
+require(microbenchmark)
+
+microbenchmark(
+  objective_diffusion_3(start, rt = data$rt, boundary = data$response_num, drift = factor(data$strength)),
+  objective_diffusion_2(start, rt = data$rt, boundary = data$response_num,  v=data$v, a=data$a),
+  objective_diffusion(start, rt = data$rt, boundary = data$response_num,  v=data$v, a=data$a)
+)
+
+
+Rprof("profile1.out", line.profiling=FALSE, interval = 0.001)
+objective_diffusion(start, rt = data$rt, boundary = data$response_num,  v=data$v, a=data$a)
+Rprof(NULL)
+
+summaryRprof("profile1.out", lines = "show")
+summaryRprof("profile1.out")
+
+Rprof("profile2.out", line.profiling=FALSE, interval = 0.001)
+objective_diffusion_3(start, rt = data$rt, boundary = data$response_num, drift = factor(data$strength))
+Rprof(NULL)
+
+summaryRprof("profile2.out", lines = "show")
+summaryRprof("profile2.out")
