@@ -5,6 +5,8 @@ load_all()
 options(error = recover)
 options(error = NULL)
 
+build_vignettes()
+
 rrd(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0)
 rt1 <- rrd(20, a=c(1, 1.5, 1.2), z=0.5, v=1, t0=0.5, d=0, sz=0, sv=0, st0=0)
 drd(rt1$rt, a=c(1, 1.5, 1.2), z=0.5, v=1, t0=0.5, d=0, sz=0, sv=0, st0=0, boundary = as.character(rt1$response))
