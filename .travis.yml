@@ -11,4 +11,5 @@ r_binary_packages:
  - evd
  - msm
  - dplyr
+ - tidyr
 

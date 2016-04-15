@@ -7,14 +7,15 @@ Suggests:
     testthat,
     glba,
     knitr,
-    rmarkdown
+    rmarkdown,
+    dplyr,
+    tidyr
 Imports:
     evd,
     msm,
     gsl,
     stats,
-    utils,
-    dplyr
+    utils
 Description: Provides response time distributions (density/PDF, distribution
     function/CDF, quantile function, and random generation): (a) Ratcliff diffusion
     model based on C code by Andreas and Jochen Voss and (b) linear ballistic
