@@ -239,9 +239,22 @@ qLBA <-  function(p, response, A, b, t0, ..., st0=0, distribution = c("norm", "g
     tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(interval), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5))
     #browser()
     if (tmp$objective > 0.0001) {
-      warning("Cannot obtain RT that is less than 0.0001 away from desired p = ", p[i], ".\nIncrease interval or obtain for different response.", call. = FALSE)
-      out[i] <- NA
-    } else out[i] <- tmp[[1]]
+      tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(c(min(interval),max(interval)/1.5)), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5))
+    }
+    if (tmp$objective > 0.0001) {
+      tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(c(min(interval),max(interval)/2)), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5))
+    }
+    if (tmp$objective > 0.0001) {
+      tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(c(min(interval),max(interval)/3)), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5))
+    }
+    if (tmp$objective > 0.0001) {
+      tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(c(0, 3)), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5))
+    }
+    if (tmp$objective > 0.0001) {
+      tmp[["minimum"]] <- NA
+      warning("Cannot obtain RT that is less than 0.0001 away from desired p = ", p[i], ".\nIncrease/decrease interval or obtain for different boundary.", call. = FALSE)
+    }
+    out[i] <- tmp[["minimum"]]
   }
   return(out)
 }
