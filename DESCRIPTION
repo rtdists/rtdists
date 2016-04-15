@@ -9,7 +9,9 @@ Suggests:
     knitr,
     rmarkdown,
     dplyr,
-    tidyr
+    tidyr,
+    lattice,
+    latticeExtra
 Imports:
     evd,
     msm,
