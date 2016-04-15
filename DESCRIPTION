@@ -20,12 +20,12 @@ Description: Provides response time distributions (density/PDF, distribution
     accumulator (LBA) with different distributions underlying the drift rate.
 URL: https://github.com/rtdists/rtdists/
 License: GPL (>=3)
+VignetteBuilder: knitr
 Authors@R: c( person(given="Henrik", family="Singmann", email="singmann+rtdists@gmail.com", role=c("aut", "cre")),
             person(given="Scott", family="Brown", role=c("aut")), person(given="Matthew", family="Gretton",
             role=c("aut")), person(given="Andrew", family="Heathcote", role=c("aut")), person(given="Andreas",
             family="Voss", role=c("ctb")), person(given="Jochen", family="Voss", role=c("ctb")),
             person(given="Andrew", family="Terry", role=c("ctb")) )
-Version: 0.5-0
-Date: 2016-04-11
+Version: 0.5-1
+Date: 2016-04-16
 RoxygenNote: 5.0.1
-VignetteBuilder: knitr
