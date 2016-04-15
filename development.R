@@ -72,7 +72,7 @@ roxy.package(
     )",
     Depends = "R (>= 3.0.0)",
     Suggests = "testthat, glba, knitr, rmarkdown",
-    Imports = "evd, msm, gsl, stats, utils",
+    Imports = "evd, msm, gsl, stats, utils, dplyr",
     Description = "Provides response time distributions (density/PDF, distribution function/CDF, quantile function, and random generation): (a) Ratcliff diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distributions underlying the drift rate.",
     URL = "https://github.com/rtdists/rtdists/",
     License = "GPL (>=3)",
