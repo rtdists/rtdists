@@ -11,3 +11,13 @@ test_that("qdiffusion does not fail for certain values", {
   ))
 
 })
+
+test_that("qdiffusion does not fail for named probability", {
+   qex2 <- c( t0 = 0.194096266864241, sv = 0.867039443746426, v = -3.8704467331985, a = 0.819960332004152, resp_prop = 0.923810293538986, z = 0.5, sz= 0.1)
+   pdiffusion(20, boundary = "upper", a=qex2["a"], v=qex2["v"], t0 = qex2["t0"], sv = qex2["sv"], sz = 0.1, z = 0.5)
+  
+  expect_true(!is.na(
+    qdiffusion(p = qex2["resp_prop"], boundary = "lower", a=qex2["a"], v=qex2["v"], t0 = qex2["t0"], sv = qex2["sv"], sz = 0.1, z = 0.5)
+    ))
+
+})

@@ -247,22 +247,20 @@ qdiffusion <- function (p, boundary = "upper",
   sz <- rep(unname(sz), length.out = nn)
   sv <- rep(unname(sv), length.out = nn)
   st0 <- rep(unname(st0), length.out = nn)
+  p <- unname(p)
   
   out <- vector("numeric", nn)
   for (i in seq_len(nn)) {
     tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(interval), boundary=boundary[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5))
-    #browser()
-    if (tmp$objective > 0.0001) {
-      tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(c(min(interval),max(interval)/1.5)), boundary=boundary[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5))
-    }
     if (tmp$objective > 0.0001) {
       tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(c(min(interval),max(interval)/2)), boundary=boundary[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5))
     }
     if (tmp$objective > 0.0001) {
-      tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(c(min(interval),max(interval)/3)), boundary=boundary[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5))
-    }
-    if (tmp$objective > 0.0001) {
-      tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(c(0, 3)), boundary=boundary[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5))
+      try({
+        uni_tmp <- do.call(uniroot, args = c(f=inv_cdf_diffusion, interval = list(interval), boundary=boundary[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5, abs = FALSE))
+      tmp$objective <- uni_tmp$f.root
+      tmp$minimum <- uni_tmp$root
+      }, silent = TRUE)
     }
     if (tmp$objective > 0.0001) {
       tmp[["minimum"]] <- NA

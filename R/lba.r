@@ -211,8 +211,9 @@ pLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "
 }
 
 # rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE
-inv_cdf_lba <- function(x, response, A, b, t0, ..., st0, distribution, args.dist, value) {
-  abs(value - pLBA(rt=x, response=response, A=A, b = b, t0 = t0, ..., st0=st0, distribution=distribution, args.dist=args.dist, silent=TRUE))
+inv_cdf_lba <- function(x, response, A, b, t0, ..., st0, distribution, args.dist, value, abs = TRUE) {
+  if (abs) abs(value - pLBA(rt=x, response=response, A=A, b = b, t0 = t0, ..., st0=st0, distribution=distribution, args.dist=args.dist, silent=TRUE))
+  else (value - pLBA(rt=x, response=response, A=A, b = b, t0 = t0, ..., st0=st0, distribution=distribution, args.dist=args.dist, silent=TRUE))
 }
 
 
@@ -235,20 +236,19 @@ qLBA <-  function(p, response, A, b, t0, ..., st0=0, distribution = c("norm", "g
   t0 <- check_i_arguments(t0, nn=nn, n_v=n_v)
   st0 <- rep(st0, length.out = nn)
   out <- vector("numeric", nn)
+  p <- unname(p)
+  
   for (i in seq_len(nn)) {
     tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(interval), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5))
-    #browser()
-    if (tmp$objective > 0.0001) {
-      tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(c(min(interval),max(interval)/1.5)), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5))
-    }
     if (tmp$objective > 0.0001) {
       tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(c(min(interval),max(interval)/2)), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5))
     }
     if (tmp$objective > 0.0001) {
-      tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(c(min(interval),max(interval)/3)), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5))
-    }
-    if (tmp$objective > 0.0001) {
-      tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(c(0, 3)), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5))
+      try({
+        uni_tmp <- do.call(uniroot, args = c(f=inv_cdf_lba, interval = list(c(min(interval),max(interval)/2)), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5, abs = FALSE))
+      tmp$objective <- uni_tmp$f.root
+      tmp$minimum <- uni_tmp$root
+      }, silent = TRUE)
     }
     if (tmp$objective > 0.0001) {
       tmp[["minimum"]] <- NA
