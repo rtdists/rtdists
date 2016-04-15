@@ -68,7 +68,7 @@
 #' @keywords dataset
 #' @name rr98
 #' @usage rr98
-#' @format A \code{data.frame} with 24,358 obs. and 10 variables:
+#' @format A \code{data.frame} with 24,358 obs. and 12 variables:
 #' \describe{
 #'  \item{id}{participant id, factor with three levels}
 #'  \item{session}{session number, integer}
@@ -76,8 +76,10 @@
 #'  \item{trial}{trial number within a block, integer}
 #'  \item{instruction}{factor with two levels: \code{"accuracy"} for blocks with accuracy instructions; \code{"speed"} for blocks with speed instruction}
 #'  \item{source}{factor with two levels: distribution strength was drawn from, \code{"dark"} and \code{"light"}}
-#'  \item{strength}{proportion of white to black pixels were varied by 33 equally spaced proportions from zero (all 1,024 pixels were black) to 1 (all 1,024 pixels were white). with 0 darkest and 33 lightest. Integer.}
+#'  \item{strength}{proportion of white to black pixels were varied by 33 equally spaced proportions from zero (all 1,024 pixels were black) to 1 (all 1,024 pixels were white). with 0 darkest and 32 lightest. Integer.}
 #'  \item{response}{factor with two levels: \code{"dark"} and \code{"light"}}
+#'  \item{response_num}{numeric response variable such that \code{1="dark"} and \code{2="light"}}
+#'  \item{correct}{boolean indicating whether or not \code{source==response}. (Does not seem to be used in the original analysis.)}
 #'  \item{rt}{response time in seconds}
 #'  \item{outlier}{boolean indicating whether or not the response was conisdered an outlier by Ratcliff and Rouder (1998), i.e., RTs outside of (200ms, 2500ms)}
 #' }
