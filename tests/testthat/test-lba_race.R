@@ -42,25 +42,25 @@ test_that("Norm: n1CDF corresponds to random derivates", {
   r_lba1 <- rlba_norm(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
   r_lba2 <- rlba_norm(samples, A=A[2], b=b[2], t0 = t0[2], mean_v=v1[3:4], sd_v=v2[3:4], st0 = st0[1])
   t1 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1], b=b[1]+0.1, t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2]))
-  expect_less_than(t1$value$p.value, p_min)
+  expect_lt(t1$value$p.value, p_min)
   conditional_save_t(t1, "norm")
   
   t2 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], mean_v=v1[3:4], sd_v=v2[3:4], st0 = 0))
-  expect_less_than(t2$value$p.value, p_min)
+  expect_lt(t2$value$p.value, p_min)
   conditional_save_t(t2, "norm")
   
   t3 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], mean_v=v1[3:4], sd_v=v2[3:4], st0 = st0[1]+0.1))
-  expect_less_than(t3$value$p.value, p_min+0.003)
+  expect_lt(t3$value$p.value, p_min+0.003)
   conditional_save_t(t3, "norm")
   
   t4 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2]))
-  expect_more_than(t4$value$p.value, p_max)
+  expect_gt(t4$value$p.value, p_max)
   conditional_save_t(t4, "norm")
   
   t5 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], mean_v=v1[3:4], sd_v=v2[3:4], st0 = st0[1]))
   conditional_save_t(t5, "norm")
   
-  expect_more_than(t5$value$p.value, p_max)
+  expect_gt(t5$value$p.value, p_max)
   
   #if (any(sapply(list(t1, t2, t3, t4, t5), function(x) !is.null(x$warning)))) browser()
 })
@@ -81,23 +81,23 @@ test_that("Gamma: n1CDF corresponds to random derivates", {
   r_lba2 <- rlba_gamma(samples, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = st0[1])
   
   t1 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1]+0.1, b=b[1]+0.2, t0 = t0[1], shape_v=v1[1:2], scale_v=v2[1:2], distribution = "gamma"))
-  expect_less_than(t1$value$p.value, p_min)
+  expect_lt(t1$value$p.value, p_min)
   conditional_save_t(t1, "gamma")
   
   t2 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = 0, distribution = "gamma"))
-  expect_less_than(t2$value$p.value, p_min)
+  expect_lt(t2$value$p.value, p_min)
   conditional_save_t(t2, "gamma")
   
   t3 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = st0[1]+0.5, distribution = "gamma"))
-  expect_less_than(t3$value$p.value, p_min)
+  expect_lt(t3$value$p.value, p_min)
   conditional_save_t(t3, "gamma")
   
   t4 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1], b=b[1], t0 = t0[1], shape_v=v1[1:2], scale_v=v2[1:2], distribution = "gamma"))
-  expect_more_than(t4$value$p.value, p_max)
+  expect_gt(t4$value$p.value, p_max)
   conditional_save_t(t4, "gamma")
   
   t5 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = st0[1], distribution = "gamma"))
-  expect_more_than(t5$value$p.value, p_max)
+  expect_gt(t5$value$p.value, p_max)
   conditional_save_t(t5, "gamma")
   
   #if (any(sapply(list(t1, t2, t3, t4, t5), function(x) !is.null(x$warning)))) browser()
@@ -120,25 +120,25 @@ test_that("Frechet: n1CDF corresponds to random derivates", {
   r_lba2 <- rlba_frechet(samples, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = st0[1])
 
   t1 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1]+0.4, b=b[1]+0.8, t0 = t0[1], shape_v=v1[1:2], scale_v=v2[1:2], distribution = "frechet"))
-  expect_less_than(t1$value$p.value, p_min)
+  expect_lt(t1$value$p.value, p_min)
   conditional_save_t(t1, "frechet")
   
   t2 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = 0, distribution = "frechet"))
-  expect_less_than(t2$value$p.value, p_min)
+  expect_lt(t2$value$p.value, p_min)
   conditional_save_t(t2, "frechet")
   
   #browser()
   t3 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = st0[1]+0.2, distribution = "frechet"))
-  expect_less_than(t3$value$p.value, p_min)
+  expect_lt(t3$value$p.value, p_min)
   conditional_save_t(t3, "frechet")  
   
   t4 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1], b=b[1], t0 = t0[1], shape_v=v1[1:2], scale_v=v2[1:2], distribution = "frechet"))
-  expect_more_than(t4$value$p.value, p_max)
+  expect_gt(t4$value$p.value, p_max)
   conditional_save_t(t4, "frechet")
   
   t5 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = st0[1], distribution = "frechet"))
   #t5 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1]-t0[2], normalised_n1CDF, A=A[2], b=b[2], t0 = 0, shape_v=v1[3:4], scale_v=v2[3:4], st0 = st0[1], distribution = "frechet"))
-  expect_more_than(t5$value$p.value, p_max)
+  expect_gt(t5$value$p.value, p_max)
   conditional_save_t(t5, "frechet")
   
   #if (any(sapply(list(t1, t2, t3, t4, t5), function(x) !is.null(x$warning)))) browser()
@@ -161,25 +161,25 @@ test_that("lnorm: n1CDF corresponds to random derivates", {
   r_lba2 <- rlba_lnorm(samples, A=A[2], b=b[2], t0 = t0[2], meanlog_v=v1[3:4], sdlog_v=v2[3:4], st0 = st0[1])
   
   t1 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1], b=b[1]+0.1, t0 = t0[1], meanlog_v=v1[1:2], sdlog_v=v2[1:2], distribution = "lnorm"))
-  expect_less_than(t1$value$p.value, p_min)
+  expect_lt(t1$value$p.value, p_min)
   conditional_save_t(t1, "lnorm")
   
   t2 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], meanlog_v=v1[3:4], sdlog_v=v2[3:4], st0 = 0, distribution = "lnorm"))
-  expect_less_than(t2$value$p.value, p_min)
+  expect_lt(t2$value$p.value, p_min)
   conditional_save_t(t2, "lnorm")
   
   t3 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], meanlog_v=v1[3:4], sdlog_v=v2[3:4], st0 = st0[1]+0.2, distribution = "lnorm"))
-  expect_less_than(t3$value$p.value, p_min)
+  expect_lt(t3$value$p.value, p_min)
   conditional_save_t(t3, "lnorm")
   
   #t4 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1], b=b[1], t0 = t0[1], meanlog_v=v1[1:2], sdlog_v=v2[1:2], distribution = "lnorm"))
   t4 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1]-t0[1], normalised_n1CDF, A=A[1], b=b[1], t0 = 0, meanlog_v=v1[1:2], sdlog_v=v2[1:2], distribution = "lnorm"))
-  expect_more_than(t4$value$p.value, p_max)
+  expect_gt(t4$value$p.value, p_max)
   conditional_save_t(t4, "lnorm")
   
   #t5 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], meanlog_v=v1[3:4], sdlog_v=v2[3:4], st0 = st0[1], distribution = "lnorm"))
   t5 <- tryCatch.W.E(ks.test(pmax(r_lba2$rt[r_lba2$response==1]-t0[2],0), normalised_n1CDF, A=A[2], b=b[2], t0 = 0, meanlog_v=v1[3:4], sdlog_v=v2[3:4], st0 = st0[1], distribution = "lnorm"))
-  expect_more_than(t5$value$p.value, p_max)
+  expect_gt(t5$value$p.value, p_max)
   conditional_save_t(t5, "lnorm")
   
   #if (any(sapply(list(t1, t2, t3, t4, t5), function(x) !is.null(x$warning)))) browser()
@@ -202,25 +202,25 @@ test_that("Norm: n1CDF corresponds to random derivates with accumulatorwise para
   r_lba1 <- rLBA(samples, A=list(A[1], A[2]), b=list(b[1], b[2]), t0 = list(t0[1], t0[2]), mean_v=v1[1:2], sd_v=v2[1:2])
   r_lba2 <- rLBA(samples, A=list(A[3], A[4]), b=list(b[3], b[4]), t0 = list(t0[3], t0[4]), mean_v=v1[3:4], sd_v=v2[3:4], st0 = st0[1])
   t1 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=list(A[1], A[2]), b=list(b[1], b[2]), t0 = list(t0[1]+0.1, t0[2]+0.1), mean_v=v1[1:2], sd_v=v2[1:2]))
-  expect_less_than(t1$value$p.value, p_min)
+  expect_lt(t1$value$p.value, p_min)
   conditional_save_t(t1, "norm")
   
   t2 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=list(A[3], A[4]), b=list(b[3], b[4]), t0 = list(t0[3], t0[4]), mean_v=v1[3:4], sd_v=v2[3:4], st0 = 0))
-  expect_less_than(t2$value$p.value, p_min)
+  expect_lt(t2$value$p.value, p_min)
   conditional_save_t(t2, "norm")
   
   t3 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=list(A[3], A[4]), b=list(b[3], b[4]), t0 = list(t0[3], t0[4]), mean_v=v1[3:4], sd_v=v2[3:4], st0 = st0[1]+0.1))
-  expect_less_than(t3$value$p.value, p_min) #+0.003
+  expect_lt(t3$value$p.value, p_min) #+0.003
   conditional_save_t(t3, "norm")
   
   t4 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=list(A[1], A[2]), b=list(b[1], b[2]), t0 = list(t0[1], t0[2]), mean_v=v1[1:2], sd_v=v2[1:2]))
-  expect_more_than(t4$value$p.value, p_max)
+  expect_gt(t4$value$p.value, p_max)
   conditional_save_t(t4, "norm")
   
   t5 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=list(A[3], A[4]), b=list(b[3], b[4]), t0 = list(t0[3], t0[4]), mean_v=v1[3:4], sd_v=v2[3:4], st0 = st0[1]))
   conditional_save_t(t5, "norm")
   
-  expect_more_than(t5$value$p.value, p_max)
+  expect_gt(t5$value$p.value, p_max)
   
   #if (any(sapply(list(t1, t2, t3, t4, t5), function(x) !is.null(x$warning)))) browser()
 })
