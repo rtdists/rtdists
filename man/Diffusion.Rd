@@ -74,6 +74,8 @@ Also note that quantiles (i.e., predicted RTs) are obtained by numerically minim
 }
 }
 \note{
+In the present code, the diffusion constant s is set to 1. This differs from, for example, the work of Roger Ratcliff who usually uses a diffusion constant of s=0.1. Estimates for a, z, and v depend on the chosen diffusion constant. These parameters can be transformed to the case of s = 1 by dividing the estimated values by the diffusion constant used for the estimation procedure. 
+
 RTs need to be sorted (in increasing order) for \code{pdiffusion}.
 }
 \examples{
