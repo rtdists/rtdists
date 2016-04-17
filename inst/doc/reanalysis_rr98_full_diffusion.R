@@ -119,7 +119,7 @@ p1 + as.layer(p2)
 
 ## ------------------------------------------------------------------------
 # objective function for diffusion with 1 a. loops over drift to assign drift rates to strength
-objective_diffusion_separate_alt <- function(pars, rt, boundary, drift, ...) {
+objective_diffusion_separate <- function(pars, rt, boundary, drift, ...) {
   non_v_pars <- grep("^v", names(pars), invert = TRUE, value = TRUE)
   base_par <- length(non_v_pars)  # number of non-drift parameters
   densities <- vector("numeric", length(rt))

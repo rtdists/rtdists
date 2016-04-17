@@ -341,7 +341,7 @@ p1 +<span class="st"> </span><span class="kw">as.layer</span>(p2)</code></pre></
 <p>The two boundaries are the two response options “dark” and “light”. To estimate the model we diverge from Ratcliff and Rouder (1998) and employ trial wise maximum likelihood estimation (i.e., no binning of responses).</p>
 <p>To do so, we simply need to have a wrapper function which returns us the summed log-likelihood of the data (i.e., RTs and corresponding responses) given a set of parameters. The following function for which we simply loop across drift rates will do so for the first model:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># objective function for diffusion with 1 a. loops over drift to assign drift rates to strength</span>
-objective_diffusion_separate_alt &lt;-<span class="st"> </span>function(pars, rt, boundary, drift, ...) {
+objective_diffusion_separate &lt;-<span class="st"> </span>function(pars, rt, boundary, drift, ...) {
   non_v_pars &lt;-<span class="st"> </span><span class="kw">grep</span>(<span class="st">&quot;^v&quot;</span>, <span class="kw">names</span>(pars), <span class="dt">invert =</span> <span class="ot">TRUE</span>, <span class="dt">value =</span> <span class="ot">TRUE</span>)
   base_par &lt;-<span class="st"> </span><span class="kw">length</span>(non_v_pars)  <span class="co"># number of non-drift parameters</span>
   densities &lt;-<span class="st"> </span><span class="kw">vector</span>(<span class="st">&quot;numeric&quot;</span>, <span class="kw">length</span>(rt))
