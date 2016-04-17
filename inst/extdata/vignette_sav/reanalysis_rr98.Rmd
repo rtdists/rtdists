@@ -31,7 +31,6 @@ lattice.options(default.theme = standard.theme(color = FALSE))
 lattice.options(default.args = list(as.table = TRUE))
 options(digits = 3) # only three decimal digits
 
-
 data(rr98)
 rr98 <- rr98[!rr98$outlier,]  #remove outliers
 
@@ -65,7 +64,7 @@ xyplot(rt ~ strength|id + instruction, quantiles_rr98, group = quantile, type = 
 ```
 
 
-In the speed conditions, response times were as expected generally fast and there seemed to be hardly any effect of strength. Only for one participant was a small increase in RTs for the higher quantiles for strength values near the middle. In contrast, in the accuracy condition strength has a considerable effect on response times for all participants. Again, this increase was especially strong for the slower responses (i.e., the higher quantiles). For those we see a strong inverse u-shaped effect, symmetrically around the middle, with very high response times for strength values near the middle. 
+In the speed conditions, response times were, as expected, generally fast and there seemed to be hardly any effect of strength. Only for one participant, `nh`, we can see a small increase in RTs for the higher quantiles for strength values near the middle. In contrast, in the accuracy condition strength has a considerable effect on response times for all participants. Again, this increase was especially strong for the slower responses (i.e., the higher quantiles). For those we see a strong inverse u-shaped effect, symmetrically around the middle -- where the probability for each response is 50% -- with very high response times for strength values near the middle. 
 
 However, as this plot is getting a little bit messy, let us next bin the strength levels to get a somewhat clearer overview and less noise. For this, we will make up seven separate strength bins with approximately equal response behavior. This is also what was done originally by Ratcliff and Rouder (1998). We first look again and the response proportions and see more clearly the difference between the strength conditions at the outer bins.
 
@@ -414,7 +413,8 @@ knitr::kable(ll_tab)
 
 ### Graphical Model Fit
 
-The following plots show the quantiles of the data in grey and the predicted qunatiles from the separate fits in black. As one can see, the models have some problems adequately describing the asymmetric data patterns.
+TTo evaluate the fits graphically we first compare the actual response rates for the two responses with the predicted responses rates.
+he following plots show the quantiles of the data in grey and the predicted qunatiles from the separate fits in black. As one can see, the models have some problems adequately describing the asymmetric data patterns.
 
 #### Separate Fits
 
@@ -452,6 +452,15 @@ joint_pred$strength_bin <- factor(substr(joint_pred$strength_bin, 3,3), levels =
 
 ```
 
+
+```{r, fig.height=5, fig.width=7}
+
+p1 <- xyplot(rt ~ strength_bin|id, agg2_rr98_response, group = quantile, type = "b", auto.key = list(lines = TRUE), ylab = "RT (in seconds)", subset = response == "dark" & instruction == "speed", layout = c(3,1), col = "grey")
+p2 <- xyplot(dark ~ strength_bin|id + instruction, separate_pred, group = quantiles, type = "b", auto.key = list(lines = TRUE), ylab = "RT (in seconds)", subset = instruction == "speed")
+p2 + as.layer(p1)
+
+
+```
 
 Response = dark, speed condition:
 
