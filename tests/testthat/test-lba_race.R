@@ -28,6 +28,7 @@ conditional_save_t <- function(t, distribution) {
 
 test_that("Norm: n1CDF corresponds to random derivates", {
   testthat::skip_on_cran()
+  testthat::skip_on_travis()
   normalised_n1CDF = function(rt,...) n1CDF(rt,...)/n1CDF(rt=Inf,...) 
   samples <- 1e3
   p_min <- 0.001
@@ -104,6 +105,7 @@ test_that("Gamma: n1CDF corresponds to random derivates", {
 
 test_that("Frechet: n1CDF corresponds to random derivates", {
   testthat::skip_on_cran()
+  testthat::skip_on_travis()
   normalised_n1CDF = function(rt,...) n1CDF(rt,...)/n1CDF(rt=Inf,...) 
   samples <- 2e2
   p_min <- 0.001
@@ -144,6 +146,7 @@ test_that("Frechet: n1CDF corresponds to random derivates", {
 
 test_that("lnorm: n1CDF corresponds to random derivates", {
   testthat::skip_on_cran()
+  testthat::skip_on_travis()
   normalised_n1CDF = function(rt,...) n1CDF(rt,...)/n1CDF(rt=Inf,...) 
   samples <- 1e3
   p_min <- 0.0001
@@ -185,6 +188,7 @@ test_that("lnorm: n1CDF corresponds to random derivates", {
 
 test_that("Norm: n1CDF corresponds to random derivates with accumulatorwise parameters", {
   testthat::skip_on_cran()
+  testthat::skip_on_travis()
   normalised_n1CDF = function(rt,...) n1CDF(rt,...)/n1CDF(rt=Inf,...) 
   samples <- 1e3
   p_min <- 0.001
