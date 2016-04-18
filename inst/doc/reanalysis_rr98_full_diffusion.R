@@ -532,7 +532,11 @@ knitr::kable(lba_pars)
 #  
 
 ## ---- fig.height=5, fig.width=7, message=FALSE---------------------------
-
+lba_pars_separate <- fits_separate_lba %>% group_by(id, instruction) %>% 
+  do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup() %>% as.data.frame()
+lba_pars_separate$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% 
+                           do(ll = .$lba[[1]][["objective"]]) %>%  
+                           summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
 
 # get predicted response proportions
 lba_pars_separate_l <- lba_pars_separate %>% gather("strength_bin", "v", starts_with("v"))

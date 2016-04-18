@@ -86,16 +86,29 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h1>Descriptive data</h1>
 <p>As a first step, we load the data and then plot the probability with which each response (i.e., “dark” or “light”) is given as a function of strength and instruction condition. This clearly shows that there is a massive effect of strength on which response is given while at the same time the instruction only seems to have a minor effect and more on the extremes than in the middle.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">require</span>(rtdists)
-<span class="kw">require</span>(dplyr)   <span class="co"># for data manipulations and looping</span>
-<span class="kw">require</span>(tidyr)   <span class="co"># for data manipulations</span>
-<span class="kw">require</span>(lattice) <span class="co"># for plotting and corresponding themes</span>
-<span class="kw">require</span>(latticeExtra)
-<span class="kw">lattice.options</span>(<span class="dt">default.theme =</span> <span class="kw">standard.theme</span>(<span class="dt">color =</span> <span class="ot">FALSE</span>))
+<span class="kw">require</span>(dplyr)   <span class="co"># for data manipulations and looping</span></code></pre></div>
+<pre><code>## Loading required package: dplyr</code></pre>
+<pre><code>## 
+## Attaching package: 'dplyr'</code></pre>
+<pre><code>## The following objects are masked from 'package:stats':
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">require</span>(tidyr)   <span class="co"># for data manipulations</span></code></pre></div>
+<pre><code>## Loading required package: tidyr</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">require</span>(lattice) <span class="co"># for plotting and corresponding themes</span></code></pre></div>
+<pre><code>## Loading required package: lattice</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">require</span>(latticeExtra)</code></pre></div>
+<pre><code>## Loading required package: latticeExtra</code></pre>
+<pre><code>## Loading required package: RColorBrewer</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">lattice.options</span>(<span class="dt">default.theme =</span> <span class="kw">standard.theme</span>(<span class="dt">color =</span> <span class="ot">FALSE</span>))
 <span class="kw">lattice.options</span>(<span class="dt">default.args =</span> <span class="kw">list</span>(<span class="dt">as.table =</span> <span class="ot">TRUE</span>))
 <span class="kw">options</span>(<span class="dt">digits =</span> <span class="dv">3</span>) <span class="co"># only three decimal digits</span>
-<span class="kw">require</span>(binom)  <span class="co"># for binomial confidence intervals</span>
-
-<span class="kw">data</span>(rr98)
+<span class="kw">require</span>(binom)  <span class="co"># for binomial confidence intervals</span></code></pre></div>
+<pre><code>## Loading required package: binom</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(rr98)
 rr98 &lt;-<span class="st"> </span>rr98[!rr98$outlier,]  <span class="co">#remove outliers</span>
 
 <span class="co"># aggregate data for first plot:</span>
@@ -853,7 +866,13 @@ knitr::<span class="kw">kable</span>(lba_pars)</code></pre></div>
 <div id="predicted-response-rates-1" class="section level3">
 <h3>Predicted Response Rates</h3>
 <p>We again first consider the predicted response rates (in black) and they are highly accurate.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># get predicted response proportions</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lba_pars_separate &lt;-<span class="st"> </span>fits_separate_lba %&gt;%<span class="st"> </span><span class="kw">group_by</span>(id, instruction) %&gt;%<span class="st"> </span>
+<span class="st">  </span><span class="kw">do</span>(<span class="kw">as.data.frame</span>(<span class="kw">t</span>(.$lba[[<span class="dv">1</span>]][[<span class="st">&quot;par&quot;</span>]]))) %&gt;%<span class="st"> </span><span class="kw">ungroup</span>() %&gt;%<span class="st"> </span><span class="kw">as.data.frame</span>()
+lba_pars_separate$ll &lt;-<span class="st"> </span>(fits_separate_lba %&gt;%<span class="st"> </span><span class="kw">group_by</span>(id, instruction) %&gt;%<span class="st"> </span>
+<span class="st">                           </span><span class="kw">do</span>(<span class="dt">ll =</span> .$lba[[<span class="dv">1</span>]][[<span class="st">&quot;objective&quot;</span>]]) %&gt;%<span class="st">  </span>
+<span class="st">                           </span><span class="kw">summarize</span>(<span class="dt">ll2 =</span> <span class="kw">mean</span>(ll[[<span class="dv">1</span>]])) %&gt;%<span class="st"> </span><span class="kw">as.data.frame</span>())[[<span class="dv">1</span>]]
+
+<span class="co"># get predicted response proportions</span>
 lba_pars_separate_l &lt;-<span class="st"> </span>lba_pars_separate %&gt;%<span class="st"> </span><span class="kw">gather</span>(<span class="st">&quot;strength_bin&quot;</span>, <span class="st">&quot;v&quot;</span>, <span class="kw">starts_with</span>(<span class="st">&quot;v&quot;</span>))
 lba_pars_separate_l$strength_bin &lt;-<span class="st"> </span><span class="kw">factor</span>(<span class="kw">substr</span>(lba_pars_separate_l$strength_bin, <span class="dv">3</span>,<span class="dv">3</span>), 
                                        <span class="dt">levels =</span> <span class="kw">as.character</span>(<span class="kw">seq_len</span>(<span class="kw">length</span>(bins)-<span class="dv">1</span>)))
