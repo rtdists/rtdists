@@ -1,4 +1,4 @@
-## ---- fig.height=4, fig.width=7------------------------------------------
+## ---- fig.height=4, fig.width=7, message=FALSE, warning=FALSE------------
 require(rtdists)
 require(dplyr)   # for data manipulations and looping
 require(tidyr)   # for data manipulations
@@ -11,6 +11,37 @@ require(binom)  # for binomial confidence intervals
 
 data(rr98)
 rr98 <- rr98[!rr98$outlier,]  #remove outliers
+
+# aggregate data for first plot:
+agg_rr98 <- rr98  %>% group_by(id, instruction, strength) %>% 
+  summarise(prop = mean(response == "dark"), mean_rt = mean(rt), median_rt = mean(rt)) %>% 
+  ungroup()
+
+xyplot(prop ~ strength|id, agg_rr98, group = instruction, type = "b", 
+       auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses")
+
+
+
+## ---- fig.height=6, fig.width=7------------------------------------------
+
+quantiles <- c(0.1, 0.3, 0.5, 0.7, 0.9)
+## aggregate data for quantile plot
+quantiles_rr98 <- rr98  %>% group_by(id, instruction, strength) %>% 
+  do(as.data.frame(t(quantile(.$rt, probs = quantiles)))) %>%
+  ungroup() %>%
+  gather(quantile, rt,  -id, - instruction, - strength)
+quantiles_rr98$quantile <- factor(quantiles_rr98$quantile, 
+                                  levels = c("90%", "70%", "50%", "30%", "10%"))
+
+xyplot(rt ~ strength|id + instruction, quantiles_rr98, group = quantile, type = "b", 
+       auto.key = list(lines = TRUE), ylab = "RT (in seconds)", subset = instruction == "speed")
+
+xyplot(rt ~ strength|id + instruction, quantiles_rr98, group = quantile, type = "b", 
+       auto.key = FALSE, ylab = "RT (in seconds)", subset = instruction == "accuracy")
+
+
+
+## ---- fig.height=4, fig.width=7------------------------------------------
 
 #bins <- c(-0.5, 5.5, 10.5, 13.5, 16.5, 19.5, 25.5, 32.5) # seven bins like RR98
 bins <- c(-0.5, 10.5, 13.5, 16.5, 19.5, 32.5)
@@ -35,14 +66,13 @@ knitr::kable(
 )
 
 
+
 ## ---- fig.height=4, fig.width=7------------------------------------------
 xyplot(prop ~ strength_bin|id, agg_rr98_bin, group = instruction, type = "b", 
        auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses")
 
 
 ## ---- fig.height=6, fig.width=7------------------------------------------
-
-quantiles <- c(0.1, 0.3, 0.5, 0.7, 0.9)
 
 ## aggregate data for quantile plot
 quantiles_rr98_bin <- rr98  %>% group_by(id, instruction, strength_bin) %>% 
@@ -57,8 +87,6 @@ xyplot(rt ~ strength_bin|id + instruction, quantiles_rr98_bin, group = quantile,
 
 xyplot(rt ~ strength_bin|id + instruction, quantiles_rr98_bin, group = quantile, type = "b", 
        auto.key = FALSE, ylab = "RT (in seconds)", subset = instruction == "accuracy")
-
-
 
 
 ## ---- fig.height=6, fig.width=7------------------------------------------
@@ -99,7 +127,10 @@ objective_diffusion_separate <- function(pars, rt, boundary, drift, ...) {
     densities[drift == levels(drift)[i]] <- tryCatch(
       ddiffusion(rt[drift == levels(drift)[i]], boundary=boundary[drift == levels(drift)[i]], 
                  a=pars["a"], t0=pars["t0"],  
+                 sv=pars["sv"],
+                 sz=if ("sz" %in% non_v_pars) pars["sz"] else 0.1,
                  z=if ("z" %in% non_v_pars) pars["z"] else 0.5,
+                 st0=if ("st0" %in% non_v_pars) pars["st0"] else 0, 
                  v=pars[base_par+i]), 
       error = function(e) 0)  
   }
@@ -117,11 +148,11 @@ get_start <- function(base_par, n_drift = 5) {
     a_1 = runif(1, 0.5, 3), 
     a_2 = runif(1, 0.5, 3),
     t0 = runif(1, 0, 0.5), 
-    t0_1 = runif(1, 0, 0.5),
-    t0_2 = runif(1, 0, 0.5),
-    z = runif(1, 0.4, 0.6),
-    z = runif(1, 0.4, 0.6),
-    z = runif(1, 0.4, 0.6)
+    z = runif(1, 0.4, 0.6), 
+    sz = runif(1, 0, 0.5),
+    sv = runif(1, 0, 0.5),
+    st0 = runif(1, 0, 0.5),
+    d = rnorm(1, 0, 0.05)
   )
   start2 <- sort(rnorm(n_drift), decreasing = FALSE)
   names(start2) <- paste0("v_", seq_len(n_drift))
@@ -129,33 +160,37 @@ get_start <- function(base_par, n_drift = 5) {
 }
 
 # function that tries different random start values until it works:
-ensure_fit <- function(data, start_function, objective_function, base_pars, n_drift = 5) {
-  
-  start_ll <- 1e+06
-  #browser()
-  while(start_ll == 1e+06) {
-    start <- start_function(base_pars)
-    start_ll <- objective_function(start, 
-                                   rt = data$rt, boundary = data$response_num, 
-                                   drift = factor(data$strength_bin, seq_len(n_drift)), 
-                                   instruction = data$instruction)
+ensure_fit <- function(data, start_function, objective_function, base_pars, n_drift = 5, n_fits = 1,
+                       lower = c(rep(0, length(base_pars)), -Inf,
+                                 rep(-Inf, length(start_function(base_pars))-length(base_pars)))) {
+  best_fit <- list(objective = 1e+06)
+  for (i in seq_len(n_fits)) {
+    start_ll <- 1e+06
+    #browser()
+    while(start_ll == 1e+06) {
+      start <- start_function(base_pars, n_drift=n_drift)
+      start_ll <- objective_function(start, 
+                                     rt = data$rt, boundary = data$response_num, 
+                                     drift = factor(data$strength_bin, seq_len(n_drift)), 
+                                     instruction = data$instruction)
+    }
+    cat("\nstart fitting.\n") # just for information to see if it is stuck
+    
+    fit <- nlminb(start, objective_function, 
+                  rt = data$rt, boundary = data$response_num, 
+                  drift = factor(data$strength_bin, seq_len(n_drift)), 
+                  instruction = data$instruction,
+                  lower = lower)
+    
+    if (fit$objective < best_fit$objective) best_fit <- fit
   }
-  cat("\nstart fitting.\n") # just for information to see if it is stuck
-  
-  fit <- nlminb(start, objective_function, 
-                rt = data$rt, boundary = data$response_num, 
-                drift = factor(data$strength_bin, seq_len(n_drift)), 
-                instruction = data$instruction,
-                lower = c(rep(0, length(base_pars)), -Inf,
-                          rep(-Inf, length(start_function(base_pars))-length(base_pars))))
-  
-  fit
+  best_fit
 }
 
 
 ## ---- echo=FALSE---------------------------------------------------------
-load("rr98_wiener_fits.rda")
-
+load("rr98_full-diffusion_fits.rda")
+load("rr98_full-lba_fits.rda")
 
 
 ## ---- eval = FALSE-------------------------------------------------------
@@ -164,7 +199,7 @@ load("rr98_wiener_fits.rda")
 #    group_by(id, instruction) %>% # we loop across both, id and instruction
 #    do(diffusion = ensure_fit(data = ., start_function = get_start,
 #                              objective_function = objective_diffusion_separate,
-#                              base_pars = c("a", "t0", "z"))) %>% ungroup()
+#                              base_pars = c("a", "t0", "sv", "sz", "z"))) %>% ungroup()
 
 ## ------------------------------------------------------------------------
 pars_separate <- fits_separate %>% group_by(id, instruction) %>% 
@@ -173,57 +208,65 @@ pars_separate <- fits_separate %>% group_by(id, instruction) %>%
 pars_separate$ll <- (fits_separate %>% group_by(id, instruction) %>% 
                        do(ll = .$diffusion[[1]][["objective"]]) %>%  
                        summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+if (!("st0" %in% colnames(pars_separate))) pars_separate$st0 <- 0
 if (!("z" %in% colnames(pars_separate))) pars_separate$z <- 0.5
+if (!("sz" %in% colnames(pars_separate))) pars_separate$sz <- 0.1
 knitr::kable(pars_separate)
 
 
 ## ----obtain_fits_not_run, eval = FALSE, include = FALSE------------------
+#  
 #  fits_separate <- rr98 %>%
 #    group_by(id, instruction) %>% # we loop across both, id and instruction
 #    do(diffusion = ensure_fit(data = ., start_function = get_start,
 #                              objective_function = objective_diffusion_separate,
-#                              base_pars = c("a", "t0", "z"))) %>% ungroup()
+#                              base_pars = c("a", "t0", "sv", "sz", "z"))) %>% ungroup()
+#  
 #  
 #  fits_separate_b <- rr98 %>%
 #    group_by(id, instruction) %>% # we loop across both, id and instruction
 #    do(diffusion = ensure_fit(data = ., start_function = get_start,
-#                              objective_function = objective_diffusion_separate,
-#                              base_pars = c("a", "t0", "z"))) %>% ungroup()
+#                              objective_function = objective_diffusion_separate_alt,
+#                              base_pars = c("a", "t0", "sv", "sz", "z"))) %>% ungroup()
 #  
-#  
-#  pars_separate_b <- fits_separate_b %>% group_by(id, instruction) %>%
-#    do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% ungroup() %>%
-#    as.data.frame()
-#  pars_separate_b$ll <- (fits_separate_b %>% group_by(id, instruction) %>%
-#                         do(ll = .$diffusion[[1]][["objective"]]) %>%
-#                         summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+#  pars_separate_b <- as.data.frame(fits_separate_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% ungroup())
+#  pars_separate_b$ll <- (fits_separate_b %>% group_by(id, instruction) %>% do(ll = .$diffusion[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
 #  
 #  
 #  all.equal(pars_separate, pars_separate_b, tolerance = 0.001)
 #  
-#  fits_joint <- rr98 %>%
-#    group_by(id) %>% # we loop only across id
-#    do(diffusion = ensure_fit(data = ., start_function = get_start,
-#                              objective_function = objective_diffusion_joint,
-#                              base_pars = c("a_1", "a_2", "t0_1", "t0_2", "z"))) %>% ungroup()
+#  save(fits_separate, fits_separate_b, file = "rr98_full-diffusion_fits.rda")
 #  
-#  fits_joint_b <- rr98 %>%
-#    group_by(id) %>% # we loop only across id
-#    do(diffusion = ensure_fit(data = ., start_function = get_start,
-#                              objective_function = objective_diffusion_joint,
-#                              base_pars = c("a_1", "a_2", "t0_1", "t0_2", "z"))) %>% ungroup()
+#  # save for fast-dm
 #  
-#  pars_joint_b <- fits_joint_b %>% group_by(id) %>%
-#    do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>%
-#    ungroup() %>% as.data.frame()
+#  tmp_out <- rr98 %>% filter(id == "jf" & instruction == "speed") %>% mutate(resp = response_num-1) %>% select(strength_bin, resp, rt)
+#  write.table(tmp_out, file = "jf_speed.dat", sep = "\t", row.names = FALSE, col.names = FALSE, quote =FALSE)
 #  
-#  pars_joint_b$ll <- (fits_joint_b %>% group_by(id) %>%
-#                      do(ll = .$diffusion[[1]][["objective"]]) %>%
-#                      summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+#  rr98 %>% group_by(id, instruction, strength_bin, response) %>% summarise(n = n()) %>% spread(strength_bin, n)
 #  
-#  all.equal(pars_joint, pars_joint_b, tolerance = 0.0001)
+#  ## single tries
+#  dput(pars_separate[1,])
 #  
-#  save(fits_separate, fits_separate_b, fits_joint, fits_joint_b, file = "rr98_wiener_fits.rda")
+#  pdiffusion(rt = 30, boundary = "upper", a = 0.579802547413743, t0 = 0.195986367994755, sv = 0.897142805898331, sz = 0.596868027475543, z = 0.430283354091839, st0 = 0.144057563742441, d = 0.00190627271452611, v = -4.92625351825116)
+#  
+#  # JF speed, v_1
+#  (xp <- pdiffusion(rt = 20, boundary = "lower", a = 0.579802547413743, t0 = 0.195986367994755, sv = 0.897142805898331, sz = 0.596868027475543, z = 0.430283354091839, st0 = 0.144057563742441, d = 0.00190627271452611, v = -4.92625351825116))
+#  
+#  qdiffusion(xp*quantiles, "lower", a = 0.579802547413743, t0 = 0.195986367994755, sv = 0.897142805898331, sz = 0.596868027475543, z = 0.430283354091839, st0 = 0.144057563742441, d = 0.00190627271452611, v = -4.92625351825116)
+#  
+#  (xp <- pdiffusion(rt = 20, boundary = "lower", a = 0.667287, t0 = 0.254885, sv = 0.448566, sz = 0.416655, z = 0.500000, st0 = 0, d = 0, v = -3.388013))
+#  
+#  qdiffusion(xp*quantiles, "lower",  a = 0.667287, t0 = 0.254885, sv = 0.448566, sz = 0.416655, z = 0.500000, st0 = 0, d = 0, v = -3.388013)
+#  
+#  (xp <- pdiffusion(rt = 20, boundary = "lower", a = 0.667287, t0 = 0.254885, sv = 0.448566, sz = 0.416655, z = 0.500000, st0 = 0, d = 0, v = 3.005193))
+#  
+#  qdiffusion(xp*quantiles, "lower",  a = 0.667287, t0 = 0.254885, sv = 0.448566, sz = 0.416655, z = 0.500000, st0 = 0, d = 0, v = 3.005193)
+#  
+#  
+#  head(rr98)
+#  rr98 %>% filter(id == "jf" & instruction=="speed") %>% group_by(strength_bin, response) %>%
+#    summarise(n = n(), med_rt = median(rt), q1 = quantile(rt, 0.1), q5 = quantile(rt, 0.9))
+#  
 #  
 
 ## ---- fig.height=5, fig.width=7, message=FALSE---------------------------
@@ -235,7 +278,8 @@ pars_separate_l$strength_bin <- factor(substr(pars_separate_l$strength_bin, 3,3)
                                        levels = as.character(seq_len(length(bins)-1)))
 #pars_separate_l <- inner_join(pars_separate_l, agg_rr98_bin)
 pars_separate_l <- pars_separate_l  %>% group_by(id, instruction, strength_bin) %>%
-  mutate(resp_prop = pdiffusion(rt=20, boundary="lower", a=a, v=v, t0=t0, z=z)) 
+  mutate(resp_prop = pdiffusion(rt=20, boundary="lower", 
+                                a=a, v=v, t0=t0, sz = sz, z=z, sv=sv, st0=st0)) 
 
 p1 <- xyplot(prop ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
                list(lines = TRUE), ylab = "Proportion of 'dark' responses", col = "grey")
@@ -254,11 +298,11 @@ p2 + as.layer(p1) + as.layer(p3)
 # get predicted quantiles (uses predicted response proportions)
 separate_pred_dark <- pars_separate_l %>% do(as.data.frame(t(
   qdiffusion(quantiles*.$resp_prop, boundary="lower", 
-             a=.$a, v=.$v, t0=.$t0, z=.$z)))) %>% 
+             a=.$a, v=.$v, t0=.$t0, sz = .$sz, z = .$z, sv=.$sv, st0=.$st0)))) %>% 
   ungroup() %>% gather("quantiles", "dark", V1:V5)
 separate_pred_light <- pars_separate_l %>% do(as.data.frame(t(
   qdiffusion(quantiles*(1-.$resp_prop), boundary="upper", 
-             a=.$a, v=.$v, t0=.$t0, z=.$z)))) %>% 
+             a=.$a, v=.$v, t0=.$t0, sz = .$sz, z = .$z, sv=.$sv, st0=.$st0)))) %>% 
   ungroup() %>% gather("quantiles", "light", V1:V5)
 
 #separate_pred_light %>% filter(is.na(light))
@@ -346,108 +390,193 @@ p2 + as.layer(p1) + as.layer(p1e)
 
 
 ## ------------------------------------------------------------------------
-objective_diffusion_joint <- function(pars, rt, boundary, drift, instruction) {
+
+# objective function for diffusion with 1 a. loops over drift to assign drift rates to strength
+objective_lba_separate <- function(pars, rt, boundary, drift, ...) {
   non_v_pars <- grep("^v", names(pars), invert = TRUE, value = TRUE)
   base_par <- length(non_v_pars)  # number of non-drift parameters
   densities <- vector("numeric", length(rt))
-  as <- c(pars["a_1"], pars["a_2"])
-  ts <- c(pars["t0_1"], pars["t0_2"])
-  for (j in seq_along(levels(instruction))) {
-    for (i in seq_along(levels(drift))) {
-      densities[drift == levels(drift)[i] & instruction == levels(instruction)[j]] <- tryCatch(
-        ddiffusion(rt[drift == levels(drift)[i] & instruction == levels(instruction)[j]], 
-                   boundary=boundary[drift==levels(drift)[i]&instruction==levels(instruction)[j]],
-                   a=as[j], t0=ts[j], z=pars["z"], 
-                   v=pars[base_par+i]), 
-        error = function(e) 0)  
-    }  
+  for (i in seq_along(levels(drift))) {
+    if (sum(drift == levels(drift)[i]) == 0) next
+    densities[drift == levels(drift)[i]] <- dLBA(
+      rt[drift == levels(drift)[i]], 
+      response=boundary[drift == levels(drift)[i]],
+      A = list(pars["a_1"], pars["a_2"]), 
+      b = max(pars["a_1"], pars["a_2"])+pars["b"], 
+      t0 = pars["t0"], 
+      mean_v = c(pars[i], 1-pars[i]), 
+      sd_v = pars["sv"], silent=TRUE)
   }
   if (any(densities == 0)) return(1e6)
   return(-sum(log(densities)))
 }
 
+# function that creates random start values, also 
+get_start_lba <- function(base_par, n_drift = 10) {
+  start1 <- c(
+    a = runif(1, 0.5, 3),
+    a_1 = runif(1, 0.5, 3), 
+    a_2 = runif(1, 0.5, 3),
+    t0 = runif(1, 0, 0.5), 
+    b = runif(1, 0, 0.5), 
+    sv = runif(1, 0.5, 1.5),
+    st0 = runif(1, 0, 0.5)
+  )
+  start2 <- sort(rnorm(n_drift), decreasing = FALSE)
+  names(start2) <- paste0("v_", seq_len(n_drift))
+  c(start2, start1[base_par])
+}
 
 
-## ---- include=FALSE, eval=FALSE------------------------------------------
+## ---- eval=FALSE---------------------------------------------------------
 #  
-#  fits_joint <- rr98 %>%
-#    group_by(id) %>% # we loop only across id
-#    do(diffusion = ensure_fit(data = ., start_function = get_start,
-#                              objective_function = objective_diffusion_joint,
-#                              base_pars = c("a_1", "a_2", "t0_1", "t0_2", "z"))) %>% ungroup()
+#  fits_separate_lba <- rr98 %>%
+#    group_by(id, instruction) %>% # we loop across both, id and instruction
+#    do(lba = ensure_fit(data = ., start_function = get_start_lba,
+#                        objective_function = objective_lba_separate,
+#                        base_pars = c("a_1", "a_2", "t0", "b", "sv"),
+#                        lower = c(rep(-Inf, 5), rep(0, 5)),
+#                        n_drift = 5, n_fits = 5)) %>% ungroup()
 #  
 
 ## ------------------------------------------------------------------------
-pars_joint <- fits_joint %>% group_by(id) %>% 
-  do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% 
-  ungroup() %>% as.data.frame()
-
-pars_joint$ll <- (fits_joint %>% group_by(id) %>% 
-                    do(ll = .$diffusion[[1]][["objective"]]) %>%  
-                    summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-
-knitr::kable(pars_joint)
+lba_pars <- fits_separate_lba %>% group_by(id, instruction) %>% 
+  do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup() %>%
+  as.data.frame()
+lba_pars$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% 
+                       do(ll = .$lba[[1]][["objective"]]) %>%  
+                       summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+knitr::kable(lba_pars)
 
 
-## ---- message=FALSE------------------------------------------------------
-
-ll_tab <- left_join(pars_joint[,c("id", "ll")], 
-                    pars_separate %>% group_by(id) %>% summarise(ll_sep = sum(ll))) %>% 
-  mutate(ll_diff_2 = 2*(ll-ll_sep), 
-         p = round(pchisq(ll_diff_2, df = 5, lower.tail = FALSE), 4))
-#rr98 %>% group_by(id) %>% summarise(n())
-knitr::kable(ll_tab)
-
+## ----obtain_fits_lba, eval = FALSE, include = FALSE----------------------
+#  
+#  fits_separate_lba <- rr98 %>%
+#    group_by(id, instruction) %>% # we loop across both, id and instruction
+#    do(lba = ensure_fit(data = ., start_function = get_start_lba,
+#                        objective_function = objective_lba_separate,
+#                        base_pars = c("a_1", "a_2", "t0", "b", "sv"),
+#                        lower = c(rep(-Inf, 5), rep(0, 5)),
+#                        n_drift = 5, n_fits = 5)) %>% ungroup()
+#  
+#  lba_pars_separate <- as.data.frame(fits_separate_lba %>% group_by(id, instruction) %>% do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup())
+#  lba_pars_separate$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% do(ll = .$lba[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+#  round(lba_pars_separate[,-c(1:2)], 4)
+#  
+#  
+#  fits_separate_lba_b <- rr98 %>%
+#    group_by(id, instruction) %>% # we loop across both, id and instruction
+#    do(lba = ensure_fit(data = ., start_function = get_start_lba,
+#                        objective_function = objective_lba_separate,
+#                        base_pars = c("a_1", "a_2", "t0", "b", "sv"),
+#                        lower = c(rep(-Inf, 5), rep(0, 5)),
+#                        n_drift = 5, n_fits = 5)) %>% ungroup()
+#  
+#  lba_pars_separate_b <- as.data.frame(fits_separate_lba_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup())
+#  lba_pars_separate_b$ll <- (fits_separate_lba_b %>% group_by(id, instruction) %>% do(ll = .$lba[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+#  
+#  all.equal(lba_pars_separate, lba_pars_separate_b, tolerance = 0.001)
+#  
+#  fits_separate_lba_b <- rr98 %>%
+#    group_by(id, instruction) %>% # we loop across both, id and instruction
+#    do(lba = ensure_fit(data = ., start_function = get_start_lba,
+#                        objective_function = objective_lba_separate,
+#                        base_pars = c("a_1", "a_2", "t0", "b", "sv"),
+#                        lower = c(rep(-Inf, 10), rep(0, 5)),
+#                        n_drift = 10)) %>% ungroup()
+#  
+#  lba_pars_separate_b <- as.data.frame(fits_separate_lba_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup())
+#  lba_pars_separate_b$ll <- (fits_separate_lba_b %>% group_by(id, instruction) %>% do(ll = .$lba[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+#  
+#  fits_separate_lba_b[2,"lba"][[1]]
+#  
+#  save(fits_separate_lba, file = "rr98_full-lba_fits.rda")
+#  
+#  # objective function for LBA with 1 a. loops over drift to assign drift rates to strength
+#  objective_lba_separate <- function(pars, rt, boundary, drift, ...) {
+#    non_v_pars <- grep("^v", names(pars), invert = TRUE, value = TRUE)
+#    base_par <- length(non_v_pars)  # number of non-drift parameters
+#    densities <- vector("numeric", length(rt))
+#    for (i in seq_along(levels(drift))) {
+#      if (sum(drift == levels(drift)[i]) == 0) next
+#      densities[drift == levels(drift)[i]] <- dLBA(
+#        rt[drift == levels(drift)[i]],
+#        response=boundary[drift == levels(drift)[i]],
+#        A = pars["a"], b = pars["a"]+pars["b"],
+#        t0 = pars["t0"],
+#        mean_v = pars[((i-1)*2+1):((i-1)*2+2)],
+#        sd_v = c(1, pars["sv"]), silent=TRUE)
+#    }
+#    if (any(densities == 0)) return(1e6)
+#    return(-sum(log(densities)))
+#  }
+#  
+#  # objective function for diffusion with 1 a. loops over drift to assign drift rates to strength
+#  objective_lba_separate <- function(pars, rt, boundary, drift, ...) {
+#    non_v_pars <- grep("^v", names(pars), invert = TRUE, value = TRUE)
+#    base_par <- length(non_v_pars)  # number of non-drift parameters
+#    densities <- vector("numeric", length(rt))
+#    for (i in seq_along(levels(drift))) {
+#      if (sum(drift == levels(drift)[i]) == 0) next
+#      densities[drift == levels(drift)[i]] <- dLBA(
+#        rt[drift == levels(drift)[i]],
+#        response=boundary[drift == levels(drift)[i]],
+#        A = list(pars["a_1"], pars["a_2"]), b = list(pars["a_1"]+pars["b"], pars["a_2"]+pars["b"]),
+#        t0 = pars["t0"],
+#        mean_v = c(pars[i], 1-pars[i]),
+#        sd_v = pars["sv"], silent=TRUE)
+#    }
+#    if (any(densities == 0)) return(1e6)
+#    return(-sum(log(densities)))
+#  }
+#  
 
 ## ---- fig.height=5, fig.width=7, message=FALSE---------------------------
-
+lba_pars_separate <- fits_separate_lba %>% group_by(id, instruction) %>% 
+  do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup() %>% as.data.frame()
+lba_pars_separate$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% 
+                           do(ll = .$lba[[1]][["objective"]]) %>%  
+                           summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
 
 # get predicted response proportions
-pars_joint_l <- pars_joint %>% gather("strength_bin", "v", starts_with("v")) %>% 
-  gather("instruction_tmp", "pars", a_1, a_2, t0_1, t0_2) %>%
-  separate(instruction_tmp, c("para", "instruction")) %>%
-  spread(para, pars)
-pars_joint_l$instruction <- factor(pars_joint_l$instruction, 
-                                   levels = c("1", "2"), labels = c("speed", "accuracy"))
-pars_joint_l$strength_bin <- factor(substr(pars_joint_l$strength_bin, 3,3), 
+lba_pars_separate_l <- lba_pars_separate %>% gather("strength_bin", "v", starts_with("v"))
+lba_pars_separate_l$strength_bin <- factor(substr(lba_pars_separate_l$strength_bin, 3,3), 
                                        levels = as.character(seq_len(length(bins)-1)))
 #pars_separate_l <- inner_join(pars_separate_l, agg_rr98_bin)
-pars_joint_l <- pars_joint_l  %>% group_by(id, instruction, strength_bin) %>%
-  mutate(resp_prop = pdiffusion(rt=20, boundary="lower", a=a, v=v, t0=t0, z=z)) 
+lba_pars_separate_l <- lba_pars_separate_l  %>% group_by(id, instruction, strength_bin) %>%
+  mutate(resp_prop = pLBA(rt=Inf, response=1, A=list(a_1, a_2), sd_v=sv,
+                          mean_v=c(v, 1-v), t0=t0, b=max(a_1, a_2)+b, silent=TRUE))
 
 p1 <- xyplot(prop ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
                list(lines = TRUE), ylab = "Proportion of 'dark' responses", col = "grey")
-p1e <- segplot(strength_bin ~ upper+lower|id + instruction, agg_rr98_bin, 
+p2 <- segplot(strength_bin ~ upper+lower|id + instruction, agg_rr98_bin, 
               auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
               col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
               draw.bands = FALSE, angle = 90, length = 0.05, ends = "both")
-p2 <- xyplot(resp_prop ~ strength_bin|id + instruction, pars_separate_l, type = "b", 
-             auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
-             col = "darkgrey", lty = 3, pch = 0)
-p3 <- xyplot(resp_prop ~ strength_bin|id + instruction, pars_joint_l, type = "b", 
+p3 <- xyplot(resp_prop ~ strength_bin|id + instruction, lba_pars_separate_l, type = "b", 
              auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
              col = "black")
-p2 + as.layer(p3) + as.layer(p1) + as.layer(p1e)
+p2 + as.layer(p1) + as.layer(p3)
 
 
 ## ---- fig.height=6, fig.width=7, message=FALSE---------------------------
 
 # get predicted quantiles (uses predicted response proportions)
-joint_pred_dark <- pars_joint_l %>% do(as.data.frame(t(
-  qdiffusion(quantiles*.$resp_prop, boundary="lower", 
-             a=.$a, v=.$v, t0=.$t0, z=.$z)))) %>% 
+lba_separate_pred_dark <- lba_pars_separate_l %>% do(as.data.frame(t(
+  qLBA(quantiles*.$resp_prop, response=1, A=list(.$a_1, .$a_2), sd_v=.$sv,
+       mean_v=c(.$v, 1-.$v), t0=.$t0, b=max(.$a_1, .$a_2)+.$b, silent=TRUE)))) %>% 
   ungroup() %>% gather("quantiles", "dark", V1:V5)
-joint_pred_light <- pars_joint_l %>% do(as.data.frame(t(
-  qdiffusion(quantiles*(1-.$resp_prop), boundary="upper", 
-             a=.$a, v=.$v, t0=.$t0, z=.$z)))) %>% 
+lba_separate_pred_light <- lba_pars_separate_l %>% do(as.data.frame(t(
+  qLBA(quantiles*(1-.$resp_prop), response=2, A=list(.$a_1, .$a_2), sd_v=.$sv,
+       mean_v=c(.$v, 1-.$v), t0=.$t0, b=max(.$a_1, .$a_2)+.$b, silent=TRUE)))) %>% 
   ungroup() %>% gather("quantiles", "light", V1:V5)
 
-#joint_pred_light %>% filter(is.na(light))
-joint_pred <- inner_join(joint_pred_dark, joint_pred_light)
-joint_pred$quantiles <- factor(joint_pred$quantiles, 
+#separate_pred_light %>% filter(is.na(light))
+lba_separate_pred <- inner_join(lba_separate_pred_dark, lba_separate_pred_light)
+lba_separate_pred$quantiles <- factor(lba_separate_pred$quantiles, 
                                   levels = c("V5", "V4", "V3", "V2", "V1"), 
                                   labels = c("90%", "70%", "50%", "30%", "10%"))
-joint_pred <- joint_pred %>% gather("response", "rt", dark, light)
+lba_separate_pred <- lba_separate_pred %>% gather("response", "rt", dark, light)
 
 p1 <- xyplot(rt ~ strength_bin|id+response, agg2_rr98_response, type = "b", 
              auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
@@ -458,16 +587,11 @@ p1e <- segplot(strength_bin ~ upper+lower|id+response, agg2_rr98_response,
                col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
                draw.bands = FALSE, angle = 90, length = 0.05, ends = "both", 
                subset = instruction == "speed" & quantile == "50%", layout = c(3,2))
-p2 <- xyplot(rt ~ strength_bin|id + response, separate_pred, type = "b", 
-             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
-             subset = instruction == "speed" & quantiles == "50%", 
-             scales = list(y = list(limits = c(0.25, 0.5))),
-             col = "darkgrey", lty = 3, pch = 0)
-p3 <- xyplot(rt ~ strength_bin|id + response, joint_pred, type = "b", 
+p2 <- xyplot(rt ~ strength_bin|id + response, lba_separate_pred, type = "b", 
              auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
              subset = instruction == "speed" & quantiles == "50%", 
              scales = list(y = list(limits = c(0.25, 0.5))))
-p2 + as.layer(p3) + as.layer(p1) + as.layer(p1e)
+p2 + as.layer(p1) + as.layer(p1e)
 
 
 ## ---- fig.height=6, fig.width=7------------------------------------------
@@ -481,16 +605,11 @@ p1e <- segplot(strength_bin ~ upper+lower|id+response, agg2_rr98_response,
                col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
                draw.bands = FALSE, angle = 90, length = 0.05, ends = "both", 
                subset = instruction == "accuracy" & quantile == "50%", layout = c(3,2))
-p2 <- xyplot(rt ~ strength_bin|id + response, separate_pred, type = "b", 
+p2 <- xyplot(rt ~ strength_bin|id + response, lba_separate_pred, type = "b", 
              auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
              subset = instruction == "accuracy" & quantiles == "50%", 
-             scales = list(y = list(limits = c(0.2, 1.5))),
-             col = "darkgrey", lty = 3, pch = 0)
-p3 <- xyplot(rt ~ strength_bin|id + response, joint_pred, type = "b", 
-             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
-             subset = instruction == "accuracy" & quantiles == "50%", 
-             scales = list(y = list(limits = c(0.25, 0.5))))
-p2 + as.layer(p3) + as.layer(p1) + as.layer(p1e)
+             scales = list(y = list(limits = c(0.2, 1.5))))
+p2 + as.layer(p1) + as.layer(p1e)
 
 
 ## ---- fig.height=7, fig.width=7------------------------------------------
@@ -503,9 +622,9 @@ p1e <- segplot(strength_bin ~ upper+lower|id+response, agg2_rr98_response,
                col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
                draw.bands = FALSE, angle = 90, length = 0.05, ends = "both", 
                subset = instruction == "speed")
-p2 <- xyplot(rt ~ strength_bin|id + response, joint_pred, group = quantiles, type = "b", 
+p2 <- xyplot(rt ~ strength_bin|id + response, lba_separate_pred, group = quantiles, type = "b", 
              auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
-             subset = instruction == "speed", scales = list(y = list(limits = c(0.2, 0.9))))
+             subset = instruction == "speed", scales = list(y = list(limits = c(0.2, 0.6))))
 p2 + as.layer(p1) + as.layer(p1e)
 
 
@@ -519,9 +638,9 @@ p1e <- segplot(strength_bin ~ upper+lower|id+response, agg2_rr98_response,
                col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
                draw.bands = FALSE, angle = 90, length = 0.05, ends = "both", 
                subset = instruction == "accuracy")
-p2 <- xyplot(rt ~ strength_bin|id + response, joint_pred, group = quantiles, type = "b", 
+p2 <- xyplot(rt ~ strength_bin|id + response, lba_separate_pred, group = quantiles, type = "b", 
              auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
-             subset = instruction == "accuracy", scales = list(y = list(limits = c(0.1, 3.0))))
+             subset = instruction == "accuracy", scales = list(y = list(limits = c(0.1, 3.3))))
 p2 + as.layer(p1) + as.layer(p1e)
 
 

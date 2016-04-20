@@ -1,10 +1,10 @@
 ---
-title: "Reanalysis of Ratcliff and Rouder (1998): Wiener Model"
+title: "Reanalysis of Ratcliff and Rouder (1998) with Diffusion Model and LBA"
 author: "Henrik Singmann"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Reanalysis of Ratcliff and Rouder (1998): Wiener Model}
+  %\VignetteIndexEntry{Reanalysis of Ratcliff and Rouder (1998) with Diffusion Model and LBA}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -19,9 +19,9 @@ The experiment contained another manipulation, the distribution (or brightness `
 
 # Descriptive data
 
-As a first step, we load necessary packages, the data, and remove a few outliers. Then, we bin the strength levels to remove some of the noise in the extreme strength levels. For this, we construct five separate strength bins with approximately equal response behavior and comparable numbers of trials. This is similar to what was done originally by Ratcliff and Rouder (1998). The next table shows the number of trials per participant, bin, and response.
+As a first step, we load the data and then plot the probability with which each response (i.e., "dark" or "light") is given as a function of strength and instruction condition. This clearly shows that there is a massive effect of strength on which response is given while at the same time the instruction only seems to have a minor effect and more on the extremes than in the middle.
 
-```{r, fig.height=4, fig.width=7}
+```{r, fig.height=4, fig.width=7, message=FALSE, warning=FALSE}
 require(rtdists)
 require(dplyr)   # for data manipulations and looping
 require(tidyr)   # for data manipulations
@@ -34,6 +34,47 @@ require(binom)  # for binomial confidence intervals
 
 data(rr98)
 rr98 <- rr98[!rr98$outlier,]  #remove outliers
+
+# aggregate data for first plot:
+agg_rr98 <- rr98  %>% group_by(id, instruction, strength) %>% 
+  summarise(prop = mean(response == "dark"), mean_rt = mean(rt), median_rt = mean(rt)) %>% 
+  ungroup()
+
+xyplot(prop ~ strength|id, agg_rr98, group = instruction, type = "b", 
+       auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses")
+
+
+```
+
+Next, we want to get an overview of the response time distributions. For this we look at the response times of the five quantiles (i.e., 0.1, 0.3, 0.5/median, 0.7, 0.9) across the strength manipulations. This time, we also separate the plots by condition as the speed condition resulted in, as expected, vastly shorter response times. These two plots reveal considerable differences between the two instruction conditions. 
+
+```{r, fig.height=6, fig.width=7}
+
+quantiles <- c(0.1, 0.3, 0.5, 0.7, 0.9)
+## aggregate data for quantile plot
+quantiles_rr98 <- rr98  %>% group_by(id, instruction, strength) %>% 
+  do(as.data.frame(t(quantile(.$rt, probs = quantiles)))) %>%
+  ungroup() %>%
+  gather(quantile, rt,  -id, - instruction, - strength)
+quantiles_rr98$quantile <- factor(quantiles_rr98$quantile, 
+                                  levels = c("90%", "70%", "50%", "30%", "10%"))
+
+xyplot(rt ~ strength|id + instruction, quantiles_rr98, group = quantile, type = "b", 
+       auto.key = list(lines = TRUE), ylab = "RT (in seconds)", subset = instruction == "speed")
+
+xyplot(rt ~ strength|id + instruction, quantiles_rr98, group = quantile, type = "b", 
+       auto.key = FALSE, ylab = "RT (in seconds)", subset = instruction == "accuracy")
+
+
+```
+
+
+In the speed conditions, response times were, as expected, generally fast and there seemed to be hardly any effect of strength. Only for one participant, `nh`, we can see a small increase in RTs for the higher quantiles for strength values near the middle. In contrast, in the accuracy condition strength has a considerable effect on response times for all participants. Again, this increase was especially strong for the slower responses (i.e., the higher quantiles). For those we see a strong inverse u-shaped effect, symmetrically around the middle -- where the probability for each response is 50% -- with very high response times for strength values near the middle. 
+
+However, as this plot is getting a little bit messy, we now bin the strength levels to remove noise which should provide a clearer overview. For this, we will construct five separate strength bins with approximately equal response behavior and comparable numbers of trials. This is similar to what was done originally by Ratcliff and Rouder (1998). The next table shows the number of trials per participant, bin, and response.
+
+
+```{r, fig.height=4, fig.width=7}
 
 #bins <- c(-0.5, 5.5, 10.5, 13.5, 16.5, 19.5, 25.5, 32.5) # seven bins like RR98
 bins <- c(-0.5, 10.5, 13.5, 16.5, 19.5, 32.5)
@@ -57,10 +98,10 @@ knitr::kable(
     spread(strength_bin, n)
 )
 
+
 ```
 
-We then plot the probability with which each response (i.e., "dark" or "light") is given as a function of strength and instruction condition. This clearly shows that there is a massive effect of strength on the probability with which each response is given while at the same time the instruction only seems to have a minor effect and more on the extremes than in the middle.
-
+We first look again and the response proportions and see more clearly the difference between the strength conditions at the outer bins.
 
 ```{r, fig.height=4, fig.width=7}
 xyplot(prop ~ strength_bin|id, agg_rr98_bin, group = instruction, type = "b", 
@@ -68,12 +109,9 @@ xyplot(prop ~ strength_bin|id, agg_rr98_bin, group = instruction, type = "b",
 
 ```
 
-
-Next, we want to get an overview of the response time distributions. For this we look at the response times of the five quantiles (i.e., 0.1, 0.3, 0.5/median, 0.7, 0.9) across the strength manipulations. This time, we also separate the plots by condition as the speed condition resulted in, as expected, vastly shorter response times. These two plots reveal considerable differences between the two instruction conditions. 
+Now we also look again at the RT quantiles and see more clearly the symmetrical inverse u-shaped increase in RTs for the middle bins described above.
 
 ```{r, fig.height=6, fig.width=7}
-
-quantiles <- c(0.1, 0.3, 0.5, 0.7, 0.9)
 
 ## aggregate data for quantile plot
 quantiles_rr98_bin <- rr98  %>% group_by(id, instruction, strength_bin) %>% 
@@ -89,11 +127,7 @@ xyplot(rt ~ strength_bin|id + instruction, quantiles_rr98_bin, group = quantile,
 xyplot(rt ~ strength_bin|id + instruction, quantiles_rr98_bin, group = quantile, type = "b", 
        auto.key = FALSE, ylab = "RT (in seconds)", subset = instruction == "accuracy")
 
-
-
 ```
-
-In the speed conditions, response times were, as expected, generally fast and there seemed to be hardly any effect of strength. Only for one participant, `nh`, we can see a small increase in RTs for the higher quantiles for strength values near the middle. In contrast, in the accuracy condition strength has a considerable effect on response times for all participants. Again, this increase was especially strong for the slower responses (i.e., the higher quantiles). For those we see a strong inverse u-shaped effect, symmetrically around the middle -- where the probability for each response is 50% -- with very high response times for strength values near the middle. 
 
 With this clear pattern we now take a look at the RT distributions separately for both responses to see if they are simply mirror images of each other or not. For this, we overlay the two RT quantile plots for all trials in which the responses was "dark" in black (there are more "dark" pixels for the bins on the left side of the plot) with the same plot in which the responses was "light" in grey (there are more "light" pixels for the bins on the right side of the plot).
 
@@ -131,18 +165,20 @@ These two plots reveal an interesting pattern. In the speed condition (upper plo
 For the accuracy condition in the lower plot the pattern is noticeably different. First of all, there are only very few or no "error" responses in the extreme bins. Consequently, there does not seem to be any evidence for fast errors at the extremes (and also not at intermediate strength levels). However, we here more clearly see the slow errors at the intermediate bins. When "dark" is somewhat more probably (i.e., to the left of the middle) "light" responses are noticeably slower than "dark" responses. The same holds for "dark" responses if "light" is more probable. Importantly, this shows that the symmetrical inverse u-shaped increase for the middle bins described above is actually a consequence of a mixture of slow "errors", two asymmetric increases for the two different responses.
 
 
-# Wiener Model Analysis
+# Diffusion Model Analysis
 
-We will analyze the data with the 4 parameter diffusion model also known as the Wiener model which has no trial-by-trial variabilities of the parameters. For this, we will fit a separate model to each participant and instruction condition. Like Ratcliff and Rouder (1998) we will fit the data to the strength bins instead of the full strength manipulation. Our model has 16 parameters per participant:
+We will follow Ratcliff and Rouder (1998) and analyze the data with the diffusion model. For this, we will fit a separate model to each participant and instruction condition. Like Ratcliff and Rouder we will fit the data to the strength bins instead of the full strength manipulation. We fit basically the full diffusion model (with the excpetion of $s_{t0}$) to each instruction condition which results in 10 parameters per participant and instruction condition:
 
-- 2 $\times$ 5 drift rates (i.e., one per strength bin) = 10 drift rates $v$
-- 2 boundary separations $a$ (i.e., one per instruction condition)
-- 2 non-decision times $t_0$
-- 2 starting points $z$
+- 5 drift rates $v$ (i.e., one per strength bin)
+- 1 boundary separation $a$
+- 1 non-decision time $t_0$
+- 1 drift rate variability $s_v$
+- 1 start point $z$
+- 1 start point variability $s_z$
 
-The two boundaries are the two response options "dark" and "light". To estimate the model we diverge from Ratcliff and Rouder (1998) and  employ trial wise maximum likelihood estimation (i.e., no binning of responses). 
+Like in Ratcliff and Rouder (1998), the two boundaries are the two response options "dark" and "light". To estimate the model we diverge from Ratcliff and Rouder and employ trial wise maximum likelihood estimation (i.e., no binning of responses). 
 
-To do so, we simply need to have a wrapper function which returns us the summed log-likelihood of the data (i.e., RTs and corresponding responses) given a set of parameters. The following function for which we simply loop across drift rates will do so for the first model:
+To do so, we simply need to have a wrapper function which returns us the summed log-likelihood of the data (i.e., RTs and corresponding responses) given a set of parameters. The following function for which we simply loop across drift rates will do so:
 
 ```{r}
 # objective function for diffusion with 1 a. loops over drift to assign drift rates to strength
@@ -154,7 +190,10 @@ objective_diffusion_separate <- function(pars, rt, boundary, drift, ...) {
     densities[drift == levels(drift)[i]] <- tryCatch(
       ddiffusion(rt[drift == levels(drift)[i]], boundary=boundary[drift == levels(drift)[i]], 
                  a=pars["a"], t0=pars["t0"],  
+                 sv=pars["sv"],
+                 sz=if ("sz" %in% non_v_pars) pars["sz"] else 0.1,
                  z=if ("z" %in% non_v_pars) pars["z"] else 0.5,
+                 st0=if ("st0" %in% non_v_pars) pars["st0"] else 0, 
                  v=pars[base_par+i]), 
       error = function(e) 0)  
   }
@@ -164,7 +203,7 @@ objective_diffusion_separate <- function(pars, rt, boundary, drift, ...) {
 
 ```
 
-As one can see at this function we also wrap the call to `ddiffusion` (i.e., the PDF of the diffusion model) into a `tryCatch` statement. This prevents failures during optimization as `ddifussion` can fail for some impossible parameters values. Note also that the function is written in such a way that we could easily fix certain parameters without the necessity to change it (using `if`-`then` on the parameters names passed via `pars`).
+As one can see at this function we also wrap the call to `ddiffusion` (i.e., the PDF of the diffusion model) into a `tryCatch` statement. This prevents failures during optimization as `ddifussion` can fail for some impossible parameters values. Note also that the function is written insuch a way that we could easily fix certain parameters without the necessity to change it (using `if`-`then` on the parameters names passed via `pars`).
 
 Additionally, we also need a function that generates a set of random starting values. And, as any random set of starting values may be impossible, another wrapper function that generates starting values until a set of valid starting values is found and then passes those to the optimization routine. As optimization routine we will be using `nlminb`. These functions are given next and are already specified in a way that it will be usable for the second
 
@@ -177,11 +216,11 @@ get_start <- function(base_par, n_drift = 5) {
     a_1 = runif(1, 0.5, 3), 
     a_2 = runif(1, 0.5, 3),
     t0 = runif(1, 0, 0.5), 
-    t0_1 = runif(1, 0, 0.5),
-    t0_2 = runif(1, 0, 0.5),
-    z = runif(1, 0.4, 0.6),
-    z = runif(1, 0.4, 0.6),
-    z = runif(1, 0.4, 0.6)
+    z = runif(1, 0.4, 0.6), 
+    sz = runif(1, 0, 0.5),
+    sv = runif(1, 0, 0.5),
+    st0 = runif(1, 0, 0.5),
+    d = rnorm(1, 0, 0.05)
   )
   start2 <- sort(rnorm(n_drift), decreasing = FALSE)
   names(start2) <- paste0("v_", seq_len(n_drift))
@@ -189,39 +228,43 @@ get_start <- function(base_par, n_drift = 5) {
 }
 
 # function that tries different random start values until it works:
-ensure_fit <- function(data, start_function, objective_function, base_pars, n_drift = 5) {
-  
-  start_ll <- 1e+06
-  #browser()
-  while(start_ll == 1e+06) {
-    start <- start_function(base_pars)
-    start_ll <- objective_function(start, 
-                                   rt = data$rt, boundary = data$response_num, 
-                                   drift = factor(data$strength_bin, seq_len(n_drift)), 
-                                   instruction = data$instruction)
+ensure_fit <- function(data, start_function, objective_function, base_pars, n_drift = 5, n_fits = 1,
+                       lower = c(rep(0, length(base_pars)), -Inf,
+                                 rep(-Inf, length(start_function(base_pars))-length(base_pars)))) {
+  best_fit <- list(objective = 1e+06)
+  for (i in seq_len(n_fits)) {
+    start_ll <- 1e+06
+    #browser()
+    while(start_ll == 1e+06) {
+      start <- start_function(base_pars, n_drift=n_drift)
+      start_ll <- objective_function(start, 
+                                     rt = data$rt, boundary = data$response_num, 
+                                     drift = factor(data$strength_bin, seq_len(n_drift)), 
+                                     instruction = data$instruction)
+    }
+    cat("\nstart fitting.\n") # just for information to see if it is stuck
+    
+    fit <- nlminb(start, objective_function, 
+                  rt = data$rt, boundary = data$response_num, 
+                  drift = factor(data$strength_bin, seq_len(n_drift)), 
+                  instruction = data$instruction,
+                  lower = lower)
+    
+    if (fit$objective < best_fit$objective) best_fit <- fit
   }
-  cat("\nstart fitting.\n") # just for information to see if it is stuck
-  
-  fit <- nlminb(start, objective_function, 
-                rt = data$rt, boundary = data$response_num, 
-                drift = factor(data$strength_bin, seq_len(n_drift)), 
-                instruction = data$instruction,
-                lower = c(rep(0, length(base_pars)), -Inf,
-                          rep(-Inf, length(start_function(base_pars))-length(base_pars))))
-  
-  fit
+  best_fit
 }
 
 ```
 
 ```{r, echo=FALSE}
-load("rr98_wiener_fits.rda")
-
+load("rr98_full-diffusion_fits.rda")
+load("rr98_full-lba_fits.rda")
 
 ```
 
 
-With these functions in place, we now simply need to loop over participants and items to obtain the fit. We do this (as above) using convenient `dplyr` syntax and `dplyr::do`.
+With these functions in place, we now simply need to loop over participants and items to obtain the fit. We do this (as above) using convenient `dplyr` syntax and the `dplyr::do`.
 
 
 ```{r, eval = FALSE}
@@ -230,7 +273,7 @@ fits_separate <- rr98 %>%
   group_by(id, instruction) %>% # we loop across both, id and instruction
   do(diffusion = ensure_fit(data = ., start_function = get_start, 
                             objective_function = objective_diffusion_separate, 
-                            base_pars = c("a", "t0", "z"))) %>% ungroup()
+                            base_pars = c("a", "t0", "sv", "sz", "z"))) %>% ungroup()
 ```
 
 The following table gives the parameters and the negative summed log-likelihoods obtained from this fit:
@@ -242,65 +285,74 @@ pars_separate <- fits_separate %>% group_by(id, instruction) %>%
 pars_separate$ll <- (fits_separate %>% group_by(id, instruction) %>% 
                        do(ll = .$diffusion[[1]][["objective"]]) %>%  
                        summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+if (!("st0" %in% colnames(pars_separate))) pars_separate$st0 <- 0
 if (!("z" %in% colnames(pars_separate))) pars_separate$z <- 0.5
+if (!("sz" %in% colnames(pars_separate))) pars_separate$sz <- 0.1
 knitr::kable(pars_separate)
 
 ```
 
-We can see from these values that there is a large effect of instruction on $a$ as can be expected. However, instruction also has effects on most of the other parameters:
+We can see from these values that there is a large effect of instruction on $a$. However, instruction also has effects on other parameters:
 
 - $t_0$ is consistently larger in the accuracy compared to the speed condition, although this effect is small.
+- $s_v$ is estimated at 0 for very low in the speed condition, but 0.5 or 1 in the acuracy condition. This is consistent with the absence of slow "errors" in the speed condition.
+- $s_z$ is consistently larger in the speed conditions consistent with the presence or more fast "errors" in the speed than in the accuracy condition.
 - The differences in $v$ are not consistent across participants, but also do not seem completely negligible.
-- There does not seem to be a systematic effect on $z$, which hovers around 0.5.
 
 
 ```{r obtain_fits_not_run, eval = FALSE, include = FALSE}
+
 fits_separate <- rr98 %>% 
   group_by(id, instruction) %>% # we loop across both, id and instruction
   do(diffusion = ensure_fit(data = ., start_function = get_start, 
                             objective_function = objective_diffusion_separate, 
-                            base_pars = c("a", "t0", "z"))) %>% ungroup()
+                            base_pars = c("a", "t0", "sv", "sz", "z"))) %>% ungroup()
+
 
 fits_separate_b <- rr98 %>% 
   group_by(id, instruction) %>% # we loop across both, id and instruction
   do(diffusion = ensure_fit(data = ., start_function = get_start, 
-                            objective_function = objective_diffusion_separate, 
-                            base_pars = c("a", "t0", "z"))) %>% ungroup()
+                            objective_function = objective_diffusion_separate_alt, 
+                            base_pars = c("a", "t0", "sv", "sz", "z"))) %>% ungroup()
 
-
-pars_separate_b <- fits_separate_b %>% group_by(id, instruction) %>% 
-  do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% ungroup() %>%
-  as.data.frame()
-pars_separate_b$ll <- (fits_separate_b %>% group_by(id, instruction) %>% 
-                       do(ll = .$diffusion[[1]][["objective"]]) %>%  
-                       summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+pars_separate_b <- as.data.frame(fits_separate_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% ungroup())
+pars_separate_b$ll <- (fits_separate_b %>% group_by(id, instruction) %>% do(ll = .$diffusion[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
 
 
 all.equal(pars_separate, pars_separate_b, tolerance = 0.001)
 
-fits_joint <- rr98 %>% 
-  group_by(id) %>% # we loop only across id
-  do(diffusion = ensure_fit(data = ., start_function = get_start, 
-                            objective_function = objective_diffusion_joint, 
-                            base_pars = c("a_1", "a_2", "t0_1", "t0_2", "z"))) %>% ungroup()
+save(fits_separate, fits_separate_b, file = "rr98_full-diffusion_fits.rda")
 
-fits_joint_b <- rr98 %>% 
-  group_by(id) %>% # we loop only across id
-  do(diffusion = ensure_fit(data = ., start_function = get_start, 
-                            objective_function = objective_diffusion_joint, 
-                            base_pars = c("a_1", "a_2", "t0_1", "t0_2", "z"))) %>% ungroup()
+# save for fast-dm
 
-pars_joint_b <- fits_joint_b %>% group_by(id) %>% 
-  do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% 
-  ungroup() %>% as.data.frame()
+tmp_out <- rr98 %>% filter(id == "jf" & instruction == "speed") %>% mutate(resp = response_num-1) %>% select(strength_bin, resp, rt) 
+write.table(tmp_out, file = "jf_speed.dat", sep = "\t", row.names = FALSE, col.names = FALSE, quote =FALSE)  
 
-pars_joint_b$ll <- (fits_joint_b %>% group_by(id) %>% 
-                    do(ll = .$diffusion[[1]][["objective"]]) %>%  
-                    summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+rr98 %>% group_by(id, instruction, strength_bin, response) %>% summarise(n = n()) %>% spread(strength_bin, n)
 
-all.equal(pars_joint, pars_joint_b, tolerance = 0.0001)
+## single tries 
+dput(pars_separate[1,])
 
-save(fits_separate, fits_separate_b, fits_joint, fits_joint_b, file = "rr98_wiener_fits.rda")
+pdiffusion(rt = 30, boundary = "upper", a = 0.579802547413743, t0 = 0.195986367994755, sv = 0.897142805898331, sz = 0.596868027475543, z = 0.430283354091839, st0 = 0.144057563742441, d = 0.00190627271452611, v = -4.92625351825116)
+
+# JF speed, v_1
+(xp <- pdiffusion(rt = 20, boundary = "lower", a = 0.579802547413743, t0 = 0.195986367994755, sv = 0.897142805898331, sz = 0.596868027475543, z = 0.430283354091839, st0 = 0.144057563742441, d = 0.00190627271452611, v = -4.92625351825116))
+
+qdiffusion(xp*quantiles, "lower", a = 0.579802547413743, t0 = 0.195986367994755, sv = 0.897142805898331, sz = 0.596868027475543, z = 0.430283354091839, st0 = 0.144057563742441, d = 0.00190627271452611, v = -4.92625351825116)
+
+(xp <- pdiffusion(rt = 20, boundary = "lower", a = 0.667287, t0 = 0.254885, sv = 0.448566, sz = 0.416655, z = 0.500000, st0 = 0, d = 0, v = -3.388013))
+
+qdiffusion(xp*quantiles, "lower",  a = 0.667287, t0 = 0.254885, sv = 0.448566, sz = 0.416655, z = 0.500000, st0 = 0, d = 0, v = -3.388013)
+
+(xp <- pdiffusion(rt = 20, boundary = "lower", a = 0.667287, t0 = 0.254885, sv = 0.448566, sz = 0.416655, z = 0.500000, st0 = 0, d = 0, v = 3.005193))
+
+qdiffusion(xp*quantiles, "lower",  a = 0.667287, t0 = 0.254885, sv = 0.448566, sz = 0.416655, z = 0.500000, st0 = 0, d = 0, v = 3.005193)
+
+
+head(rr98)
+rr98 %>% filter(id == "jf" & instruction=="speed") %>% group_by(strength_bin, response) %>% 
+  summarise(n = n(), med_rt = median(rt), q1 = quantile(rt, 0.1), q5 = quantile(rt, 0.9))
+
 
 ```
 
@@ -308,7 +360,7 @@ save(fits_separate, fits_separate_b, fits_joint, fits_joint_b, file = "rr98_wien
 
 ### Predicted Response Rates
 
-To evaluate the fits graphically we first compare the actual response rates for the two responses with the predicted responses rates. The grey lines and points show the observed data and the error bars are binomial confidence intervals. The black lines and points show the predicted response rates.
+To evaluate the fits graphically we first compare the actual response rates for the two responses with the predicted responses rates. The grey lines and points show the observed data and the error bars are binomial confidence intervals. The black lines and points show the predicted dresponse rates.
 
 
 ```{r, fig.height=5, fig.width=7, message=FALSE}
@@ -320,7 +372,8 @@ pars_separate_l$strength_bin <- factor(substr(pars_separate_l$strength_bin, 3,3)
                                        levels = as.character(seq_len(length(bins)-1)))
 #pars_separate_l <- inner_join(pars_separate_l, agg_rr98_bin)
 pars_separate_l <- pars_separate_l  %>% group_by(id, instruction, strength_bin) %>%
-  mutate(resp_prop = pdiffusion(rt=20, boundary="lower", a=a, v=v, t0=t0, z=z)) 
+  mutate(resp_prop = pdiffusion(rt=20, boundary="lower", 
+                                a=a, v=v, t0=t0, sz = sz, z=z, sv=sv, st0=st0)) 
 
 p1 <- xyplot(prop ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
                list(lines = TRUE), ylab = "Proportion of 'dark' responses", col = "grey")
@@ -335,7 +388,7 @@ p2 + as.layer(p1) + as.layer(p3)
 
 ```
 
-This figure show that overall the model can predict the actual response rates quite accurately. However, especially for the medium strengths and specifically in the accuracy condition the model mispredicts the rate of "dark" responses. In the speed conditions it slightly under-predicts and in the accuracy over-predicts the rate of "dark" responses.
+This figure show that overall the model can predict the actual response rates quite accurately. However, especially for the medium strengths in the accuracy condition the model overpredicts the rate of "dark" responses.
 
 
 ### Predicted Median RTs
@@ -347,11 +400,11 @@ Next we compare the central tendency of the RTs with the prediction. For this we
 # get predicted quantiles (uses predicted response proportions)
 separate_pred_dark <- pars_separate_l %>% do(as.data.frame(t(
   qdiffusion(quantiles*.$resp_prop, boundary="lower", 
-             a=.$a, v=.$v, t0=.$t0, z=.$z)))) %>% 
+             a=.$a, v=.$v, t0=.$t0, sz = .$sz, z = .$z, sv=.$sv, st0=.$st0)))) %>% 
   ungroup() %>% gather("quantiles", "dark", V1:V5)
 separate_pred_light <- pars_separate_l %>% do(as.data.frame(t(
   qdiffusion(quantiles*(1-.$resp_prop), boundary="upper", 
-             a=.$a, v=.$v, t0=.$t0, z=.$z)))) %>% 
+             a=.$a, v=.$v, t0=.$t0, sz = .$sz, z = .$z, sv=.$sv, st0=.$st0)))) %>% 
   ungroup() %>% gather("quantiles", "light", V1:V5)
 
 #separate_pred_light %>% filter(is.na(light))
@@ -389,9 +442,9 @@ p2 + as.layer(p1) + as.layer(p1e)
 
 ```
 
-While the model seems to be overall able to describe the general pattern which is rather flat for two of the three participants, it has more problems for participant `nh`. Here we see a strong increase in median RT for the middle strength bin with misfits in excess of 50 ms.
+While the model seems to be overall able to describe the general pattern it has some problems, particularly for participant `nh`. Here some of the misfits are above 50 ms.
 
-Next shows the same plot for the accuracy condition. Here the misfit is even larger, there is almost no data point that is accurately described. Additionally, even the pattern seems to be missed for `nh` and light responses (albeit only for the bins with a few responses) and `jf` and light responses. The misfits here are a lot larger and often way above 250 ms.
+Next shows the same plot for the accuracy condition. Here the misfit is even larger, there is almost no data point that is accurately described. However, the general pattern seems to be well recovered albeit shifted by 100 to 200 ms.
 
 ```{r, fig.height=6, fig.width=7}
 
@@ -416,9 +469,7 @@ p2 + as.layer(p1) + as.layer(p1e)
 
 ### All quantiles
 
-Next, we investigate the full RT distribution by comparing observed and predicted quantiles. The observed quantiles are again displayed in grey and the predictions in black. What will be apparent easily is the fact that the model cannot make differential predictions for the two responses. Their pattern needs to be a mirror image of each other. Consequently, the asymmetric increase in RTs for the high quantiles cannot be described at all. 
-
-The first plot shows the speed condition separated by response. 
+Next, we investigate the full RT distribution by comparing observed and predicted quantiles. The observed quantiles are again displayed in grey and the predictions in black. The first plot shows the sped condition separated by response. 
 
 
 ```{r, fig.height=7, fig.width=7}
@@ -458,153 +509,235 @@ p2 + as.layer(p1) + as.layer(p1e)
 
 ```
 
-Besides revealing the problems in accounting for the slow errors, these two plots show that the somewhat meager performance for the central tendency, the median, extends to the other quantiles. However, while there clearly are problem with the Wiener model in accounting for the data, the predictions are still near the actual observations and the predicted patterns in line with what is observed.
+These two plots show that the somewhat meager performance for the central tendency, the median, extends to the other quantiles. While the diffusion model is able to adequately describe the pattern, the prediction are considerbaly off.
+
+# LBA analysis
 
 
+Next, we fit the LBA model to the data. For this, we use an LBA model with the same number of parameters. To make the model identifiable, we fix the sum of the drift rates to 1. Specifically, the model has the following 20 parameters per participant:
 
-# Restricted Model 
+- 2 $\times$ 5 drift rates (i.e., one per strength bin) = 10 drift rates $v$
+- 4 boundary separations $A$ (i.e., one for each accumulator per instruction condition)
+- 2 non-decision times $t_0$ (i.e., one per participant)
+- 2 drift rate variabilities $s_v$ 
+- 2 starting points $b$ (they are parameterized as an increment to the max value of the two $A$ per instruction condition)
 
-As shown above, the parameters seem to suggest that there are differences between the two instructions in the $a$ and $t_0$ parameters. Consequently, we fit a joint (i.e., reduced) model in which the other parameters (i.e., $v$ and $z$) are shared across instruction conditions and only $a$ and $t_0$ differ. This model has 10 parameters per participant:
-
-- 5 drift rates (i.e., one per strength bin)
-- 2 boundary separations $a$
-- 2 non-decision time $t_0$
-- 1 start point $z$.
-
-For the joint model we need a new objective function that also loops across instruction. Then we use again a `dplyr` call to loop across participants to get the fit. 
+To fit the model we need an objective function wrapping the LBA PDF and a new function for generating the correct starting values.
 
 ```{r}
-objective_diffusion_joint <- function(pars, rt, boundary, drift, instruction) {
+
+# objective function for diffusion with 1 a. loops over drift to assign drift rates to strength
+objective_lba_separate <- function(pars, rt, boundary, drift, ...) {
   non_v_pars <- grep("^v", names(pars), invert = TRUE, value = TRUE)
   base_par <- length(non_v_pars)  # number of non-drift parameters
   densities <- vector("numeric", length(rt))
-  as <- c(pars["a_1"], pars["a_2"])
-  ts <- c(pars["t0_1"], pars["t0_2"])
-  for (j in seq_along(levels(instruction))) {
-    for (i in seq_along(levels(drift))) {
-      densities[drift == levels(drift)[i] & instruction == levels(instruction)[j]] <- tryCatch(
-        ddiffusion(rt[drift == levels(drift)[i] & instruction == levels(instruction)[j]], 
-                   boundary=boundary[drift==levels(drift)[i]&instruction==levels(instruction)[j]],
-                   a=as[j], t0=ts[j], z=pars["z"], 
-                   v=pars[base_par+i]), 
-        error = function(e) 0)  
-    }  
+  for (i in seq_along(levels(drift))) {
+    if (sum(drift == levels(drift)[i]) == 0) next
+    densities[drift == levels(drift)[i]] <- dLBA(
+      rt[drift == levels(drift)[i]], 
+      response=boundary[drift == levels(drift)[i]],
+      A = list(pars["a_1"], pars["a_2"]), 
+      b = max(pars["a_1"], pars["a_2"])+pars["b"], 
+      t0 = pars["t0"], 
+      mean_v = c(pars[i], 1-pars[i]), 
+      sd_v = pars["sv"], silent=TRUE)
   }
   if (any(densities == 0)) return(1e6)
   return(-sum(log(densities)))
 }
 
+# function that creates random start values, also 
+get_start_lba <- function(base_par, n_drift = 10) {
+  start1 <- c(
+    a = runif(1, 0.5, 3),
+    a_1 = runif(1, 0.5, 3), 
+    a_2 = runif(1, 0.5, 3),
+    t0 = runif(1, 0, 0.5), 
+    b = runif(1, 0, 0.5), 
+    sv = runif(1, 0.5, 1.5),
+    st0 = runif(1, 0, 0.5)
+  )
+  start2 <- sort(rnorm(n_drift), decreasing = FALSE)
+  names(start2) <- paste0("v_", seq_len(n_drift))
+  c(start2, start1[base_par])
+}
+
+```
+
+With this, we simply need to loop across participants and instructions to estimate the LBA. Interestingly, we need to run several fitting runs to reach the maximum likelihood estimate (i.e., the global optimum).
+
+```{r, eval=FALSE}
+
+fits_separate_lba <- rr98 %>% 
+  group_by(id, instruction) %>% # we loop across both, id and instruction
+  do(lba = ensure_fit(data = ., start_function = get_start_lba, 
+                      objective_function = objective_lba_separate, 
+                      base_pars = c("a_1", "a_2", "t0", "b", "sv"),
+                      lower = c(rep(-Inf, 5), rep(0, 5)),
+                      n_drift = 5, n_fits = 5)) %>% ungroup()
 
 ```
 
 
-```{r, include=FALSE, eval=FALSE}
-
-fits_joint <- rr98 %>% 
-  group_by(id) %>% # we loop only across id
-  do(diffusion = ensure_fit(data = ., start_function = get_start, 
-                            objective_function = objective_diffusion_joint, 
-                            base_pars = c("a_1", "a_2", "t0_1", "t0_2", "z"))) %>% ungroup()
-
-```
-
-
-The following table gives the parameters and the negative summed log-likelihoods obtained from this fit:
+The following table gives the parameters and the negative summed log-likelihoods obtained from the LBA fit:
 
 ```{r}
-pars_joint <- fits_joint %>% group_by(id) %>% 
-  do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% 
-  ungroup() %>% as.data.frame()
-
-pars_joint$ll <- (fits_joint %>% group_by(id) %>% 
-                    do(ll = .$diffusion[[1]][["objective"]]) %>%  
-                    summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-
-knitr::kable(pars_joint)
+lba_pars <- fits_separate_lba %>% group_by(id, instruction) %>% 
+  do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup() %>%
+  as.data.frame()
+lba_pars$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% 
+                       do(ll = .$lba[[1]][["objective"]]) %>%  
+                       summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+knitr::kable(lba_pars)
 
 ```
 
+The log-likelihood shows that the LBA provides a better account for all data sets.
+
+```{r obtain_fits_lba, eval = FALSE, include = FALSE}
+
+fits_separate_lba <- rr98 %>% 
+  group_by(id, instruction) %>% # we loop across both, id and instruction
+  do(lba = ensure_fit(data = ., start_function = get_start_lba, 
+                      objective_function = objective_lba_separate, 
+                      base_pars = c("a_1", "a_2", "t0", "b", "sv"),
+                      lower = c(rep(-Inf, 5), rep(0, 5)),
+                      n_drift = 5, n_fits = 5)) %>% ungroup()
+
+lba_pars_separate <- as.data.frame(fits_separate_lba %>% group_by(id, instruction) %>% do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup())
+lba_pars_separate$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% do(ll = .$lba[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+round(lba_pars_separate[,-c(1:2)], 4)
 
 
-## Compare Model Fits
+fits_separate_lba_b <- rr98 %>% 
+  group_by(id, instruction) %>% # we loop across both, id and instruction
+  do(lba = ensure_fit(data = ., start_function = get_start_lba, 
+                      objective_function = objective_lba_separate, 
+                      base_pars = c("a_1", "a_2", "t0", "b", "sv"),
+                      lower = c(rep(-Inf, 5), rep(0, 5)),
+                      n_drift = 5, n_fits = 5)) %>% ungroup()
 
-To compare the fits between the two model version we simply perform a likelihood ratio test between the separate and the joint/restricted model. For this we first need to sum the two log-likelihoods of the separate model. Then we simply take their difference and can get a p-value for the likelihood ratio tests with 6 degrees of freedom (i.e., their difference in the number of parameters). As we can see the test is highly significant. However, given the large number of trials (between 7581 and 8532) this might perhaps be not too surprising. Consequently, we also perform a graphical fit assessment for the restricted model.
+lba_pars_separate_b <- as.data.frame(fits_separate_lba_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup())
+lba_pars_separate_b$ll <- (fits_separate_lba_b %>% group_by(id, instruction) %>% do(ll = .$lba[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
 
-```{r, message=FALSE}
+all.equal(lba_pars_separate, lba_pars_separate_b, tolerance = 0.001)
 
-ll_tab <- left_join(pars_joint[,c("id", "ll")], 
-                    pars_separate %>% group_by(id) %>% summarise(ll_sep = sum(ll))) %>% 
-  mutate(ll_diff_2 = 2*(ll-ll_sep), 
-         p = round(pchisq(ll_diff_2, df = 5, lower.tail = FALSE), 4))
-#rr98 %>% group_by(id) %>% summarise(n())
-knitr::kable(ll_tab)
+fits_separate_lba_b <- rr98 %>% 
+  group_by(id, instruction) %>% # we loop across both, id and instruction
+  do(lba = ensure_fit(data = ., start_function = get_start_lba, 
+                      objective_function = objective_lba_separate, 
+                      base_pars = c("a_1", "a_2", "t0", "b", "sv"),
+                      lower = c(rep(-Inf, 10), rep(0, 5)),
+                      n_drift = 10)) %>% ungroup()
+
+lba_pars_separate_b <- as.data.frame(fits_separate_lba_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup())
+lba_pars_separate_b$ll <- (fits_separate_lba_b %>% group_by(id, instruction) %>% do(ll = .$lba[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+
+fits_separate_lba_b[2,"lba"][[1]]
+
+save(fits_separate_lba, file = "rr98_full-lba_fits.rda")
+
+# objective function for LBA with 1 a. loops over drift to assign drift rates to strength
+objective_lba_separate <- function(pars, rt, boundary, drift, ...) {
+  non_v_pars <- grep("^v", names(pars), invert = TRUE, value = TRUE)
+  base_par <- length(non_v_pars)  # number of non-drift parameters
+  densities <- vector("numeric", length(rt))
+  for (i in seq_along(levels(drift))) {
+    if (sum(drift == levels(drift)[i]) == 0) next
+    densities[drift == levels(drift)[i]] <- dLBA(
+      rt[drift == levels(drift)[i]], 
+      response=boundary[drift == levels(drift)[i]],
+      A = pars["a"], b = pars["a"]+pars["b"], 
+      t0 = pars["t0"], 
+      mean_v = pars[((i-1)*2+1):((i-1)*2+2)], 
+      sd_v = c(1, pars["sv"]), silent=TRUE)
+  }
+  if (any(densities == 0)) return(1e6)
+  return(-sum(log(densities)))
+}
+
+# objective function for diffusion with 1 a. loops over drift to assign drift rates to strength
+objective_lba_separate <- function(pars, rt, boundary, drift, ...) {
+  non_v_pars <- grep("^v", names(pars), invert = TRUE, value = TRUE)
+  base_par <- length(non_v_pars)  # number of non-drift parameters
+  densities <- vector("numeric", length(rt))
+  for (i in seq_along(levels(drift))) {
+    if (sum(drift == levels(drift)[i]) == 0) next
+    densities[drift == levels(drift)[i]] <- dLBA(
+      rt[drift == levels(drift)[i]], 
+      response=boundary[drift == levels(drift)[i]],
+      A = list(pars["a_1"], pars["a_2"]), b = list(pars["a_1"]+pars["b"], pars["a_2"]+pars["b"]), 
+      t0 = pars["t0"], 
+      mean_v = c(pars[i], 1-pars[i]), 
+      sd_v = pars["sv"], silent=TRUE)
+  }
+  if (any(densities == 0)) return(1e6)
+  return(-sum(log(densities)))
+}
 
 ```
+
 
 ## Graphical Model Fit
 
+The fact that the LBA provides a better fit is also visible in the graphical fit assessment.
+
 ### Predicted Response Rates
 
-First we again assess the predicted response proportions. As before, the grey lines and points show the observed data and the error bars are binomial confidence intervals and the black lines and points show the predicted response rates of the restricted model. In addition, the dark grey dashed lines with squares show the unrestricted (i.e., separate) model fitted before.
-
+We again first consider the predicted response rates (in black) and they are highly accurate.
 
 ```{r, fig.height=5, fig.width=7, message=FALSE}
-
+lba_pars_separate <- fits_separate_lba %>% group_by(id, instruction) %>% 
+  do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup() %>% as.data.frame()
+lba_pars_separate$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% 
+                           do(ll = .$lba[[1]][["objective"]]) %>%  
+                           summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
 
 # get predicted response proportions
-pars_joint_l <- pars_joint %>% gather("strength_bin", "v", starts_with("v")) %>% 
-  gather("instruction_tmp", "pars", a_1, a_2, t0_1, t0_2) %>%
-  separate(instruction_tmp, c("para", "instruction")) %>%
-  spread(para, pars)
-pars_joint_l$instruction <- factor(pars_joint_l$instruction, 
-                                   levels = c("1", "2"), labels = c("speed", "accuracy"))
-pars_joint_l$strength_bin <- factor(substr(pars_joint_l$strength_bin, 3,3), 
+lba_pars_separate_l <- lba_pars_separate %>% gather("strength_bin", "v", starts_with("v"))
+lba_pars_separate_l$strength_bin <- factor(substr(lba_pars_separate_l$strength_bin, 3,3), 
                                        levels = as.character(seq_len(length(bins)-1)))
 #pars_separate_l <- inner_join(pars_separate_l, agg_rr98_bin)
-pars_joint_l <- pars_joint_l  %>% group_by(id, instruction, strength_bin) %>%
-  mutate(resp_prop = pdiffusion(rt=20, boundary="lower", a=a, v=v, t0=t0, z=z)) 
+lba_pars_separate_l <- lba_pars_separate_l  %>% group_by(id, instruction, strength_bin) %>%
+  mutate(resp_prop = pLBA(rt=Inf, response=1, A=list(a_1, a_2), sd_v=sv,
+                          mean_v=c(v, 1-v), t0=t0, b=max(a_1, a_2)+b, silent=TRUE))
 
 p1 <- xyplot(prop ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
                list(lines = TRUE), ylab = "Proportion of 'dark' responses", col = "grey")
-p1e <- segplot(strength_bin ~ upper+lower|id + instruction, agg_rr98_bin, 
+p2 <- segplot(strength_bin ~ upper+lower|id + instruction, agg_rr98_bin, 
               auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
               col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
               draw.bands = FALSE, angle = 90, length = 0.05, ends = "both")
-p2 <- xyplot(resp_prop ~ strength_bin|id + instruction, pars_separate_l, type = "b", 
-             auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
-             col = "darkgrey", lty = 3, pch = 0)
-p3 <- xyplot(resp_prop ~ strength_bin|id + instruction, pars_joint_l, type = "b", 
+p3 <- xyplot(resp_prop ~ strength_bin|id + instruction, lba_pars_separate_l, type = "b", 
              auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
              col = "black")
-p2 + as.layer(p3) + as.layer(p1) + as.layer(p1e)
+p2 + as.layer(p1) + as.layer(p3)
 
 ```
-
-We see that the joint model makes predictions that are overall very similar to the ones from the separate fits, especially for the accuracy condition. In the speed condition the predictions are somewhat different, but not necessarily a lot worse. 
 
 
 ### Predicted Median RTs
 
-Next we compare the central tendency of the RTs with the prediction. Again, the data is shown in grey (and error bars show the standard errors of the median) and the predicted RTs in black and the fit of the unrestricted model in dark grey with squares and a dashed line. We first show the predictions for the speed condition, separated by response.
+Again, the data is shown in grey (and error bars show the standard errors of the median) and the predicted RTs in black. We first show the predictions for the speed condition, separated by response.
 
 ```{r, fig.height=6, fig.width=7, message=FALSE}
 
 # get predicted quantiles (uses predicted response proportions)
-joint_pred_dark <- pars_joint_l %>% do(as.data.frame(t(
-  qdiffusion(quantiles*.$resp_prop, boundary="lower", 
-             a=.$a, v=.$v, t0=.$t0, z=.$z)))) %>% 
+lba_separate_pred_dark <- lba_pars_separate_l %>% do(as.data.frame(t(
+  qLBA(quantiles*.$resp_prop, response=1, A=list(.$a_1, .$a_2), sd_v=.$sv,
+       mean_v=c(.$v, 1-.$v), t0=.$t0, b=max(.$a_1, .$a_2)+.$b, silent=TRUE)))) %>% 
   ungroup() %>% gather("quantiles", "dark", V1:V5)
-joint_pred_light <- pars_joint_l %>% do(as.data.frame(t(
-  qdiffusion(quantiles*(1-.$resp_prop), boundary="upper", 
-             a=.$a, v=.$v, t0=.$t0, z=.$z)))) %>% 
+lba_separate_pred_light <- lba_pars_separate_l %>% do(as.data.frame(t(
+  qLBA(quantiles*(1-.$resp_prop), response=2, A=list(.$a_1, .$a_2), sd_v=.$sv,
+       mean_v=c(.$v, 1-.$v), t0=.$t0, b=max(.$a_1, .$a_2)+.$b, silent=TRUE)))) %>% 
   ungroup() %>% gather("quantiles", "light", V1:V5)
 
-#joint_pred_light %>% filter(is.na(light))
-joint_pred <- inner_join(joint_pred_dark, joint_pred_light)
-joint_pred$quantiles <- factor(joint_pred$quantiles, 
+#separate_pred_light %>% filter(is.na(light))
+lba_separate_pred <- inner_join(lba_separate_pred_dark, lba_separate_pred_light)
+lba_separate_pred$quantiles <- factor(lba_separate_pred$quantiles, 
                                   levels = c("V5", "V4", "V3", "V2", "V1"), 
                                   labels = c("90%", "70%", "50%", "30%", "10%"))
-joint_pred <- joint_pred %>% gather("response", "rt", dark, light)
+lba_separate_pred <- lba_separate_pred %>% gather("response", "rt", dark, light)
 
 p1 <- xyplot(rt ~ strength_bin|id+response, agg2_rr98_response, type = "b", 
              auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
@@ -615,21 +748,17 @@ p1e <- segplot(strength_bin ~ upper+lower|id+response, agg2_rr98_response,
                col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
                draw.bands = FALSE, angle = 90, length = 0.05, ends = "both", 
                subset = instruction == "speed" & quantile == "50%", layout = c(3,2))
-p2 <- xyplot(rt ~ strength_bin|id + response, separate_pred, type = "b", 
-             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
-             subset = instruction == "speed" & quantiles == "50%", 
-             scales = list(y = list(limits = c(0.25, 0.5))),
-             col = "darkgrey", lty = 3, pch = 0)
-p3 <- xyplot(rt ~ strength_bin|id + response, joint_pred, type = "b", 
+p2 <- xyplot(rt ~ strength_bin|id + response, lba_separate_pred, type = "b", 
              auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
              subset = instruction == "speed" & quantiles == "50%", 
              scales = list(y = list(limits = c(0.25, 0.5))))
-p2 + as.layer(p3) + as.layer(p1) + as.layer(p1e)
+p2 + as.layer(p1) + as.layer(p1e)
 
 ```
 
 
-Now we show the predictions for the accuracy condition, separated by response.
+
+Next shows the same plot for the accuracy condition. 
 
 ```{r, fig.height=6, fig.width=7}
 
@@ -642,26 +771,19 @@ p1e <- segplot(strength_bin ~ upper+lower|id+response, agg2_rr98_response,
                col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
                draw.bands = FALSE, angle = 90, length = 0.05, ends = "both", 
                subset = instruction == "accuracy" & quantile == "50%", layout = c(3,2))
-p2 <- xyplot(rt ~ strength_bin|id + response, separate_pred, type = "b", 
+p2 <- xyplot(rt ~ strength_bin|id + response, lba_separate_pred, type = "b", 
              auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
              subset = instruction == "accuracy" & quantiles == "50%", 
-             scales = list(y = list(limits = c(0.2, 1.5))),
-             col = "darkgrey", lty = 3, pch = 0)
-p3 <- xyplot(rt ~ strength_bin|id + response, joint_pred, type = "b", 
-             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
-             subset = instruction == "accuracy" & quantiles == "50%", 
-             scales = list(y = list(limits = c(0.25, 0.5))))
-p2 + as.layer(p3) + as.layer(p1) + as.layer(p1e)
+             scales = list(y = list(limits = c(0.2, 1.5))))
+p2 + as.layer(p1) + as.layer(p1e)
 
 ```
 
-We can see that the unrestricted model provides a somewhat better fit, especially in the speed condition, but given the considerable misfit of both model this seems rather negligible.
+Overall the LBA is able to describe the central tendency relatively well. Only at the extreme bins with few responses is some misfit noticeable.
 
 ### All quantiles
 
-Finally, we also take a look at the full RT distribution by comparing observed and predicted quantiles. However, as the plots are already busy with one model, we now only show the prediction of the restricted model and the observed data. The observed quantiles are again displayed in grey and the predictions in black. 
-
-The first plot shows the speed condition separated by response. 
+Next, we investigate the full RT distribution by comparing observed and predicted quantiles. The observed quantiles are again displayed in grey and the predictions in black. The first plot shows the sped condition separated by response. 
 
 
 ```{r, fig.height=7, fig.width=7}
@@ -674,9 +796,9 @@ p1e <- segplot(strength_bin ~ upper+lower|id+response, agg2_rr98_response,
                col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
                draw.bands = FALSE, angle = 90, length = 0.05, ends = "both", 
                subset = instruction == "speed")
-p2 <- xyplot(rt ~ strength_bin|id + response, joint_pred, group = quantiles, type = "b", 
+p2 <- xyplot(rt ~ strength_bin|id + response, lba_separate_pred, group = quantiles, type = "b", 
              auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
-             subset = instruction == "speed", scales = list(y = list(limits = c(0.2, 0.9))))
+             subset = instruction == "speed", scales = list(y = list(limits = c(0.2, 0.6))))
 p2 + as.layer(p1) + as.layer(p1e)
 
 ```
@@ -694,15 +816,15 @@ p1e <- segplot(strength_bin ~ upper+lower|id+response, agg2_rr98_response,
                col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
                draw.bands = FALSE, angle = 90, length = 0.05, ends = "both", 
                subset = instruction == "accuracy")
-p2 <- xyplot(rt ~ strength_bin|id + response, joint_pred, group = quantiles, type = "b", 
+p2 <- xyplot(rt ~ strength_bin|id + response, lba_separate_pred, group = quantiles, type = "b", 
              auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
-             subset = instruction == "accuracy", scales = list(y = list(limits = c(0.1, 3.0))))
+             subset = instruction == "accuracy", scales = list(y = list(limits = c(0.1, 3.3))))
 p2 + as.layer(p1) + as.layer(p1e)
 
 ```
 
+These two plots show not only the central tendency, but the other quantiles are quite well described.
 
-We can again see quite some misfit, but it does not appear to be dramatically different from the one for the restricted model.
 
 # References
 
