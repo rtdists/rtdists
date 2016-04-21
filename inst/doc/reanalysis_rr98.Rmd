@@ -2,7 +2,9 @@
 title: "Reanalysis of Ratcliff and Rouder (1998) with Diffusion Model and LBA"
 author: "Henrik Singmann"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    toc: true 
 vignette: >
   %\VignetteIndexEntry{Reanalysis of Ratcliff and Rouder (1998) with Diffusion Model and LBA}
   %\VignetteEngine{knitr::rmarkdown}
