@@ -514,13 +514,13 @@ These two plots show that the somewhat meager performance for the central tenden
 # LBA analysis
 
 
-Next, we fit the LBA model to the data. For this, we use an LBA model with the same number of parameters. To make the model identifiable, we fix the sum of the drift rates to 1. Specifically, the model has the following 20 parameters per participant:
+Next, we fit the LBA model to the data. For this, we use an LBA model with the same number of parameters. To make the model identifiable, we fix the sum of the drift rates to 1. Specifically, the model has the following 10 parameters per participant and instruction condition:
 
-- 2 $\times$ 5 drift rates (i.e., one per strength bin) = 10 drift rates $v$
-- 4 boundary separations $A$ (i.e., one for each accumulator per instruction condition)
-- 2 non-decision times $t_0$ (i.e., one per participant)
-- 2 drift rate variabilities $s_v$ 
-- 2 starting points $b$ (they are parameterized as an increment to the max value of the two $A$ per instruction condition)
+- 5 drift rates $v$ (i.e., one per strength bin)
+- 2 boundary separations $A$ (i.e., one for each accumulator)
+- 1 non-decision time $t_0$ (i.e., one per participant)
+- 1 drift rate variability $s_v$ 
+- 1 starting points $b$ (parameterized as an increment to the max value of the two $A$)
 
 To fit the model we need an objective function wrapping the LBA PDF and a new function for generating the correct starting values.
 
@@ -579,7 +579,7 @@ fits_separate_lba <- rr98 %>%
 ```
 
 
-The following table gives the parameters and the negative summed log-likelihoods obtained from the LBA fit:
+The following table gives the parameters and the negative summed log-likelihoods obtained from the LBA fit (with $b$ already correctly transformed by the maximum $A$):
 
 ```{r}
 lba_pars <- fits_separate_lba %>% group_by(id, instruction) %>% 
@@ -588,11 +588,20 @@ lba_pars <- fits_separate_lba %>% group_by(id, instruction) %>%
 lba_pars$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% 
                        do(ll = .$lba[[1]][["objective"]]) %>%  
                        summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+lba_pars <- lba_pars %>% group_by(id, instruction) %>%
+  mutate(b = max(a_1, a_2) + b) %>%
+  ungroup()
 knitr::kable(lba_pars)
 
 ```
 
-The log-likelihood shows that the LBA provides a better account for all data sets.
+The log-likelihood shows that the LBA provides a better account for four of the six data sets. The diffusion model only provides a better account for the `kr` and `nh` accuracy conditions. In terms of the parameter estimates we see a pattern similar as the one for the diffusion model:
+
+- Instruction shows the expected effect on $b$.
+- Instruction also shows an effect on $A$, which is also larger in the accuracy compared to the speed condition.
+- Instruction seems to have a small effect on $t_0$ in the same direction.
+- Instruction also affected $s_v$ in the same direction.
+- Instruction also affected $v$ which seemed to be more extreme in the accuracy compared to the speed condition.
 
 ```{r obtain_fits_lba, eval = FALSE, include = FALSE}
 
@@ -779,11 +788,11 @@ p2 + as.layer(p1) + as.layer(p1e)
 
 ```
 
-Overall the LBA is able to describe the central tendency relatively well. Only at the extreme bins with few responses is some misfit noticeable.
+Overall the LBA is able to describe the central tendency relatively well. The only considerable misfit is evident at the extreme bins with few responses (i.e., large error bars).
 
 ### All quantiles
 
-Next, we investigate the full RT distribution by comparing observed and predicted quantiles. The observed quantiles are again displayed in grey and the predictions in black. The first plot shows the sped condition separated by response. 
+Next, we investigate the full RT distribution by comparing observed and predicted quantiles. The observed quantiles are again displayed in grey and the predictions in black. The first plot shows the speed condition separated by response. 
 
 
 ```{r, fig.height=7, fig.width=7}
@@ -824,6 +833,101 @@ p2 + as.layer(p1) + as.layer(p1e)
 ```
 
 These two plots show not only the central tendency, but the other quantiles are quite well described.
+
+
+# Comparing Model Fit
+
+Finally, we graphically compare the fit of the two models.
+
+## Predicted Response Rates
+
+We again first consider the predicted response rates (in black) for the two models. 
+
+```{r, fig.height=6.5, fig.width=7, message=FALSE}
+
+key <- simpleKey(text = c("data", "LBA", "Diffusion"), lines = TRUE)
+key$lines$col <- c("grey", "black", "black")
+key$lines$lty <- c(1, 1, 2)
+key$points$col <- c("grey", "black", "black")
+key$points$pch <- c(1, 0, 4)
+
+p1 <- xyplot(prop ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
+               list(lines = TRUE), ylab = "Proportion of 'dark' responses", col = "grey")
+p2 <- segplot(strength_bin ~ upper+lower|id + instruction, agg_rr98_bin, 
+              auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
+              col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
+              draw.bands = FALSE, angle = 90, length = 0.05, ends = "both")
+p3 <- xyplot(resp_prop ~ strength_bin|id + instruction, lba_pars_separate_l, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
+             col = "black", pch = 0)
+p4 <- xyplot(resp_prop ~ strength_bin|id + instruction, pars_separate_l, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
+             col = "black", lty = 2, key = key, pch=4)
+p4 + as.layer(p2) + as.layer(p1) + as.layer(p3)
+
+```
+
+We can see that the LBA is considerbaly more accurate in describing the accuracy condition while the diffusion model seems to be somewhat more accurate for the speed condition, especially for the extreme bins.
+
+## Predicted Median RTs
+
+Next, we also compare the two accounts for the median. As before, data is shown in grey and we begin with a plot for the speed condition, spearated by response.
+
+```{r, fig.height=6.5, fig.width=7, message=FALSE}
+
+p1 <- xyplot(rt ~ strength_bin|id+response, agg2_rr98_response, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
+             subset = instruction == "speed" & quantile == "50%", 
+             layout = c(3,2), col = "grey")
+p1e <- segplot(strength_bin ~ upper+lower|id+response, agg2_rr98_response, 
+               auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
+               col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
+               draw.bands = FALSE, angle = 90, length = 0.05, ends = "both", 
+               subset = instruction == "speed" & quantile == "50%", layout = c(3,2))
+p2 <- xyplot(rt ~ strength_bin|id + response, lba_separate_pred, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
+             subset = instruction == "speed" & quantiles == "50%", 
+             scales = list(y = list(limits = c(0.25, 0.5))), pch = 0)
+p3 <- xyplot(rt ~ strength_bin|id + response, separate_pred, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
+             subset = instruction == "speed" & quantiles == "50%", 
+             scales = list(y = list(limits = c(0.25, 0.5))),
+             col = "black", lty = 2, key = key, pch=4)
+
+p3 + as.layer(p2) + as.layer(p1) + as.layer(p1e)
+
+```
+
+
+
+Next shows the same plot for the accuracy condition. 
+
+```{r, fig.height=6.5, fig.width=7, message=FALSE}
+
+p1 <- xyplot(rt ~ strength_bin|id+response, agg2_rr98_response, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
+             subset = instruction == "accuracy" & quantile == "50%", 
+             layout = c(3,2), col = "grey")
+p1e <- segplot(strength_bin ~ upper+lower|id+response, agg2_rr98_response, 
+               auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
+               col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
+               draw.bands = FALSE, angle = 90, length = 0.05, ends = "both", 
+               subset = instruction == "accuracy" & quantile == "50%", layout = c(3,2))
+p2 <- xyplot(rt ~ strength_bin|id + response, lba_separate_pred, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
+             subset = instruction == "accuracy" & quantiles == "50%", 
+             pch = 0)
+p3 <- xyplot(rt ~ strength_bin|id + response, separate_pred, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
+             subset = instruction == "accuracy" & quantiles == "50%", 
+             scales = list(y = list(limits = c(0.2, 1.5))),
+             col = "black", lty = 2, key = key, pch=4)
+
+p3 + as.layer(p2) + as.layer(p1) + as.layer(p1e)
+
+```
+
+These two plots reval an interesting difference between the models. While the LBA seems to be better able to exactly describe the mejority of the data points it had problems describing the one or two strength bins in which there was a marked difference in response times. In contrast, the diffusion model seemed to be good in adequately describing the pattern of the RTs across strength bin. Unfortunately, the predictions of the diffusion model were shifted by quite a considerably account (> 50 ms) for most participants in line with the log-likelihoods suggesting that overall its account is worse.
 
 
 # References

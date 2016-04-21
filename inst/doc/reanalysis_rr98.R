@@ -446,6 +446,9 @@ lba_pars <- fits_separate_lba %>% group_by(id, instruction) %>%
 lba_pars$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% 
                        do(ll = .$lba[[1]][["objective"]]) %>%  
                        summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
+lba_pars <- lba_pars %>% group_by(id, instruction) %>%
+  mutate(b = max(a_1, a_2) + b) %>%
+  ungroup()
 knitr::kable(lba_pars)
 
 
@@ -642,5 +645,76 @@ p2 <- xyplot(rt ~ strength_bin|id + response, lba_separate_pred, group = quantil
              auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
              subset = instruction == "accuracy", scales = list(y = list(limits = c(0.1, 3.3))))
 p2 + as.layer(p1) + as.layer(p1e)
+
+
+## ---- fig.height=6.5, fig.width=7, message=FALSE-------------------------
+
+key <- simpleKey(text = c("data", "LBA", "Diffusion"), lines = TRUE)
+key$lines$col <- c("grey", "black", "black")
+key$lines$lty <- c(1, 1, 2)
+key$points$col <- c("grey", "black", "black")
+key$points$pch <- c(1, 0, 4)
+
+p1 <- xyplot(prop ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
+               list(lines = TRUE), ylab = "Proportion of 'dark' responses", col = "grey")
+p2 <- segplot(strength_bin ~ upper+lower|id + instruction, agg_rr98_bin, 
+              auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
+              col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
+              draw.bands = FALSE, angle = 90, length = 0.05, ends = "both")
+p3 <- xyplot(resp_prop ~ strength_bin|id + instruction, lba_pars_separate_l, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
+             col = "black", pch = 0)
+p4 <- xyplot(resp_prop ~ strength_bin|id + instruction, pars_separate_l, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
+             col = "black", lty = 2, key = key, pch=4)
+p4 + as.layer(p2) + as.layer(p1) + as.layer(p3)
+
+
+## ---- fig.height=6.5, fig.width=7, message=FALSE-------------------------
+
+p1 <- xyplot(rt ~ strength_bin|id+response, agg2_rr98_response, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
+             subset = instruction == "speed" & quantile == "50%", 
+             layout = c(3,2), col = "grey")
+p1e <- segplot(strength_bin ~ upper+lower|id+response, agg2_rr98_response, 
+               auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
+               col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
+               draw.bands = FALSE, angle = 90, length = 0.05, ends = "both", 
+               subset = instruction == "speed" & quantile == "50%", layout = c(3,2))
+p2 <- xyplot(rt ~ strength_bin|id + response, lba_separate_pred, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
+             subset = instruction == "speed" & quantiles == "50%", 
+             scales = list(y = list(limits = c(0.25, 0.5))), pch = 0)
+p3 <- xyplot(rt ~ strength_bin|id + response, separate_pred, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
+             subset = instruction == "speed" & quantiles == "50%", 
+             scales = list(y = list(limits = c(0.25, 0.5))),
+             col = "black", lty = 2, key = key, pch=4)
+
+p3 + as.layer(p2) + as.layer(p1) + as.layer(p1e)
+
+
+## ---- fig.height=6.5, fig.width=7, message=FALSE-------------------------
+
+p1 <- xyplot(rt ~ strength_bin|id+response, agg2_rr98_response, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
+             subset = instruction == "accuracy" & quantile == "50%", 
+             layout = c(3,2), col = "grey")
+p1e <- segplot(strength_bin ~ upper+lower|id+response, agg2_rr98_response, 
+               auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
+               col = "grey", horizontal = FALSE, segments.fun = panel.arrows,  
+               draw.bands = FALSE, angle = 90, length = 0.05, ends = "both", 
+               subset = instruction == "accuracy" & quantile == "50%", layout = c(3,2))
+p2 <- xyplot(rt ~ strength_bin|id + response, lba_separate_pred, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
+             subset = instruction == "accuracy" & quantiles == "50%", 
+             pch = 0)
+p3 <- xyplot(rt ~ strength_bin|id + response, separate_pred, type = "b", 
+             auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
+             subset = instruction == "accuracy" & quantiles == "50%", 
+             scales = list(y = list(limits = c(0.2, 1.5))),
+             col = "black", lty = 2, key = key, pch=4)
+
+p3 + as.layer(p2) + as.layer(p1) + as.layer(p1e)
 
 
