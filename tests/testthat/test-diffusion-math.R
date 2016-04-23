@@ -26,11 +26,11 @@ test_that("pdiffusion is equal to pwiener", {
       for (v in seq(0.5, 2.0, length.out = 10)) {
         for (t0 in seq(0.05, 0.5, length.out = 10)) {
           for (z in seq(0.4, 0.6, length.out = 7)) {
-            expect_equivalent(
+            expect_equal(
               pdiffusion(seq(0, 3, length.out = 15), a=a, v=v, t0=t0, z = z)
               ,
               pwiener(seq(0, 3, length.out = 15), resp = rep("upper", 15), alpha=a, delta=v, tau = t0, beta = z)
-            )
+            , tolerance = 0.0001)
           }
         }
       }
