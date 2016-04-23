@@ -21,3 +21,10 @@ test_that("qdiffusion does not fail for named probability", {
     ))
 
 })
+
+test_that("pdiffusion is equal to pwiener", {
+  if (require(RWiener)) {
+    
+    expect_equivalent(pdiffusion(2, boundary = "upper", a = 1.63, v = 1.17, t0 = 0.22, z = 0.517), pwiener(2, resp = "upper", alpha = 1.63, delta = 1.17, tau = 0.22, beta =  0.517))
+  }
+})
