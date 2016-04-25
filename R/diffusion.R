@@ -39,6 +39,8 @@
 #' 
 #' @note In the present code, the diffusion constant s is set to 1. This differs from, for example, the work of Roger Ratcliff who usually uses a diffusion constant of s=0.1. Estimates for a, z, and v depend on the chosen diffusion constant. These parameters can be transformed to the case of s = 1 by dividing the estimated values by the diffusion constant used for the estimation procedure. 
 #' 
+#' The parameterization of the non-decisional components, \code{t0} and \code{st0}, differs from the parameterization used by, for example, Andreas Voss or Roger Ratcliff in that \code{t0} is \emph{not} the lower bound of the uniform distribution of length \code{st0}, but its midpoint.
+#' 
 #' RTs need to be sorted (in increasing order) for \code{pdiffusion}.
 #' 
 #' @references Ratcliff, R. (1978). A theory of memory retrieval. \emph{Psychological Review}, 85(2), 59-108.

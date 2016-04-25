@@ -1,4 +1,17 @@
 
+Changes to Version 0.5-x (released XXX 2016)
+
+    o Added rr98 data set: Experiment 1 from Ratcliff and Rouder (1998, 
+      Psych. Science). We thank Roger Ratcliff and Jeff Rouder for providing the 
+      data.
+      
+    o Added vignette showing how to analyze the data from Ratcliff and Rouder 
+      (1998) with both diffusion and LBA model.
+      
+    o Quantile functions work more robust and try uniroot if optimize does not 
+      converge.
+      
+
 Changes to Version 0.4-x (released April 2016)
 
     o Added dLBA(), pLBA(), qLBA(), and rLBA().
