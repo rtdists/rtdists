@@ -105,8 +105,8 @@ test_that("ensure vectorised functions are equal to previous non-vectorised vers
   ddiffusions <- ddiffusion (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z, v=vec_v, t0=vec_t0, d=vec_d, sz=vec_sz, sv=vec_sv, st0=vec_st0)
   # Note: allow a lot of tolerance for pdiffusion difference due to sampling error 
   #       (should never be as high as 1e-3, though)
-  expect_that (pdiffusions, equals (correct_pdiffusion_vals, tolerance=1e-3))
-  #expect_that (ddiffusions, equals (correct_ddiffusion_vals)) # disabled due to wrong ddiffusion values initially (HS, 2016-05-19)
+  expect_that (pdiffusions, equals (correct_pdiffusion_vals, tolerance=1e-3)) # disabled due to wrong ddiffusion values initially (HS, 2016-05-19)
+  expect_that (ddiffusions, equals (correct_ddiffusion_vals)) 
   
   pdiffusions2 <- pdiffusion (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z[1:sample(test_vec_len, 1)], v=vec_v[1:sample(test_vec_len, 1)], t0=vec_t0[1:sample(test_vec_len, 1)], d=vec_d[1:sample(test_vec_len, 1)], sz=vec_sz[1:sample(test_vec_len, 1)], sv=vec_sv[1:sample(test_vec_len, 1)], st0=vec_st0[1:sample(test_vec_len, 1)])
   ddiffusions2 <- ddiffusion (vec_rts, boundary=vec_bounds, a=vec_a, z=vec_z[1:sample(test_vec_len, 1)], v=vec_v[1:sample(test_vec_len, 1)], t0=vec_t0[1:sample(test_vec_len, 1)], d=vec_d[1:sample(test_vec_len, 1)], sz=vec_sz[1:sample(test_vec_len, 1)], sv=vec_sv[1:sample(test_vec_len, 1)], st0=vec_st0[1:sample(test_vec_len, 1)])

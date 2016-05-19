@@ -1,8 +1,12 @@
 
-Changes to Version 0.5-x (released XXX 2016)
+Changes to Version 0.5-x (released May 2016)
 
+    o Calculation of the CDF for the diffusion model was incorrect (this bug was
+      present in all prior versions of rtdists). pdiffusion now simply 
+      integrates the PDF to obtain the CDF using R's integrate.
+    
     o Added rr98 data set: Experiment 1 from Ratcliff and Rouder (1998, 
-      Psych. Science). We thank Roger Ratcliff and Jeff Rouder for providing the 
+      Psych. Science). We thank Roger Ratcliff and Jeff Rouder for providing the
       data.
       
     o Added vignette showing how to analyze the data from Ratcliff and Rouder 
@@ -47,3 +51,4 @@ Changes to Version 0.4-x (released April 2016)
       
     o PDF and CDF LBA functions more robust (now mostly return 0 instead of NaN)
       for problematic parameter values (such as A = 0) [2015-09-17].
+

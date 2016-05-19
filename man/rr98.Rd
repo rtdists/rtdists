@@ -105,6 +105,7 @@ head(rr98)
 # 5 jf       2     1    25    accuracy  light       19     dark            1   FALSE 0.925   FALSE
 # 6 jf       2     1    26    accuracy   dark       10     dark            1    TRUE 0.605   FALSE
 
+## See vignette for more examples.
 }
 \keyword{dataset}
 
