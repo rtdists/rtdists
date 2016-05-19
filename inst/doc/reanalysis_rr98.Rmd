@@ -390,7 +390,7 @@ p2 + as.layer(p1) + as.layer(p3)
 
 ```
 
-This figure show that overall the model can predict the actual response rates quite accurately. However, especially for the medium strengths in the accuracy condition the model overpredicts the rate of "dark" responses.
+This figure show that overall the model can predict the actual response rates very accurately. There are only a few minor deviations.
 
 
 ### Predicted Median RTs
@@ -444,9 +444,9 @@ p2 + as.layer(p1) + as.layer(p1e)
 
 ```
 
-While the model seems to be overall able to describe the general pattern it has some problems, particularly for participant `nh`. Here some of the misfits are above 50 ms.
+Again, the model seems to be overall able to describe the general pattern quite well. However, there are some visible misfits for participants `jf` and `nh`. 
 
-Next shows the same plot for the accuracy condition. Here the misfit is even larger, there is almost no data point that is accurately described. However, the general pattern seems to be well recovered albeit shifted by 100 to 200 ms.
+Next shows the same plot for the accuracy condition. Here we again see that the model is able to predict the pattern in the data quite well. While there also seems to be quite some misfit for participant `nh` this only appears in conditions with very little trials as indicated by the large error bars.
 
 ```{r, fig.height=6, fig.width=7}
 
@@ -491,7 +491,9 @@ p2 + as.layer(p1) + as.layer(p1e)
 
 ```
 
-The next plot shows the accuracy condition separated by response. 
+This plots shows some clear misfits for the diffusion model, particularly in the upper quantiles. But there are also misfits in the lower quantiles. 
+
+The next plot shows the accuracy condition separated by response. Here it appears that the diffusion model provides an overall better account. However, it is important to consider the different y-axis scaling of both plots.
 
 
 ```{r, fig.height=7, fig.width=7}
@@ -511,7 +513,7 @@ p2 + as.layer(p1) + as.layer(p1e)
 
 ```
 
-These two plots show that the somewhat meager performance for the central tendency, the median, extends to the other quantiles. While the diffusion model is able to adequately describe the pattern, the prediction are considerbaly off.
+Overall the diffusion model provides a good account of the data. Only when considering all quantiles we see some cler misfits. Nevertheless, the general trends in the data are well recovered, the only exceptions here are conditions with very low numbers of trials. 
 
 # LBA analysis
 
@@ -695,7 +697,7 @@ The fact that the LBA provides a better fit is also visible in the graphical fit
 
 ### Predicted Response Rates
 
-We again first consider the predicted response rates (in black) and they are highly accurate.
+We again first consider the predicted response rates (in black) and they are also highly accurate.
 
 ```{r, fig.height=5, fig.width=7, message=FALSE}
 lba_pars_separate <- fits_separate_lba %>% group_by(id, instruction) %>% 
@@ -869,7 +871,7 @@ p4 + as.layer(p2) + as.layer(p1) + as.layer(p3)
 
 ```
 
-We can see that the LBA is considerbaly more accurate in describing the accuracy condition while the diffusion model seems to be somewhat more accurate for the speed condition, especially for the extreme bins.
+When comparing the fit of the two models like this, it shows that both models make very similar predictions for the predicted response rates. It is difficult to see huge differences between the models.
 
 ## Predicted Median RTs
 
@@ -900,7 +902,7 @@ p3 + as.layer(p2) + as.layer(p1) + as.layer(p1e)
 
 ```
 
-
+This plot suggests that the diffusion model is better able to predict changes in the median RTs in the speed condition across strength bins than the LBA. While this leads to obvious misfit in certain cases (`dark` responses for `nh`) it appears to provide a generally better recoverey of the patterns in the data.
 
 Next shows the same plot for the accuracy condition. 
 
@@ -929,7 +931,7 @@ p3 + as.layer(p2) + as.layer(p1) + as.layer(p1e)
 
 ```
 
-These two plots reval an interesting difference between the models. While the LBA seems to be better able to exactly describe the mejority of the data points it had problems describing the one or two strength bins in which there was a marked difference in response times. In contrast, the diffusion model seemed to be good in adequately describing the pattern of the RTs across strength bin. Unfortunately, the predictions of the diffusion model were shifted by quite a considerably account (> 50 ms) for most participants in line with the log-likelihoods suggesting that overall its account is worse.
+Here we see the same observation as for the spped condition. Considerable changes in median RT across strength bins are better captured by the diffusion model than the LBA. This leads to the situation that in most cases the diffusion model can make more accurate prediction for conditions with low numbers of trials.
 
 
 # References
