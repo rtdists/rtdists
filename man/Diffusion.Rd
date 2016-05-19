@@ -53,7 +53,7 @@ rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
 \item{n}{is a desired number of observations.}
 }
 \value{
-\code{ddiffusion} gives the density, \code{pdiffusion} gives the distribution function, \code{qdiffusion} gives the quantile function (i.e., predicted RTs), and \code{rdiffusion} generates random response times and decisions (returning a \code{data.frame} with columns \code{rts} (numeric) and \code{response} (factor)).
+\code{ddiffusion} gives the density, \code{pdiffusion} gives the distribution function, \code{qdiffusion} gives the quantile function (i.e., predicted RTs), and \code{rdiffusion} generates random response times and decisions (returning a \code{data.frame} with columns \code{rt} (numeric) and \code{response} (factor)).
 
 The length of the result is determined by \code{n} for \code{rrd}, and is equal to the length of \code{rt} for \code{drd} and \code{prd}.
 
@@ -68,6 +68,10 @@ The Ratcliff diffusion model (Ratcliff, 1978) is a mathematical model for two-ch
 All functions are fully vectorized acros all parameters as well as the boundary. This allows for trialwise parameters for each parameter. 
 
 \subsection{Quantile Function}{
+For the time being, the cumulative probability function (\code{pdiffusion}) uses numerical integration of \code{ddiffusion} via the R \code{\link{integrate}} function. While this is somewhat slow, it reliably produces correct results. Any problems in the numerical integration is passed on as a warning.
+}
+
+\subsection{Quantile Function}{
 Due to the bivariate nature of the diffusion model, the diffusion processes reaching each boundary only return the defective CDF that does not reach 1. Only the sum of the CDF for both boundaries reaches 1. Therefore, \code{qdiffusion} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at a high value or \code{Inf} (the latter can be slow). See examples. 
 
 Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probabiliy and the value returned from \code{pdiffusion} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
@@ -75,6 +79,8 @@ Also note that quantiles (i.e., predicted RTs) are obtained by numerically minim
 }
 \note{
 In the present code, the diffusion constant s is set to 1. This differs from, for example, the work of Roger Ratcliff who usually uses a diffusion constant of s=0.1. Estimates for a, z, and v depend on the chosen diffusion constant. These parameters can be transformed to the case of s = 1 by dividing the estimated values by the diffusion constant used for the estimation procedure. 
+
+The parameterization of the non-decisional components, \code{t0} and \code{st0}, differs from the parameterization used by, for example, Andreas Voss or Roger Ratcliff in that \code{t0} is \emph{not} the lower bound of the uniform distribution of length \code{st0}, but its midpoint.
 
 RTs need to be sorted (in increasing order) for \code{pdiffusion}.
 }
