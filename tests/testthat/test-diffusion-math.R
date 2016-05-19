@@ -30,7 +30,7 @@ test_that("pdiffusion is equal to pwiener", {
               pdiffusion(seq(0, 3, length.out = 15), a=a, v=v, t0=t0, z = z)
               ,
               pwiener(seq(0, 3, length.out = 15), resp = rep("upper", 15), alpha=a, delta=v, tau = t0, beta = z)
-            , tolerance = 0.0001)
+            , tolerance = 0.001)
           }
         }
       }
@@ -54,14 +54,14 @@ tryCatch.W.E <- function(expr)
 }
 
 
-test_that("Norm: n1CDF corresponds to random derivates", {
+test_that("Norm: pdiffusion corresponds to random derivates", {
   testthat::skip_on_cran()
   #testthat::skip_on_travis()
   normalised_pdiffusion <- function(rt,...) pdiffusion(rt,...)/pdiffusion(rt=10, ...) 
   normalised_pwiener <- function(q,...) pwiener(q,  resp = rep("upper", length(q)), ...)/pwiener(q=10, resp = "upper", ...)
   samples <- 1e4
   p_min <- 0.001
-  p_max <- 0.05
+  p_max <- 0.01
   a <- runif(1, 0.3, 0.9)
   t0 <- runif(1, 0.1, 0.5)
   v <- runif(1, 0.5, 2.5)
@@ -78,3 +78,24 @@ test_that("Norm: n1CDF corresponds to random derivates", {
   
 })
 
+test_that("Norm: pdiffusion corresponds to random derivates (with variabilities)", {
+  testthat::skip_on_cran()
+  #testthat::skip_on_travis()
+  normalised_pdiffusion <- function(rt,...) pdiffusion(rt,...)/pdiffusion(rt=10, ...) 
+  samples <- 1e4
+  p_min <- 0.001
+  p_max <- 0.01
+  a <- runif(1, 0.3, 0.9)
+  t0 <- runif(1, 0.1, 0.5)
+  v <- runif(1, 0.5, 2.5)
+  sv <- runif(1, 0.1, 0.5)
+  sz <- runif(1, 0.05, 0.2)
+  z <- runif(1, 0.5, 0.6)
+  r_diffusion <- rdiffusion(samples, a=a, t0=t0, v=v, z=z, sz=sz, sv = sv)
+  t1 <- tryCatch.W.E(ks.test(r_diffusion$rt[r_diffusion$response=="upper"], normalised_pdiffusion, a=a, t0=t0, v=v, z=z, sv=1, sz = 0.6))
+  expect_lt(t1$value$p.value, p_min)
+  
+  t2 <- tryCatch.W.E(ks.test(r_diffusion$rt[r_diffusion$response=="upper"], normalised_pdiffusion, a=a, t0=t0, v=v, z=z,sv=sv, sz=sz))
+  expect_gt(t2$value$p.value, p_max)
+  
+})
