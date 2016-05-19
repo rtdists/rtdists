@@ -65,7 +65,7 @@ Density, distribution function, quantile function, and random generation for the
 \details{
 The Ratcliff diffusion model (Ratcliff, 1978) is a mathematical model for two-choice discrimination tasks. It is based on the assumption that information is accumulated continuously until one of two decision thresholds is hit. For more information, see Voss, Rothermund, and Voss (2004), Voss, Nagler, and Lerche (2013), or Wagenmakers (2009).
 
-All functions are fully vectorized acros all parameters as well as the boundary. This allows for trialwise parameters for each parameter. 
+All functions are fully vectorized across all parameters as well as the boundary. This allows for trialwise parameters for each parameter. 
 
 \subsection{Quantile Function}{
 For the time being, the cumulative probability function (\code{pdiffusion}) uses numerical integration of \code{ddiffusion} via the R \code{\link{integrate}} function. While this is somewhat slow, it reliably produces correct results. Any problems in the numerical integration is passed on as a warning.
@@ -74,7 +74,7 @@ For the time being, the cumulative probability function (\code{pdiffusion}) uses
 \subsection{Quantile Function}{
 Due to the bivariate nature of the diffusion model, the diffusion processes reaching each boundary only return the defective CDF that does not reach 1. Only the sum of the CDF for both boundaries reaches 1. Therefore, \code{qdiffusion} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at a high value or \code{Inf} (the latter can be slow). See examples. 
 
-Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probabiliy and the value returned from \code{pdiffusion} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
+Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probability and the value returned from \code{pdiffusion} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
 }
 }
 \note{

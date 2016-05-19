@@ -57,7 +57,7 @@
 #' 
 #' @note The data is already prepared following Ratcliff and Rouder (1998) by removing the following trials:
 #' \itemize{
-#' \item{the first sesison for each participant}
+#' \item{the first session for each participant}
 #' \item{the first 20 trials of each session}
 #' \item{the first trial of each block (each change in speed accuracy starts a new block)}
 #' }
@@ -81,7 +81,7 @@
 #'  \item{response_num}{numeric response variable such that \code{1="dark"} and \code{2="light"}}
 #'  \item{correct}{boolean indicating whether or not \code{source==response}. (Does not seem to be used in the original analysis.)}
 #'  \item{rt}{response time in seconds}
-#'  \item{outlier}{boolean indicating whether or not the response was conisdered an outlier by Ratcliff and Rouder (1998), i.e., RTs outside of (200ms, 2500ms)}
+#'  \item{outlier}{boolean indicating whether or not the response was considered an outlier by Ratcliff and Rouder (1998), i.e., RTs outside of (200ms, 2500ms)}
 #' }
 #'
 #' @source Ratcliff, R., & Rouder, J. N. (1998). Modeling Response Times for Two-Choice Decisions. \emph{Psychological Science}, 9(5), 347-356. http://doi.org/10.1111/1467-9280.00067

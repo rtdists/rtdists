@@ -75,7 +75,7 @@ To make the difference between both paragraphs clear: Whereas for the accumulato
 \subsection{Quantile Function}{
 Due to the bivariate nature of the LBA, single accumulators only return defective CDFs that do not reach 1. Only the sum of all accumulators reaches 1. Therefore, \code{qLBA} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at \code{Inf} (see examples). 
 
-Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probabiliy and the value returned from \code{pLBA} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
+Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probability and the value returned from \code{pLBA} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
 }
 
 \subsection{RNG}{

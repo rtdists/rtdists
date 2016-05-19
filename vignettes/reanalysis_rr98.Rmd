@@ -169,7 +169,7 @@ For the accuracy condition in the lower plot the pattern is noticeably different
 
 # Diffusion Model Analysis
 
-We will follow Ratcliff and Rouder (1998) and analyze the data with the diffusion model. For this, we will fit a separate model to each participant and instruction condition. Like Ratcliff and Rouder we will fit the data to the strength bins instead of the full strength manipulation. We fit basically the full diffusion model (with the excpetion of $s_{t0}$) to each instruction condition which results in 10 parameters per participant and instruction condition:
+We will follow Ratcliff and Rouder (1998) and analyze the data with the diffusion model. For this, we will fit a separate model to each participant and instruction condition. Like Ratcliff and Rouder we will fit the data to the strength bins instead of the full strength manipulation. We fit basically the full diffusion model (with the exception of $s_{t0}$) to each instruction condition which results in 10 parameters per participant and instruction condition:
 
 - 5 drift rates $v$ (i.e., one per strength bin)
 - 1 boundary separation $a$
@@ -205,7 +205,7 @@ objective_diffusion_separate <- function(pars, rt, boundary, drift, ...) {
 
 ```
 
-As one can see at this function we also wrap the call to `ddiffusion` (i.e., the PDF of the diffusion model) into a `tryCatch` statement. This prevents failures during optimization as `ddifussion` can fail for some impossible parameters values. Note also that the function is written insuch a way that we could easily fix certain parameters without the necessity to change it (using `if`-`then` on the parameters names passed via `pars`).
+As one can see at this function we also wrap the call to `ddiffusion` (i.e., the PDF of the diffusion model) into a `tryCatch` statement. This prevents failures during optimization as `ddifussion` can fail for some impossible parameters values. Note also that the function is written in such a way that we could easily fix certain parameters without the necessity to change it (using `if`-`then` on the parameters names passed via `pars`).
 
 Additionally, we also need a function that generates a set of random starting values. And, as any random set of starting values may be impossible, another wrapper function that generates starting values until a set of valid starting values is found and then passes those to the optimization routine. As optimization routine we will be using `nlminb`. These functions are given next and are already specified in a way that it will be usable for the second
 
@@ -297,7 +297,7 @@ knitr::kable(pars_separate)
 We can see from these values that there is a large effect of instruction on $a$. However, instruction also has effects on other parameters:
 
 - $t_0$ is consistently larger in the accuracy compared to the speed condition, although this effect is small.
-- $s_v$ is estimated at 0 for very low in the speed condition, but 0.5 or 1 in the acuracy condition. This is consistent with the absence of slow "errors" in the speed condition.
+- $s_v$ is estimated at 0 for very low in the speed condition, but 0.5 or 1 in the accuracy condition. This is consistent with the absence of slow "errors" in the speed condition.
 - $s_z$ is consistently larger in the speed conditions consistent with the presence or more fast "errors" in the speed than in the accuracy condition.
 - The differences in $v$ are not consistent across participants, but also do not seem completely negligible.
 
@@ -362,7 +362,7 @@ rr98 %>% filter(id == "jf" & instruction=="speed") %>% group_by(strength_bin, re
 
 ### Predicted Response Rates
 
-To evaluate the fits graphically we first compare the actual response rates for the two responses with the predicted responses rates. The grey lines and points show the observed data and the error bars are binomial confidence intervals. The black lines and points show the predicted dresponse rates.
+To evaluate the fits graphically we first compare the actual response rates for the two responses with the predicted responses rates. The grey lines and points show the observed data and the error bars are binomial confidence intervals. The black lines and points show the predicted response rates.
 
 
 ```{r, fig.height=5, fig.width=7, message=FALSE}
@@ -875,7 +875,7 @@ When comparing the fit of the two models like this, it shows that both models ma
 
 ## Predicted Median RTs
 
-Next, we also compare the two accounts for the median. As before, data is shown in grey and we begin with a plot for the speed condition, spearated by response.
+Next, we also compare the two accounts for the median. As before, data is shown in grey and we begin with a plot for the speed condition, separated by response.
 
 ```{r, fig.height=6.5, fig.width=7, message=FALSE}
 
@@ -902,7 +902,7 @@ p3 + as.layer(p2) + as.layer(p1) + as.layer(p1e)
 
 ```
 
-This plot suggests that the diffusion model is better able to predict changes in the median RTs in the speed condition across strength bins than the LBA. While this leads to obvious misfit in certain cases (`dark` responses for `nh`) it appears to provide a generally better recoverey of the patterns in the data.
+This plot suggests that the diffusion model is better able to predict changes in the median RTs in the speed condition across strength bins than the LBA. While this leads to obvious misfit in certain cases (`dark` responses for `nh`) it appears to provide a generally better recovery of the patterns in the data.
 
 Next shows the same plot for the accuracy condition. 
 
@@ -931,7 +931,7 @@ p3 + as.layer(p2) + as.layer(p1) + as.layer(p1e)
 
 ```
 
-Here we see the same observation as for the spped condition. Considerable changes in median RT across strength bins are better captured by the diffusion model than the LBA. This leads to the situation that in most cases the diffusion model can make more accurate prediction for conditions with low numbers of trials.
+Here we see the same observation as for the speed condition. Considerable changes in median RT across strength bins are better captured by the diffusion model than the LBA. This leads to the situation that in most cases the diffusion model can make more accurate prediction for conditions with low numbers of trials.
 
 
 # References
