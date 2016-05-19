@@ -30,28 +30,12 @@
 //   Contact: Matthew Gretton (matthew.gretton@uon.edu.au)
 //
 // Compile via R:
-//   R CMD SHLIB Rfastdm2.c density.c cdf.c pde.c phi.c precision.c xmalloc.c
 /*
-     NOTE: To enable compilation options I added a home/.R/Makevars file containing "CFLAGS=CFLAGS=-g -O2 -Wall"
-     Do -c for clean and --preclean to clean previous versions
-     Does this do anything on linux??
-       R CMD SHLIB -d Rfastdm2.c density.c cdf.c pde.c phi.c precision.c
+     R CMD SHLIB Rfastdm2.c density.c cdf.c pde.c phi.c precision.c xmalloc.c
 */
-//
+//   NOTE: To enable compilation options I added a home/.R/Makevars file containing "CFLAGS=CFLAGS=-g -O2 -Wall"
+//   Do -c for clean and --preclean to clean previous versions
 /*****************************************************************************/
-
-// MG TODO: 
-// DONE    - Get compiling under Win32/64
-// DONE        - _WIN32 problem: _WIN32 is defined by gcc, but the _WIN32 code seems to have Visual Studio in mind?
-// DONE        - isinf() problem: gcc now(?) seems to have an inbuilt (same for erf() )
-// DONEISH     - xmalloc/xfree problem: linux xmalloc/xfree undefined
-//               ! for now, using Voss&Voss xmalloc, 
-//                 but may want to replace with more graceful out-of-memory handling
-// ????    - Replace normal dist functions with R inbuilts -> can't easily isolate them
-// DONE    - Replace random functions with R inbuilts (controllable with USE_R_PRNG)
-//             - jv_random.h functions replaced 
-//                - init_noise (unsigned long)     - removed, set seed in R
-//                - double        jvrand_real2 ()  - replaced with calling R's runif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,9 +44,8 @@
 
 #include "fast-dm.h"
 
-
-#define FASTDM_DEBUG  1  // Turn this off for release
-#define SHOW_INFO     1  // Show warnings / extra info, etc.
+#define FASTDM_DEBUG  1  // Undef below for release
+#define SHOW_INFO     1  // Show warnings / extra info, etc. (undef below)
 #undef  FASTDM_DEBUG
 #undef  SHOW_INFO
 
@@ -72,7 +55,7 @@
   #include "jvrandom.h"
 #endif
 
-// Andrew's additional bounds (no longer needed?)
+// Andrew Heathcote's additional bounds (no longer needed?)
 //#define ADDITIONAL_BOUNDS 1  
 #undef ADDITIONAL_BOUNDS    
 
@@ -235,17 +218,10 @@ void pfastdm   (int *in_numvalues, double *in_params, double *in_RTs, double *in
 
 	struct F_calculator *fc;
 
-    // Scale zr by a for .... reasons?
     double z;
 	z = g_zr * g_params[p_a];
-
-    // Loop through each RT and add to the output vector
     double *RTs = in_RTs;
-
-    // Create a new F-calculator from the parameters
 	fc = F_new (g_params);
-
-    // Set upper boundary as IV for the PDE
     F_start (fc, b_upper);
 
     double val;
@@ -289,13 +265,13 @@ for (int j = 0; j < n; j++)
     for (int i = 0; i < g_num_values; i++)
     {
         val = RTs[i];
-        Fv = F_get_val (fc, val, z);
 #ifdef SHOW_INFO
+        Fv = F_get_val (fc, val, z);
         Fz = F_get_z (fc, val);
         FF = F_get_F (fc, val);
         double n = F_get_N (fc);
 
-        Rprintf ("Calculating lower p-value for RT %d = %g.\n", i, val);
+	     	Rprintf("Calculating lower p-value for RT %d = %g.\n", i, val);
         Rprintf ("  F_get_z returns %g.\n", Fz);
         Rprintf ("  F_get_val returns %g.\n", Fv);
         Rprintf ("  F_get_F returns ");
@@ -312,7 +288,7 @@ for (int j = 0; j < n; j++)
 	F_delete (fc);
 }
 
-// An R-like version which finds the left-hand area (from 0 to RT) - uses Scott's code, pass in boundary to retrieve
+// An R-like version which finds the left-hand area (from 0 to RT) - uses Scott Brown's code, pass in boundary to retrieve
 void pfastdm_b (int *in_numvalues, double *in_params, double *in_RTs, double *in_precision, int *boundary, double *out_pvalues)
 {
 	struct  F_calculator *fc;
@@ -322,7 +298,7 @@ void pfastdm_b (int *in_numvalues, double *in_params, double *in_RTs, double *in
 	int     i,j,nz;
 
 #ifdef FASTDM_DEBUG
-    Rprintf ("In Scott_fastdmcdf. Calling _setup ()\n");
+    Rprintf ("In pfastdm_b. Calling _setup ()\n");
 #endif
     double p[1]; // This is CDF(t=Inf)?
 
@@ -340,7 +316,7 @@ void pfastdm_b (int *in_numvalues, double *in_params, double *in_RTs, double *in
 
 	fc = F_new(g_params);
 
-    double scaled = g_zr /g_params[p_a];
+  double scaled = g_zr;// * g_params[p_a];   // SCALING zr BY a (in line with pfastdm and rfastdm)
 
 	// Get the value of CDF(t=Inf) (for the upper boundary??) (store in p[0])
 	F_start(fc, b_upper);
@@ -597,8 +573,7 @@ static int find_slot(double target, const double *value, int l, int r)
 }
 
 
-// Shamelessly stolen/adapted from Scott on the reasonable assumption that he
-// has a better understand of all this stuff.
+// Alternative CDF method adapted from code by Scott Brown 
 // int fastdmcdf(double *parain,            -- Parameter set
 //              double *nhi, double *nlo,   -- Number of upper and lower boundary values...?
 //              double *thi, double *tlo,   -- RT arrays for upper and lower boundaries
@@ -607,7 +582,6 @@ static int find_slot(double target, const double *value, int l, int r)
 //              double *precision)
 int Scott_fastdmcdf(double *in_params,
               double *nhi, double *nlo,
-
               double *thi, double *tlo,
               double *phi, double *plo,
               double *p, double *precision)
@@ -639,8 +613,7 @@ int Scott_fastdmcdf(double *in_params,
 
 	fc = F_new(g_params);
 
-    double scaled = g_zr /g_params[p_a];   // MG: What is the numerator?? parain[6] is what...???
-
+    double scaled = g_zr /g_params[p_a];
 
 	// Get the value of CDF(t=Inf)  (store in p[0])
 	F_start(fc, b_upper);
@@ -650,7 +623,6 @@ int Scott_fastdmcdf(double *in_params,
 	nz   = F_get_N(fc);
 	j    = (int) nz*scaled;
 	p[0] = F[j];
-
 
 #ifdef FASTDM_DEBUG
     Rprintf ("Calculating upper boundary\n");
@@ -708,7 +680,7 @@ int Scott_fastdmcdf(double *in_params,
 
 
 
-// Cheaty way - pass through to Scott's code
+// Alternative method: pass through to Scott's code
 // An R-like version which finds the left-hand area (from 0 to RT)
 void pfastdm_alt (double *in_numvalues, double *in_params, double *in_RTs, double *in_precision, double *out_pvalues_upper, double *out_pvalues_lower)
 {
@@ -724,8 +696,6 @@ void pfastdm_alt (double *in_numvalues, double *in_params, double *in_RTs, doubl
     Rprintf ("p = %g\n", p);
 #endif
 }
-//*/
-
 
 
 void params_write(double para[p_count], double zr, double precision, int n)
