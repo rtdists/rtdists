@@ -3,7 +3,8 @@ Changes to Version 0.5-x (released May 2016)
 
     o Calculation of the CDF for the diffusion model was incorrect (this bug was
       present in all prior versions of rtdists). pdiffusion now simply 
-      integrates the PDF to obtain the CDF using R's integrate.
+      integrates the PDF to obtain the CDF using R's integrate which provides
+      the correct result (albeit slower).
     
     o Added rr98 data set: Experiment 1 from Ratcliff and Rouder (1998, 
       Psych. Science). We thank Roger Ratcliff and Jeff Rouder for providing the

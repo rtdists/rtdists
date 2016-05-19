@@ -62,7 +62,7 @@
 #'
 #' @name Diffusion
 #' @importFrom utils head
-#' @importFrom stats optimize
+#' @importFrom stats optimize uniroot
 #' @aliases diffusion
 #' 
 #' @example examples/examples.diffusion.R
