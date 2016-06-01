@@ -20,6 +20,8 @@
 #' @param precision \code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.
 #' @param maxt maximum \code{rt} allowed, used to stop integration problems (\code{prd} only).
 #' @param interval a vector containing the end-points of the interval to be searched for the desired quantiles (i.e., RTs) in \code{qdiffusion}. Default is \code{c(0, 10)}.
+#' @param subdivisions the maximum number of subintervals in the \code{integration} of \code{pdiffusion}.
+#' @param stop.on.error logical. If true (the default) an error stops the \code{integration} of \code{pdiffusion}. If false some errors will give a result with a warning in the message component.
 #'
 #' @return \code{ddiffusion} gives the density, \code{pdiffusion} gives the distribution function, \code{qdiffusion} gives the quantile function (i.e., predicted RTs), and \code{rdiffusion} generates random response times and decisions (returning a \code{data.frame} with columns \code{rt} (numeric) and \code{response} (factor)).
 #' 
@@ -193,7 +195,8 @@ ddiffusion <- function (rt, boundary = "upper",
 #' @export
 pdiffusion <- function (rt, boundary = "upper", 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
-                 precision = 3, maxt = 1e4) 
+                 precision = 3, maxt = 1e4,
+                 subdivisions = 100L, stop.on.error = TRUE) 
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
 
@@ -243,7 +246,9 @@ pdiffusion <- function (rt, boundary = "upper",
                        lower=if(j==1) 0 else rt[ok_rows][j-1],
                        upper=rt[ok_rows][j],
                        params=uniques[i,],
-                       precision=precision)
+                       precision=precision,
+                       subdivisions = subdivisions,
+                       stop.on.error = stop.on.error)
       #browser()
       if (out$message != "OK") warning(out$message, call. = FALSE)
       pvalues[ok_rows][j] <- out$value

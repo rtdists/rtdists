@@ -13,7 +13,8 @@ ddiffusion(rt, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
   sv = 0, st0 = 0, precision = 3)
 
 pdiffusion(rt, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
-  sv = 0, st0 = 0, precision = 3, maxt = 10000)
+  sv = 0, st0 = 0, precision = 3, maxt = 10000, subdivisions = 100L,
+  stop.on.error = TRUE)
 
 qdiffusion(p, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
   sv = 0, st0 = 0, precision = 3, maxt = 10000, interval = c(0, 10))
@@ -45,6 +46,10 @@ rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
 \item{precision}{\code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.}
 
 \item{maxt}{maximum \code{rt} allowed, used to stop integration problems (\code{prd} only).}
+
+\item{subdivisions}{the maximum number of subintervals in the \code{integration} of \code{pdiffusion}.}
+
+\item{stop.on.error}{logical. If true (the default) an error stops the \code{integration} of \code{pdiffusion}. If false some errors will give a result with a warning in the message component.}
 
 \item{p}{vector of probabilities.}
 
