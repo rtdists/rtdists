@@ -28,3 +28,12 @@ test_that("pdiffusion is equal to pwiener", {
     expect_equivalent(pdiffusion(2, boundary = "upper", a = 1.63, v = 1.17, t0 = 0.22, z = 0.517), pwiener(2, resp = "upper", alpha = 1.63, delta = 1.17, tau = 0.22, beta =  0.517))
   }
 })
+
+test_that("numerical integration does not fail in certain cases", {
+  # fails
+  # pdiffusion(0.640321329425053, boundary = "upper", a = 1.1, v=1.33, t0 = 0.3, z = 0.55, st0 = 0.2, sz = 0.7, precision = 3)
+  expect_equal(pdiffusion(0.640321329425053, boundary = "upper", a = 1.1, v=1.33, t0 = 0.3, z = 0.55, st0 = 0.2, sz = 0.7, precision = 2.9),
+                             0.5345517, tolerance = 0.0001)
+
+
+})
