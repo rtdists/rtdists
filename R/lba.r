@@ -305,7 +305,7 @@ rLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "freche
            dots <- dots[c("shape_v","scale_v")]
          },
          lnorm = {
-           pdf <- rlba_lnorm
+           rng <- rlba_lnorm
            if (any(!(c("meanlog_v","sdlog_v") %in% names(dots)))) stop("meanlog_v and sdlog_v need to be passed for distribution = \"lnorm\"")
            dots$meanlog_v <- check_i_arguments(dots$meanlog_v, nn=nn, n_v=n_v, dots = TRUE)
            dots$sdlog_v <- check_i_arguments(dots$sdlog_v, nn=nn, n_v=n_v, dots = TRUE)
