@@ -166,3 +166,23 @@ test_that("qdiffusion is equivalent to manual calculation",{
   
   expect_equal(suppressWarnings(qdiffusion(q*prop_correct, boundary = "lower", a=p11_fit$par["a"], v=p11_fit$par["v"], t0=p11_fit$par["t0"], sz=p11_fit$par["sz"], st0=p11_fit$par["st0"], sv=p11_fit$par["sv"])),as.numeric(rep(NA, 5)))
 })
+
+test_that("s works as expected", {
+  set.seed(1)
+  x <- rdiffusion(n = 100, a = 1, v = 2, t0 = 0.3, z = 0.5, s = 1)
+  set.seed(1)
+  y <- rdiffusion(n = 100, a = 0.1, v = 0.2, t0 = 0.3, z = 0.5, s = 0.1)
+  expect_identical(x, y)
+  expect_identical(
+    ddiffusion(x[x$response == "upper", "rt"], a = 1, v = 2, t0 = 0.3, z = 0.5, s=1), 
+    ddiffusion(x[x$response == "upper", "rt"], a = 0.1, v = 0.2, t0 = 0.3, z = 0.5, s=0.1)
+    )
+  expect_identical(
+    pdiffusion(sort(x[x$response == "upper", "rt"]), a = 1, v = 2, t0 = 0.3, z = 0.5, s=1),
+    pdiffusion(sort(x[x$response == "upper", "rt"]), a = 0.1, v = 0.2, t0 = 0.3, z = 0.5, s=0.1)
+  )
+  expect_identical(
+    qdiffusion(0.6, a = 1, v = 2, t0 = 0.3, z = 0.5, s=1),
+    qdiffusion(0.6, a = 0.1, v = 0.2, t0 = 0.3, z = 0.5, s=0.1)
+  )
+})

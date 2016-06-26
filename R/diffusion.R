@@ -16,6 +16,7 @@
 #' @param sz inter-trial-variability of (relative) starting point. Range of a uniform distribution with mean \code{z} describing the distribution of actual starting points from specific trials. Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sz} < 0.5. Default is 0.
 #' @param sv inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials. 	Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sv} < 2. Default is 0.
 #' @param st0 inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0 + st0/2} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Typical range: 0 < \code{st0} < 0.2. Default is 0.
+#' @param s diffusion constant; standard deviation of the random noise of the diffusion process (i.e., within-trial variability). Needs to be fixed to a constant in most situations. The default is 1. Note that the default used by Ratcliff and in other applications is often 0.1. Scales \code{a}, \code{v}, and \code{sv}. 
 #' 
 #' @param precision \code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.
 #' @param maxt maximum \code{rt} allowed, used to stop integration problems (\code{prd} only).
@@ -112,7 +113,7 @@ recalc_t0 <- function (t0, st0) { t0 <- t0 + st0/2 }
 #' @rdname Diffusion
 #' @export
 ddiffusion <- function (rt, boundary = "upper", 
-                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
+                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
@@ -131,13 +132,13 @@ ddiffusion <- function (rt, boundary = "upper",
   }
   numeric_bounds <- rep(numeric_bounds, length.out = nn)
   # all parameters brought to length of rt
-  a <- rep(a, length.out = nn)
-  v <- rep(v, length.out = nn)
+  a <- rep(a/s, length.out = nn)
+  v <- rep(v/s, length.out = nn)
   t0 <- rep(t0, length.out = nn)
   z <- rep(z, length.out = nn)
   d <- rep(d, length.out = nn)
   sz <- rep(sz, length.out = nn)
-  sv <- rep(sv, length.out = nn)
+  sv <- rep(sv/s, length.out = nn)
   st0 <- rep(st0, length.out = nn)
   t0 <- recalc_t0 (t0, st0) 
   
@@ -193,7 +194,7 @@ ddiffusion <- function (rt, boundary = "upper",
 #' @rdname Diffusion
 #' @export
 pdiffusion <- function (rt, boundary = "upper", 
-                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
+                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3, maxt = 1e4) #subdivisions = 100L, stop.on.error = TRUE) 
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
@@ -216,13 +217,13 @@ pdiffusion <- function (rt, boundary = "upper",
   }
   numeric_bounds <- rep(numeric_bounds, length.out = nn)
   # all parameters brought to length of rt
-  a <- rep(a, length.out = nn)
-  v <- rep(v, length.out = nn)
+  a <- rep(a/s, length.out = nn)
+  v <- rep(v/s, length.out = nn)
   t0 <- rep(t0, length.out = nn)
   z <- rep(z, length.out = nn)
   d <- rep(d, length.out = nn)
   sz <- rep(sz, length.out = nn)
-  sv <- rep(sv, length.out = nn)
+  sv <- rep(sv/s, length.out = nn)
   st0 <- rep(st0, length.out = nn)
   t0 <- recalc_t0 (t0, st0) 
   
@@ -325,20 +326,20 @@ inv_cdf_diffusion <- function(x, boundary, a, v, t0, z, d, sz, sv, st0, precisio
 #' @rdname Diffusion
 #' @export
 qdiffusion <- function (p, boundary = "upper", 
-                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
+                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3, maxt = 1e4, interval = c(0, 10))
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and t0 must be supplied")
   
   nn <- length(p)
   boundary <- rep(unname(boundary), length.out = nn)
-  a <- rep(unname(a), length.out = nn)
-  v <- rep(unname(v), length.out = nn)
+  a <- rep(unname(a)/s, length.out = nn)
+  v <- rep(unname(v)/s, length.out = nn)
   t0 <- rep(unname(t0), length.out = nn)
   z <- rep(unname(z), length.out = nn)
   d <- rep(unname(d), length.out = nn)
   sz <- rep(unname(sz), length.out = nn)
-  sv <- rep(unname(sv), length.out = nn)
+  sv <- rep(unname(sv)/s, length.out = nn)
   st0 <- rep(unname(st0), length.out = nn)
   p <- unname(p)
   
@@ -368,18 +369,18 @@ qdiffusion <- function (p, boundary = "upper",
 #' @rdname Diffusion
 #' @export
 rdiffusion <- function (n, 
-                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
+                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
   
-  a <- rep(a, length.out = n)
-  v <- rep(v, length.out = n)
+  a <- rep(a/s, length.out = n)
+  v <- rep(v/s, length.out = n)
   t0 <- rep(t0, length.out = n)
   z <- rep(z, length.out = n)
   d <- rep(d, length.out = n)
   sz <- rep(sz, length.out = n)
-  sv <- rep(sv, length.out = n)
+  sv <- rep(sv/s, length.out = n)
   st0 <- rep(st0, length.out = n)
   t0 <- recalc_t0 (t0, st0) 
   # Build parameter matrix

@@ -10,16 +10,17 @@
 \title{The Ratcliff Diffusion Model}
 \usage{
 ddiffusion(rt, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
-  sv = 0, st0 = 0, precision = 3)
+  sv = 0, st0 = 0, s = 1, precision = 3)
 
 pdiffusion(rt, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
-  sv = 0, st0 = 0, precision = 3, maxt = 10000)
+  sv = 0, st0 = 0, s = 1, precision = 3, maxt = 10000)
 
 qdiffusion(p, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
-  sv = 0, st0 = 0, precision = 3, maxt = 10000, interval = c(0, 10))
+  sv = 0, st0 = 0, s = 1, precision = 3, maxt = 10000,
+  interval = c(0, 10))
 
 rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
-  precision = 3)
+  s = 1, precision = 3)
 }
 \arguments{
 \item{rt}{a vector of RTs.}
@@ -41,6 +42,8 @@ rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
 \item{sv}{inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials.     Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sv} < 2. Default is 0.}
 
 \item{st0}{inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0 + st0/2} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Typical range: 0 < \code{st0} < 0.2. Default is 0.}
+
+\item{s}{diffusion constant; standard deviation of the random noise of the diffusion process (i.e., within-trial variability). Needs to be fixed to a constant in most situations. The default is 1. Note that the default used by Ratcliff and in other applications is often 0.1. Scales \code{a}, \code{v}, and \code{sv}.}
 
 \item{precision}{\code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.}
 
