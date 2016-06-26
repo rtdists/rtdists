@@ -23,7 +23,7 @@ rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
   s = 1, precision = 3)
 }
 \arguments{
-\item{rt}{a vector of RTs. Or for convenience also a \code{data.frame} with columns \code{rt} and \code{response} (such as returned from \code{rdiffusion}). See examples.}
+\item{rt}{a vector of RTs. Or for convenience also a \code{data.frame} with columns \code{rt} and \code{response} (such as returned from \code{rdiffusion} or \code{\link{rLBA}}). See examples.}
 
 \item{response}{character vector. Which response boundary should be tested? Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default. Alternatively, a numeric vector with values 1=lower and 2=upper. For convenience, \code{response} is converted via \code{as.numeric} also allowing factors (see examples). Ignored if the first argument is a \code{data.frame}.}
 
