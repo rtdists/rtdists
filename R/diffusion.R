@@ -1,22 +1,21 @@
 #' The Ratcliff Diffusion Model
 #' 
-#' Density, distribution function, quantile function, and random generation for the Ratcliff diffusion model with eight parameters: \code{a} (threshold separation), \code{z} (relative starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), and \code{sz} (inter-trial-variability of relative starting point). 
+#' Density, distribution function, quantile function, and random generation for the Ratcliff diffusion model with following parameters: \code{a} (threshold separation), \code{z} (\emph{relative} starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), \code{sz} (inter-trial-variability of relative starting point), and \code{s} (diffusion constant). \strong{Note that the parameterization or defaults of start point \code{z}, non-decision time variability \code{st0}, and diffusion constant \code{s} differ from what is often found in the literature.}
 #'
 #' @param rt a vector of RTs.
 #' @param n is a desired number of observations.
-#' @param boundary character vector. Which boundary should be tested? Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default. Alternatively, a numeric vector with values 1=lower and 2=upper. For convenience, /code{boundary} is converted via /code{as.numeric} also allowing factors (see examples). 
+#' @param boundary character vector. Which boundary should be tested? Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default. Alternatively, a numeric vector with values 1=lower and 2=upper. For convenience, \code{boundary} is converted via \code{as.numeric} also allowing factors (see examples). 
 #' @param p vector of probabilities.
 #' 
 #' @param a threshold separation. Amount of information that is considered for a decision. Large values indicate a conservative decisional style. Typical range: 0.5 < \code{a} < 2
 #' @param v drift rate. Average slope of the information accumulation process. The drift gives information about the speed and direction of the accumulation of information. Large (absolute) values of drift indicate a good performance. If received information supports the response linked to the upper threshold the sign will be positive and vice versa. Typical range: -5 < \code{v} < 5
 #' @param t0 non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution). Typical range: 0.1 < \code{t0} < 0.5
-#' 
 #' @param z relative starting point. Indicator of an a priori bias in decision making. When the relative starting point \code{z} deviates from 0.5, the amount of information necessary for a decision differs between response alternatives. Typical range: 0.3 < \code{z} < 0.7. Default is 0.5 (i.e., no bias).
 #' @param d differences in speed of response execution (in seconds). Positive values indicate that response execution is faster for responses linked to the upper threshold than for responses linked to the lower threshold. Typical range: -0.1 < \code{d} < 0.1. Default is 0.
-#' @param sz inter-trial-variability of (relative) starting point. Range of a uniform distribution with mean \code{z} describing the distribution of actual starting points from specific trials. Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sz} < 0.5. Default is 0.
-#' @param sv inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials. 	Minimal impact on the RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{sv} < 2. Default is 0.
-#' @param st0 inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0 + st0/2} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Typical range: 0 < \code{st0} < 0.2. Default is 0.
-#' @param s diffusion constant; standard deviation of the random noise of the diffusion process (i.e., within-trial variability). Needs to be fixed to a constant in most situations. The default is 1. Note that the default used by Ratcliff and in other applications is often 0.1. Scales \code{a}, \code{v}, and \code{sv}. 
+#' @param sz inter-trial-variability of (relative) starting point. Range of a uniform distribution with mean \code{z} describing the distribution of actual starting points from specific trials. Minimal impact on the RT distributions, values different from 0 can predict slow errors. Can be fixed to 0 in most applications. Typical range: 0 < \code{sz} < 0.5. Default is 0.
+#' @param sv inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials. Minimal impact on the RT distributions, values different from 0 can predict fast errors. Can be fixed to 0 in most applications. Typical range: 0 < \code{sv} < 2. Default is 0.
+#' @param st0 inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0 + st0/2} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{st0} < 0.2. Default is 0.
+#' @param s diffusion constant; standard deviation of the random noise of the diffusion process (i.e., within-trial variability), scales \code{a}, \code{v}, and \code{sv}. Needs to be fixed to a constant in most applications. Default is 1. Note that the default used by Ratcliff and in other applications is often 0.1. 
 #' 
 #' @param precision \code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.
 #' @param maxt maximum \code{rt} allowed, used to stop integration problems (\code{prd} only).
@@ -32,8 +31,8 @@
 #' 
 #' All functions are fully vectorized across all parameters as well as the boundary. This allows for trialwise parameters for each parameter. 
 #' 
-#' \subsection{Quantile Function}{
-#' For the time being, the cumulative probability function (\code{pdiffusion}) uses numerical integration of \code{ddiffusion} via the R \code{\link{integrate}} function. While this is somewhat slow, it reliably produces correct results. Any problems in the numerical integration is passed on as a warning.
+#' \subsection{Distribution Function (CDF)}{
+#' For the time being, the cumulative probability function (\code{pdiffusion}) uses numerical integration of \code{ddiffusion} via \code{\link{integral}} from package \pkg{pracma}. While this is somewhat slow, it reliably produces correct results. Any problems in the numerical integration is passed on as a warning.
 #' }
 #' 
 #' \subsection{Quantile Function}{
@@ -42,9 +41,11 @@
 #' Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probability and the value returned from \code{pdiffusion} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
 #' }
 #' 
-#' @note In the present code, the diffusion constant s is set to 1. This differs from, for example, the work of Roger Ratcliff who usually uses a diffusion constant of s=0.1. Estimates for a, z, and v depend on the chosen diffusion constant. These parameters can be transformed to the case of s = 1 by dividing the estimated values by the diffusion constant used for the estimation procedure. 
+#' @note The start point \code{z} is the relative start point and \emph{not} the absolute start point. 
 #' 
 #' The parameterization of the non-decisional components, \code{t0} and \code{st0}, differs from the parameterization used by, for example, Andreas Voss or Roger Ratcliff in that \code{t0} is \emph{not} the lower bound of the uniform distribution of length \code{st0}, but its midpoint.
+#' 
+#' The default diffusion constant \code{s} is 1 and not 0.1 as in most applications of Roger Ratcliff and others.
 #' 
 #' RTs need to be sorted (in increasing order) for \code{pdiffusion}.
 #' 
@@ -57,7 +58,7 @@
 #' Wagenmakers, E.-J. (2009). Methodological and empirical developments for the Ratcliff diffusion model of response times and accuracy. \emph{European Journal of Cognitive Psychology}, 21(5), 641-671.
 #' 
 #' 
-#' @author Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, and Henrik Singmann. \code{qdiffusion} by Henrik Singmann.
+#' @author Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, Scott Brown, and Henrik Singmann. \code{qdiffusion} by Henrik Singmann.
 #'
 #' @useDynLib rtdists, dfastdm_b, pfastdm_b, rfastdm
 #'
