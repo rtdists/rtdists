@@ -151,6 +151,35 @@ test_that("diffusion functions work with numeric and factor boundaries", {
   expect_error(pdiffusion(sort(rts$rt), sample(1:3, 20, replace = TRUE), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), "response")
 })
 
+test_that("diffusion functions are identical with all input options", {
+  rt1 <- rdiffusion(500, a=1, v=2, t0=0.5)
+  # get density for random RTs:
+  ref <- sum(log(ddiffusion(rt1$rt, rt1$response, a=1, v=2, t0=0.5)))  # response is factor
+  expect_identical(sum(log(ddiffusion(rt1$rt, as.numeric(rt1$response), a=1, v=2, t0=0.5))),
+                   ref)
+  expect_identical(sum(log(ddiffusion(rt1$rt, as.character(rt1$response), a=1, v=2, t0=0.5))),
+                   ref)
+  expect_identical(sum(log(ddiffusion(rt1, a=1, v=2, t0=0.5))), ref)
+  
+  rt2 <- rt1[order(rt1$rt),]
+  
+  ref2 <- pdiffusion(rt2$rt, rt2$response, a=1, v=2, t0=0.5)
+  expect_identical(pdiffusion(rt2$rt, as.numeric(rt2$response), a=1, v=2, t0=0.5), ref2)
+  expect_identical(pdiffusion(rt2$rt, as.character(rt2$response), a=1, v=2, t0=0.5), ref2)
+  expect_identical(pdiffusion(rt2, a=1, v=2, t0=0.5), ref2)
+  
+#   rt3 <- data.frame(p = rep(seq(0.1, 0.9, 0.2), 2),
+#                     response = rep(c("upper", "lower"), each = 5))
+  
+  rt3 <- data.frame(p = rep(c(0.05, 0.1), 2),
+                    response = rep(c("upper", "lower"), each = 2))
+  ref3 <- qdiffusion(rt3$p, rt3$response, a=1, v=2, t0=0.5)
+  expect_identical(qdiffusion(rt3$p, as.numeric(rt3$response), a=1, v=2, t0=0.5), ref3)
+  expect_identical(qdiffusion(rt3$p, as.character(rt3$response), a=1, v=2, t0=0.5), ref3)
+  expect_identical(qdiffusion(rt3, a=1, v=2, t0=0.5), ref3)
+  
+})
+
 
 test_that("qdiffusion is equivalent to manual calculation",{
   p11_fit <- structure(list(par = structure(c(1.32060063610882, 3.27271614698074, 0.338560144920614, 0.34996447540773, 0.201794924457386, 1.05516829794661), .Names = c("a", "v", "t0", "sz", "st0", "sv"))))

@@ -5,10 +5,12 @@ head(rt1)
 rt2 <- rdiffusion(500, a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
 head(rt2)
   
-# get density for random RTs:
+# get density for random RTs (possible to specify arguments for pdiffusion in same way):
 sum(log(ddiffusion(rt1$rt, rt1$response, a=1, v=2, t0=0.5)))  # response is factor
 sum(log(ddiffusion(rt1$rt, as.numeric(rt1$response), a=1, v=2, t0=0.5))) # response is numeric
 sum(log(ddiffusion(rt1$rt, as.character(rt1$response), a=1, v=2, t0=0.5))) # response is character
+sum(log(ddiffusion(rt1, a=1, v=2, t0=0.5))) # response is data.frame
+
 
 sum(log(ddiffusion(rt2$rt, rt2$response, a=1, v=2, t0=0.5)))
 
@@ -61,7 +63,18 @@ pdiffusion(20, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
 # [1] 0.8705141
 
 qdiffusion(0.87, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
-# [1] 1.769253
+# [1] 1.945802
 
 qdiffusion(0.88, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
-# NA
+# NA with warning.
+
+# qdiffusion also accepts a data.frame as first argument:
+t3 <- data.frame(p = rep(c(0.05, 0.1, 0.87), 2), response = rep(c("upper", "lower"), each = 3))
+#      p response
+# 1 0.05    upper
+# 2 0.10    upper
+# 3 0.87    upper
+# 4 0.05    lower
+# 5 0.10    lower
+# 6 0.87    lower
+qdiffusion(t3, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5)
