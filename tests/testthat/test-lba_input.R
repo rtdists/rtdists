@@ -119,3 +119,24 @@ test_that("_lnorm input works as they should", {
   expect_error(plba_lnorm(x$response, A=as.character(seq(0.2, 0.5, length.out = 10)), b=0.5, t0 = 0.5, meanlog_v=1.2, sdlog_v=0.2), "numeric")
   expect_is(plba_lnorm(x$response, A=seq(0.2, 0.5, length.out = 10), b=0.5, t0 = seq(0.5, 0.7, 0.1), meanlog_v=1.2, sdlog_v=0.2), "numeric")
 })
+
+test_that("LBA functions are identical with all input options", {
+  rt1 <- rLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
+  # get density for random RTs:
+  ref <- sum(log(dLBA(rt1$rt, rt1$response, A=0.5, b = 1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))))  # response is factor
+  #expect_identical(sum(log(dLBA(rt1$rt, as.numeric(rt1$response), A=0.5, b = 1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3)))), ref)
+  expect_identical(sum(log(dLBA(rt1, A=0.5, b = 1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3)))), ref)
+  
+  rt2 <- rt1[order(rt1$rt),]
+  
+  ref2 <- pLBA(rt2$rt, rt2$response, A=0.5, b = 1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
+  #expect_identical(pLBA(rt2$rt, as.numeric(rt2$response), A=0.5, b = 1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3)), ref2)
+  expect_identical(pLBA(rt2, A=0.5, b = 1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3)), ref2)
+  
+  rt3 <- data.frame(p = rep(c(0.05, 0.1), 2),
+                    response = rep(1:2, each = 2))
+  ref3 <- qLBA(rt3$p, rt3$response, A=0.5, b = 1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
+  #expect_identical(qLBA(rt3$p, as.character(rt3$response), A=0.5, b = 1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3)), ref3)
+  expect_identical(qLBA(rt3, A=0.5, b = 1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3)), ref3)
+  
+})

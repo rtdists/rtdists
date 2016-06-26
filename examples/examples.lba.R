@@ -7,6 +7,9 @@ prop.table(table(rt1$response))
 # original parameters have 'high' log-likelihood:
 sum(log(dLBA(rt1$rt, rt1$response, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))))
 
+# data can also be passed as data.frame (same is true for pLBA):
+sum(log(dLBA(rt1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))))
+
 objective_fun <- function(par, rt, response, distribution = "norm") {
   # simple parameters
   spar <- par[!grepl("[12]$", names(par))]  
@@ -68,3 +71,14 @@ qLBA(0.66, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)
 
 qLBA(0.67, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
 # NA
+
+# qLBA also accepts a data.frame as first argument:
+t <- data.frame(p = rep(c(0.05, 0.1, 0.66), 2), response = rep(1:2, each = 3))
+#      p response
+# 1 0.05        1
+# 2 0.10        1
+# 3 0.87        1
+# 4 0.05        2
+# 5 0.10        2
+# 6 0.87        2
+qLBA(t, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
