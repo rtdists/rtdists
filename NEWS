@@ -1,3 +1,17 @@
+Changes to Version 0.6-x (released July 2016)
+(most of the changes in this release are due to comments and suggestions by 
+Steve Lewandowsky)
+
+  o renamed boundary (argument in diffusion functions) to response to be in line
+    with LBA functions.
+
+  o added diffusion constant s as argument to all diffusion functions.
+  
+  o changed integration routine in pdiffusion to pracma::integral() which seems 
+    to be more robust.
+  
+  o removed bug prohibiting lnorm as distribution in rLBA .
+
 
 Changes to Version 0.5-x (released May 2016)
 
