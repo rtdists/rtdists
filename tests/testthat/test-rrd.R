@@ -3,7 +3,7 @@ context("diffusion parameter input (via rdiffusion)")
 
 test_that("check individual parameters:", {
   expect_that(rdiffusion(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), is_a("data.frame"))
-  expect_that(suppressWarnings(rdiffusion(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = NULL, st0 = 0)), throws_error("Not enough parameters"))
+  expect_that(suppressWarnings(rdiffusion(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = NULL)), throws_error("Not enough parameters"))
   expect_that(rdiffusion(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = Inf, st0 = 0), throws_error())
   expect_that(suppressWarnings(rdiffusion(10, a=1, z=NA, v=2, t0=0.5,  d=0, sz = 0, sv = 0, st0 = 0)), throws_error())  
 })

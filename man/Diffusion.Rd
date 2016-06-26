@@ -9,13 +9,13 @@
 \alias{rdiffusion}
 \title{The Ratcliff Diffusion Model}
 \usage{
-ddiffusion(rt, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
+ddiffusion(rt, response = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
   sv = 0, st0 = 0, s = 1, precision = 3)
 
-pdiffusion(rt, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
+pdiffusion(rt, response = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
   sv = 0, st0 = 0, s = 1, precision = 3, maxt = 10000)
 
-qdiffusion(p, boundary = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
+qdiffusion(p, response = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
   sv = 0, st0 = 0, s = 1, precision = 3, maxt = 10000,
   interval = c(0, 10))
 
@@ -25,7 +25,7 @@ rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
 \arguments{
 \item{rt}{a vector of RTs.}
 
-\item{boundary}{character vector. Which boundary should be tested? Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default. Alternatively, a numeric vector with values 1=lower and 2=upper. For convenience, \code{boundary} is converted via \code{as.numeric} also allowing factors (see examples).}
+\item{response}{character vector. Which response boundary should be tested? Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default. Alternatively, a numeric vector with values 1=lower and 2=upper. For convenience, \code{response} is converted via \code{as.numeric} also allowing factors (see examples).}
 
 \item{a}{threshold separation. Amount of information that is considered for a decision. Large values indicate a conservative decisional style. Typical range: 0.5 < \code{a} < 2}
 
@@ -60,7 +60,7 @@ rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
 
 The length of the result is determined by \code{n} for \code{rrd}, and is equal to the length of \code{rt} for \code{drd} and \code{prd}.
 
-The distribution parameters (as well as \code{boundary}) are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the boundary.
+The distribution parameters (as well as \code{response}) are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the response boundary.
 }
 \description{
 Density, distribution function, quantile function, and random generation for the Ratcliff diffusion model with following parameters: \code{a} (threshold separation), \code{z} (\emph{relative} starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), \code{sz} (inter-trial-variability of relative starting point), and \code{s} (diffusion constant). \strong{Note that the parameterization or defaults of start point \code{z}, non-decision time variability \code{st0}, and diffusion constant \code{s} differ from what is often found in the literature.}
@@ -68,14 +68,14 @@ Density, distribution function, quantile function, and random generation for the
 \details{
 The Ratcliff diffusion model (Ratcliff, 1978) is a mathematical model for two-choice discrimination tasks. It is based on the assumption that information is accumulated continuously until one of two decision thresholds is hit. For more information, see Voss, Rothermund, and Voss (2004), Voss, Nagler, and Lerche (2013), or Wagenmakers (2009).
 
-All functions are fully vectorized across all parameters as well as the boundary. This allows for trialwise parameters for each parameter. 
+All functions are fully vectorized across all parameters as well as the response. This allows for trialwise parameters for each parameter. 
 
 \subsection{Distribution Function (CDF)}{
 For the time being, the cumulative probability function (\code{pdiffusion}) uses numerical integration of \code{ddiffusion} via \code{\link{integral}} from package \pkg{pracma}. While this is somewhat slow, it reliably produces correct results. Any problems in the numerical integration is passed on as a warning.
 }
 
 \subsection{Quantile Function}{
-Due to the bivariate nature of the diffusion model, the diffusion processes reaching each boundary only return the defective CDF that does not reach 1. Only the sum of the CDF for both boundaries reaches 1. Therefore, \code{qdiffusion} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at a high value or \code{Inf} (the latter can be slow). See examples. 
+Due to the bivariate nature of the diffusion model, the diffusion processes reaching each response boundary only return the defective CDF that does not reach 1. Only the sum of the CDF for both boundaries reaches 1. Therefore, \code{qdiffusion} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at a high value or \code{Inf} (the latter can be slow). See examples. 
 
 Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probability and the value returned from \code{pdiffusion} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
 }
@@ -98,17 +98,17 @@ rt2 <- rdiffusion(500, a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
 head(rt2)
   
 # get density for random RTs:
-sum(log(ddiffusion(rt1$rt, rt1$response, a=1, v=2, t0=0.5)))  # boundary is factor
-sum(log(ddiffusion(rt1$rt, as.numeric(rt1$response), a=1, v=2, t0=0.5))) # boundary is numeric
-sum(log(ddiffusion(rt1$rt, as.character(rt1$response), a=1, v=2, t0=0.5))) # boundary is character
+sum(log(ddiffusion(rt1$rt, rt1$response, a=1, v=2, t0=0.5)))  # response is factor
+sum(log(ddiffusion(rt1$rt, as.numeric(rt1$response), a=1, v=2, t0=0.5))) # response is numeric
+sum(log(ddiffusion(rt1$rt, as.character(rt1$response), a=1, v=2, t0=0.5))) # response is character
 
 sum(log(ddiffusion(rt2$rt, rt2$response, a=1, v=2, t0=0.5)))
 
 # can we recover the parameters?
-ll_diffusion <- function(pars, rt, boundary) 
+ll_diffusion <- function(pars, rt, response) 
 {
   densities <- tryCatch(
-    ddiffusion(rt, boundary=boundary, 
+    ddiffusion(rt, response=response, 
                a=pars[1], v=pars[2], t0=pars[3], 
                z=0.5, sz=pars[4], 
                st0=pars[5], sv=pars[6]), 
@@ -120,42 +120,42 @@ ll_diffusion <- function(pars, rt, boundary)
 \dontrun{
 start <- c(runif(2, 0.5, 3), 0.1, runif(3, 0, 0.5))
 names(start) <- c("a", "v", "t0", "sz", "st0", "sv")
-recov <- nlminb(start, ll_diffusion, lower = 0, rt=rt1$rt, boundary=rt1$response)
+recov <- nlminb(start, ll_diffusion, lower = 0, rt=rt1$rt, response=rt1$response)
 round(recov$par, 3)
 #     a     v    t0    sz   st0    sv 
 # 1.017 2.186 0.505 0.345 0.000 0.000 
 }
 
 # plot density:
-curve(ddiffusion(x, a=1, v=2, t0=0.5, boundary = "upper"), 
+curve(ddiffusion(x, a=1, v=2, t0=0.5, response = "upper"), 
       xlim=c(0,3), main="Density of upper responses", ylab="density", xlab="response time")
-curve(ddiffusion(x, a=1, v=2, t0=0.5, st0=0.2, boundary = "upper"), 
+curve(ddiffusion(x, a=1, v=2, t0=0.5, st0=0.2, response = "upper"), 
       add=TRUE, lty = 2)
 legend("topright", legend=c("no", "yes"), title = "Starting Point Variability?", lty = 1:2)
 
 # plot cdf:
-curve(pdiffusion(x, a=1, v=2, t0=0.5, st0=0.2, boundary="u"), 
+curve(pdiffusion(x, a=1, v=2, t0=0.5, st0=0.2, response="u"), 
      xlim = c(0, 3),ylim = c(0,1), 
      ylab = "cumulative probability", xlab = "response time",
      main = "CDF of diffusion model with start point variability")
-curve(pdiffusion(x, a=1, v=2, t0=0.5, st0=0.2, boundary="l"), 
+curve(pdiffusion(x, a=1, v=2, t0=0.5, st0=0.2, response="l"), 
      add=TRUE, lty = 2)
-legend("topleft", legend=c("upper", "lower"), title="boundary", lty=1:2)
+legend("topleft", legend=c("upper", "lower"), title="response boundary", lty=1:2)
 
 
 ### qLBA can only return values up to maximal predicted probability:
 # maximum probability for a given set
-pdiffusion(20, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, boundary="u")
+pdiffusion(20, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
 # [1] 0.8705141
 
 # equal but much slower:
-# pdiffusion(Inf, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, boundary="u") 
+# pdiffusion(Inf, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u") 
 # [1] 0.8705141
 
-qdiffusion(0.87, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, boundary="u")
+qdiffusion(0.87, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
 # [1] 1.769253
 
-qdiffusion(0.88, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, boundary="u")
+qdiffusion(0.88, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
 # NA
 }
 \author{

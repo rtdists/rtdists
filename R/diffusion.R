@@ -4,7 +4,7 @@
 #'
 #' @param rt a vector of RTs.
 #' @param n is a desired number of observations.
-#' @param boundary character vector. Which boundary should be tested? Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default. Alternatively, a numeric vector with values 1=lower and 2=upper. For convenience, \code{boundary} is converted via \code{as.numeric} also allowing factors (see examples). 
+#' @param response character vector. Which response boundary should be tested? Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default. Alternatively, a numeric vector with values 1=lower and 2=upper. For convenience, \code{response} is converted via \code{as.numeric} also allowing factors (see examples). 
 #' @param p vector of probabilities.
 #' 
 #' @param a threshold separation. Amount of information that is considered for a decision. Large values indicate a conservative decisional style. Typical range: 0.5 < \code{a} < 2
@@ -25,18 +25,18 @@
 #' 
 #' The length of the result is determined by \code{n} for \code{rrd}, and is equal to the length of \code{rt} for \code{drd} and \code{prd}.
 #' 
-#' The distribution parameters (as well as \code{boundary}) are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the boundary.
+#' The distribution parameters (as well as \code{response}) are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the response boundary.
 #'
 #' @details The Ratcliff diffusion model (Ratcliff, 1978) is a mathematical model for two-choice discrimination tasks. It is based on the assumption that information is accumulated continuously until one of two decision thresholds is hit. For more information, see Voss, Rothermund, and Voss (2004), Voss, Nagler, and Lerche (2013), or Wagenmakers (2009).
 #' 
-#' All functions are fully vectorized across all parameters as well as the boundary. This allows for trialwise parameters for each parameter. 
+#' All functions are fully vectorized across all parameters as well as the response. This allows for trialwise parameters for each parameter. 
 #' 
 #' \subsection{Distribution Function (CDF)}{
 #' For the time being, the cumulative probability function (\code{pdiffusion}) uses numerical integration of \code{ddiffusion} via \code{\link{integral}} from package \pkg{pracma}. While this is somewhat slow, it reliably produces correct results. Any problems in the numerical integration is passed on as a warning.
 #' }
 #' 
 #' \subsection{Quantile Function}{
-#' Due to the bivariate nature of the diffusion model, the diffusion processes reaching each boundary only return the defective CDF that does not reach 1. Only the sum of the CDF for both boundaries reaches 1. Therefore, \code{qdiffusion} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at a high value or \code{Inf} (the latter can be slow). See examples. 
+#' Due to the bivariate nature of the diffusion model, the diffusion processes reaching each response boundary only return the defective CDF that does not reach 1. Only the sum of the CDF for both boundaries reaches 1. Therefore, \code{qdiffusion} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at a high value or \code{Inf} (the latter can be slow). See examples. 
 #' 
 #' Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probability and the value returned from \code{pdiffusion} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
 #' }
@@ -113,7 +113,7 @@ recalc_t0 <- function (t0, st0) { t0 <- t0 + st0/2 }
 
 #' @rdname Diffusion
 #' @export
-ddiffusion <- function (rt, boundary = "upper", 
+ddiffusion <- function (rt, response = "upper", 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3)
 {
@@ -122,14 +122,14 @@ ddiffusion <- function (rt, boundary = "upper",
   nn <- length(rt)
   # Build parameter matrix  
   # Convert boundaries to numeric if necessary
-  if (is.character(boundary)) {
-    boundary <- match.arg(boundary, choices=c("upper", "lower"),several.ok = TRUE)
-    numeric_bounds <- ifelse(boundary == "upper", 2L, 1L)
+  if (is.character(response)) {
+    response <- match.arg(response, choices=c("upper", "lower"),several.ok = TRUE)
+    numeric_bounds <- ifelse(response == "upper", 2L, 1L)
     }
   else {
-    boundary <- as.numeric(boundary)
-    if(any(!(boundary %in% 1:2))) stop("boundary needs to be either 'upper', 'lower', or as.numeric(boundary) %in% 1:2!")
-    numeric_bounds <- as.integer(boundary)
+    response <- as.numeric(response)
+    if(any(!(response %in% 1:2))) stop("response needs to be either 'upper', 'lower', or as.numeric(response) %in% 1:2!")
+    numeric_bounds <- as.integer(response)
   }
   numeric_bounds <- rep(numeric_bounds, length.out = nn)
   # all parameters brought to length of rt
@@ -172,7 +172,7 @@ ddiffusion <- function (rt, boundary = "upper",
   abs(densities)
 }
 
-.ddiffusion <- function (rt, boundary, params, precision)
+.ddiffusion <- function (rt, response, params, precision)
 {
   
   nn <- length(rt)
@@ -194,7 +194,7 @@ ddiffusion <- function (rt, boundary = "upper",
 
 #' @rdname Diffusion
 #' @export
-pdiffusion <- function (rt, boundary = "upper", 
+pdiffusion <- function (rt, response = "upper", 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3, maxt = 1e4) #subdivisions = 100L, stop.on.error = TRUE) 
 {
@@ -207,14 +207,14 @@ pdiffusion <- function (rt, boundary = "upper",
   nn <- length(rt)
   # Build parameter matrix  
   # Convert boundaries to numeric
-  if (is.character(boundary)) {
-    boundary <- match.arg(boundary, choices=c("upper", "lower"),several.ok = TRUE)
-    numeric_bounds <- ifelse(boundary == "upper", 2L, 1L)
+  if (is.character(response)) {
+    response <- match.arg(response, choices=c("upper", "lower"),several.ok = TRUE)
+    numeric_bounds <- ifelse(response == "upper", 2L, 1L)
     }
   else {
-    boundary <- as.numeric(boundary)
-    if(any(!(boundary %in% 1:2))) stop("boundary needs to be either 'upper', 'lower', or as.numeric(boundary) %in% 1:2!")
-    numeric_bounds <- as.integer(boundary)
+    response <- as.numeric(response)
+    if(any(!(response %in% 1:2))) stop("response needs to be either 'upper', 'lower', or as.numeric(response) %in% 1:2!")
+    numeric_bounds <- as.integer(response)
   }
   numeric_bounds <- rep(numeric_bounds, length.out = nn)
   # all parameters brought to length of rt
@@ -258,7 +258,7 @@ pdiffusion <- function (rt, boundary = "upper",
 ## @param subdivisions the maximum number of subintervals in the \code{integration} of \code{pdiffusion}.
 ## @param stop.on.error logical. If true (the default) an error stops the \code{integration} of \code{pdiffusion}. If false some errors will give a result with a warning in the message component.
 
-# pdiffusion <- function (rt, boundary = "upper", 
+# pdiffusion <- function (rt, response = "upper", 
 #                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
 #                  precision = 3, maxt = 1e4) 
 # {
@@ -271,14 +271,14 @@ pdiffusion <- function (rt, boundary = "upper",
 #   nn <- length(rt)
 #   # Build parameter matrix  
 #   # Convert boundaries to numeric
-#   if (is.character(boundary)) {
-#     boundary <- match.arg(boundary, choices=c("upper", "lower"),several.ok = TRUE)
-#     numeric_bounds <- ifelse(boundary == "upper", 2L, 1L)
+#   if (is.character(response)) {
+#     response <- match.arg(response, choices=c("upper", "lower"),several.ok = TRUE)
+#     numeric_bounds <- ifelse(response == "upper", 2L, 1L)
 #     }
 #   else {
-#     boundary <- as.numeric(boundary)
-#     if(any(!(boundary %in% 1:2))) stop("boundary needs to be either 'upper', 'lower', or as.numeric(boundary) %in% 1:2!")
-#     numeric_bounds <- as.integer(boundary)
+#     response <- as.numeric(response)
+#     if(any(!(response %in% 1:2))) stop("response needs to be either 'upper', 'lower', or as.numeric(response) %in% 1:2!")
+#     numeric_bounds <- as.integer(response)
 #   }
 #   numeric_bounds <- rep(numeric_bounds, length.out = nn)
 #   # all parameters brought to length of rt
@@ -319,21 +319,21 @@ pdiffusion <- function (rt, boundary = "upper",
 # }
 
 
-inv_cdf_diffusion <- function(x, boundary, a, v, t0, z, d, sz, sv, st0, precision, maxt, value, abs = TRUE) {
-  if (abs) abs(value - pdiffusion(rt=x, boundary=boundary, a=a, v=v, t0=t0, z=z, d=d, sz=sz, sv=sv, st0=st0, precision=precision, maxt=maxt))
-  else (value - pdiffusion(rt=x, boundary=boundary, a=a, v=v, t0=t0, z=z, d=d, sz=sz, sv=sv, st0=st0, precision=precision, maxt=maxt))
+inv_cdf_diffusion <- function(x, response, a, v, t0, z, d, sz, sv, st0, precision, maxt, value, abs = TRUE) {
+  if (abs) abs(value - pdiffusion(rt=x, response=response, a=a, v=v, t0=t0, z=z, d=d, sz=sz, sv=sv, st0=st0, precision=precision, maxt=maxt))
+  else (value - pdiffusion(rt=x, response=response, a=a, v=v, t0=t0, z=z, d=d, sz=sz, sv=sv, st0=st0, precision=precision, maxt=maxt))
 }
 
 #' @rdname Diffusion
 #' @export
-qdiffusion <- function (p, boundary = "upper", 
+qdiffusion <- function (p, response = "upper", 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3, maxt = 1e4, interval = c(0, 10))
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and t0 must be supplied")
   
   nn <- length(p)
-  boundary <- rep(unname(boundary), length.out = nn)
+  response <- rep(unname(response), length.out = nn)
   a <- rep(unname(a)/s, length.out = nn)
   v <- rep(unname(v)/s, length.out = nn)
   t0 <- rep(unname(t0), length.out = nn)
@@ -346,20 +346,20 @@ qdiffusion <- function (p, boundary = "upper",
   
   out <- vector("numeric", nn)
   for (i in seq_len(nn)) {
-    tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(interval), boundary=boundary[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5))
+    tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5))
     if (tmp$objective > 0.0001) {
-      tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(c(min(interval),max(interval)/2)), boundary=boundary[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5))
+      tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(c(min(interval),max(interval)/2)), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5))
     }
     if (tmp$objective > 0.0001) {
       try({
-        uni_tmp <- do.call(uniroot, args = c(f=inv_cdf_diffusion, interval = list(interval), boundary=boundary[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5, abs = FALSE))
+        uni_tmp <- do.call(uniroot, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5, abs = FALSE))
       tmp$objective <- uni_tmp$f.root
       tmp$minimum <- uni_tmp$root
       }, silent = TRUE)
     }
     if (tmp$objective > 0.0001) {
       tmp[["minimum"]] <- NA
-      warning("Cannot obtain RT that is less than 0.0001 away from desired p = ", p[i], ".\nIncrease/decrease interval or obtain for different boundary.", call. = FALSE)
+      warning("Cannot obtain RT that is less than 0.0001 away from desired p = ", p[i], ".\nIncrease/decrease interval or obtain for different response.", call. = FALSE)
     }
     out[i] <- tmp[["minimum"]]
   }
