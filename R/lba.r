@@ -3,7 +3,7 @@
 #' Density, distribution function, quantile function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the accumulator given in the response argument winning.  
 #' 
 #' @param rt vector of RTs. Or for convenience also a \code{data.frame} with columns \code{rt} and \code{response} (such as returned from \code{rLBA} or \code{\link{rdiffusion}}). See examples.
-#' @param response integer vector of winning accumulators/responses corresponding to the vector of RTs/p (i.e., used for specifying the response for a given RT/probability). Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth. Ignored if \code{rt} or \code{p} is a \code{data.frame}.
+#' @param response integer vector of winning accumulators/responses corresponding to the vector of RTs/p (i.e., used for specifying the response for a given RT/probability). Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth. For conmvenience, \code{response} is converted via \code{as.numeric} thereby allowing factors to be passed as well (such as returned from \code{\link{rdiffusion}}). Ignored if \code{rt} or \code{p} is a \code{data.frame}.
 #' @param p vector of probabilities. Or for convenience also a \code{data.frame} with columns \code{p} and \code{response}. See examples.
 #' @param n desired number of observations (scalar integer).
 #' @param A start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.
@@ -104,6 +104,7 @@ dLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "
     rt <- rt$rt
   }
   
+  response <- as.numeric(response)
   nn <- length(rt)
   n_v <- max(vapply(dots, length, 0))  # Number of responses
   if(!silent) message(paste("Results based on", n_v, "accumulators/drift rates."))
@@ -172,6 +173,7 @@ pLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "
     rt <- rt$rt
   }
   
+  response <- as.numeric(response)
   nn <- length(rt)
   n_v <- max(vapply(dots, length, 0))  # Number of responses
   if(!silent) message(paste("Results based on", n_v, "accumulators/drift rates."))
@@ -248,6 +250,7 @@ qLBA <-  function(p, response, A, b, t0, ..., st0=0, distribution = c("norm", "g
     p <- p$p
   }
   
+  response <- as.numeric(response)
   nn <- length(p)
   n_v <- max(vapply(dots, length, 0))  # Number of responses
   if(!silent) message(paste("Results based on", n_v, "accumulators/drift rates."))

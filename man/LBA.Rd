@@ -24,7 +24,7 @@ rLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma", "frechet",
 \arguments{
 \item{rt}{vector of RTs. Or for convenience also a \code{data.frame} with columns \code{rt} and \code{response} (such as returned from \code{rLBA} or \code{\link{rdiffusion}}). See examples.}
 
-\item{response}{integer vector of winning accumulators/responses corresponding to the vector of RTs/p (i.e., used for specifying the response for a given RT/probability). Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth. Ignored if \code{rt} or \code{p} is a \code{data.frame}.}
+\item{response}{integer vector of winning accumulators/responses corresponding to the vector of RTs/p (i.e., used for specifying the response for a given RT/probability). Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth. For conmvenience, \code{response} is converted via \code{as.numeric} thereby allowing factors to be passed as well (such as returned from \code{\link{rdiffusion}}). Ignored if \code{rt} or \code{p} is a \code{data.frame}.}
 
 \item{A}{start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.}
 
@@ -185,6 +185,18 @@ t <- data.frame(p = rep(c(0.05, 0.1, 0.66), 2), response = rep(1:2, each = 3))
 # 5 0.10        2
 # 6 0.87        2
 qLBA(t, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+
+
+## LBA and diffusion can be used interchangeably:
+rt1 <- rLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+rt2 <- rdiffusion(500, a=1, v=2, t0=0.5)
+
+# data can also be passed as data.frame (same is true for pLBA):
+sum(log(dLBA(rt1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))))
+sum(log(dLBA(rt2, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))))
+
+sum(log(ddiffusion(rt1, a=1, v=2, t0=0.5)))
+sum(log(ddiffusion(rt2, a=1, v=2, t0=0.5)))
 }
 \references{
 Brown, S. D., & Heathcote, A. (2008). The simplest complete model of choice response time: Linear ballistic accumulation. \emph{Cognitive Psychology}, 57(3), 153-178. doi:10.1016/j.cogpsych.2007.12.002

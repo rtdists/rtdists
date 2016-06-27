@@ -13,6 +13,10 @@ Changes to Version 0.6-x (released July 2016)
     automatically scale the entered probability to more conveniently obtain 
     predicted quantiles.
   
+  o LBA functions now accept factor as response (which is converted via 
+    as.numeric). This allows to pass results from rdiffusion directly to LBA
+    function.
+  
   o changed integration routine in pdiffusion to pracma::integral() which seems 
     to be more robust. (Thanks to Anna-Lena Schubert and Steve Lewandowsky for 
     reporting problems with the previous version.)

@@ -90,3 +90,15 @@ t <- data.frame(p = rep(c(0.05, 0.1, 0.66), 2), response = rep(1:2, each = 3))
 # 5 0.10        2
 # 6 0.87        2
 qLBA(t, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+
+
+## LBA and diffusion can be used interchangeably:
+rt1 <- rLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+rt2 <- rdiffusion(500, a=1, v=2, t0=0.5)
+
+# data can also be passed as data.frame (same is true for pLBA):
+sum(log(dLBA(rt1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))))
+sum(log(dLBA(rt2, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))))
+
+sum(log(ddiffusion(rt1, a=1, v=2, t0=0.5)))
+sum(log(ddiffusion(rt2, a=1, v=2, t0=0.5)))
