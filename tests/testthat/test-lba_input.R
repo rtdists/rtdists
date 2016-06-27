@@ -140,3 +140,13 @@ test_that("LBA functions are identical with all input options", {
   expect_identical(qLBA(rt3, A=0.5, b = 1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3)), ref3)
   
 })
+
+test_that("scale_p works as expected", {
+  (max_p <- pLBA(Inf, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)))
+  # [1] 0.6604696
+  # to get predicted quantiles, scale required quantiles by maximally predicted response rate:
+  qs <- c(.1, .3, .5, .7, .9)
+  expect_identical(qLBA(qs*max_p, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)),
+                    qLBA(qs, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2), scale_p=TRUE))
+  
+})

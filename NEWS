@@ -1,16 +1,24 @@
 Changes to Version 0.6-x (released July 2016)
-(most of the changes in this release are due to comments and suggestions by 
-Steve Lewandowsky)
 
+  o PDFs, CDFs, and quantile functions of both models now accept a data.frame as
+    first argument containing both RTs/probabilities and responses. Allows more
+    convenient way to pass data.
+  
   o renamed boundary (argument in diffusion functions) to response to be in line
-    with LBA functions.
+    with LBA functions. (Thanks to Steve Lewandowsky for suggesting this.)
 
   o added diffusion constant s as argument to all diffusion functions.
   
-  o changed integration routine in pdiffusion to pracma::integral() which seems 
-    to be more robust.
+  o added scale_p and scale_max arguments to quantile functions which 
+    automatically scale the entered probability to more conveniently obtain 
+    predicted quantiles.
   
-  o removed bug prohibiting lnorm as distribution in rLBA .
+  o changed integration routine in pdiffusion to pracma::integral() which seems 
+    to be more robust. (Thanks to Anna-Lena Schubert and Steve Lewandowsky for 
+    reporting problems with the previous version.)
+  
+  o removed bug preventing lnorm as distribution in rLBA. (Thanks to Steve 
+    Lewandowsky for reporting this bug.)
 
 
 Changes to Version 0.5-x (released May 2016)

@@ -63,7 +63,7 @@ legend("topleft", legend=c("1", "2", "3"), title="Response", lty=1:2)
 
 
 ## qLBA can only return values up to maximal predicted probability:
-pLBA(Inf, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+(max_p <- pLBA(Inf, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)))
 # [1] 0.6604696
 
 qLBA(0.66, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
@@ -71,6 +71,14 @@ qLBA(0.66, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)
 
 qLBA(0.67, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
 # NA
+
+# to get predicted quantiles, scale required quantiles by maximally predicted response rate:
+qs <- c(.1, .3, .5, .7, .9)
+qLBA(qs*max_p, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+
+# or set scale_p to TRUE which scales automatically by maximum p
+# (but can be slow as it calculates max_p for each probability separately) 
+qLBA(qs, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2), scale_p=TRUE)
 
 # qLBA also accepts a data.frame as first argument:
 t <- data.frame(p = rep(c(0.05, 0.1, 0.66), 2), response = rep(1:2, each = 3))

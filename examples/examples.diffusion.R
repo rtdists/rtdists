@@ -55,7 +55,7 @@ legend("topleft", legend=c("upper", "lower"), title="response boundary", lty=1:2
 
 ### qLBA can only return values up to maximal predicted probability:
 # maximum probability for a given set
-pdiffusion(20, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
+(max_p <- pdiffusion(20, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u"))
 # [1] 0.8705141
 
 # equal but much slower:
@@ -68,6 +68,15 @@ qdiffusion(0.87, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
 qdiffusion(0.88, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
 # NA with warning.
 
+# to get predicted quantiles, scale required quantiles by maximally predicted response rate:
+qs <- c(.1, .3, .5, .7, .9)
+qdiffusion(qs*max_p, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
+
+# or set scale_p to TRUE which scales automatically by maximum p
+# (but can be slow as it calculates max_p for each probability separately) 
+qdiffusion(qs, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u", scale_p = TRUE)
+
+
 # qdiffusion also accepts a data.frame as first argument:
 t3 <- data.frame(p = rep(c(0.05, 0.1, 0.87), 2), response = rep(c("upper", "lower"), each = 3))
 #      p response
@@ -78,3 +87,4 @@ t3 <- data.frame(p = rep(c(0.05, 0.1, 0.87), 2), response = rep(c("upper", "lowe
 # 5 0.10    lower
 # 6 0.87    lower
 qdiffusion(t3, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5)
+

@@ -3,7 +3,7 @@
 #' Density, distribution function, quantile function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the accumulator given in the response argument winning.  
 #' 
 #' @param rt vector of RTs. Or for convenience also a \code{data.frame} with columns \code{rt} and \code{response} (such as returned from \code{rLBA} or \code{\link{rdiffusion}}). See examples.
-#' @param response integer vector of winning accumulators/responses corresponding to the vector of RTs/p (i.e., used for specifying the response for a given RT/probability). Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth.
+#' @param response integer vector of winning accumulators/responses corresponding to the vector of RTs/p (i.e., used for specifying the response for a given RT/probability). Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth. Ignored if \code{rt} or \code{p} is a \code{data.frame}.
 #' @param p vector of probabilities. Or for convenience also a \code{data.frame} with columns \code{p} and \code{response}. See examples.
 #' @param n desired number of observations (scalar integer).
 #' @param A start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.
@@ -15,6 +15,8 @@
 #' @param args.dist list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}, see \code{\link{single-LBA}}).
 #' @param silent logical. Should the number of accumulators used be suppressed? Default is \code{FALSE} which prints the number of accumulators.
 #' @param interval a vector containing the end-points of the interval to be searched for the desired quantiles (i.e., RTs) in \code{qLBA}. Default is \code{c(0, 10)}.
+#' @param scale_p logical. Should entered probabilities automatically be scaled by maximally predicted probability? Default is \code{FALSE}. Convenience argument for obtaining predicted quantiles. Can be slow as the maximally predicted probability is calculated individually for each \code{p}.
+#' @param scale_max numerical scalar. Value at which maximally predicted RT should be calculated if \code{scale_p} is \code{TRUE}. 
 #' 
 #' @details 
 #' 
@@ -234,7 +236,9 @@ inv_cdf_lba <- function(x, response, A, b, t0, ..., st0, distribution, args.dist
 
 #' @rdname LBA
 #' @export 
-qLBA <-  function(p, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE, interval = c(0, 10)) {
+qLBA <-  function(p, response, A, b, t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), 
+                  args.dist = list(), silent = FALSE, interval = c(0, 10),
+                  scale_p = FALSE, scale_max = Inf) {
   dots <- list(...)
   if (is.null(names(dots))) stop("... arguments need to be named.")
   
@@ -260,13 +264,15 @@ qLBA <-  function(p, response, A, b, t0, ..., st0=0, distribution = c("norm", "g
   p <- unname(p)
   
   for (i in seq_len(nn)) {
-    tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(interval), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5))
+    if (scale_p) max_p <- do.call(pLBA, args = c(rt = list(scale_max),response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), silent=TRUE))
+    else max_p <- 1
+    tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(interval), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i]*max_p, tol = .Machine$double.eps^0.5))
     if (tmp$objective > 0.0001) {
-      tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(c(min(interval),max(interval)/2)), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5))
+      tmp <- do.call(optimize, args = c(f=inv_cdf_lba, interval = list(c(min(interval),max(interval)/2)), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i]*max_p, tol = .Machine$double.eps^0.5))
     }
     if (tmp$objective > 0.0001) {
       try({
-        uni_tmp <- do.call(uniroot, args = c(f=inv_cdf_lba, interval = list(c(min(interval),max(interval)/2)), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i], tol = .Machine$double.eps^0.5, abs = FALSE))
+        uni_tmp <- do.call(uniroot, args = c(f=inv_cdf_lba, interval = list(c(min(interval),max(interval)/2)), response = list(response[i]), A=ret_arg(A, i), b=ret_arg(b, i), t0=ret_arg(t0, i), sapply(dots, function(z, i) sapply(z, ret_arg2, which = i, simplify=FALSE), i=i, simplify=FALSE), args.dist = list(args.dist), distribution=distribution, st0 = list(st0[i]), value =p[i]*max_p, tol = .Machine$double.eps^0.5, abs = FALSE))
       tmp$objective <- uni_tmp$f.root
       tmp$minimum <- uni_tmp$root
       }, silent = TRUE)

@@ -215,3 +215,13 @@ test_that("s works as expected", {
     qdiffusion(0.6, a = 0.1, v = 0.2, t0 = 0.3, z = 0.5, s=0.1)
   )
 })
+
+test_that("scale_p works as expected", {
+  (max_p <- pdiffusion(20, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u"))
+  # [1] 0.8705141
+  # to get predicted quantiles, scale required quantiles by maximally predicted response rate:
+  qs <- c(.1, .3, .5, .7, .9)
+  expect_identical(qdiffusion(qs*max_p, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u"),
+                    qdiffusion(qs, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u", scale_p = TRUE))
+  
+})

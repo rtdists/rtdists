@@ -16,7 +16,7 @@ pLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
 
 qLBA(p, response, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
   "frechet", "lnorm"), args.dist = list(), silent = FALSE, interval = c(0,
-  10))
+  10), scale_p = FALSE, scale_max = Inf)
 
 rLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma", "frechet",
   "lnorm"), args.dist = list(), silent = FALSE)
@@ -24,7 +24,7 @@ rLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma", "frechet",
 \arguments{
 \item{rt}{vector of RTs. Or for convenience also a \code{data.frame} with columns \code{rt} and \code{response} (such as returned from \code{rLBA} or \code{\link{rdiffusion}}). See examples.}
 
-\item{response}{integer vector of winning accumulators/responses corresponding to the vector of RTs/p (i.e., used for specifying the response for a given RT/probability). Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth.}
+\item{response}{integer vector of winning accumulators/responses corresponding to the vector of RTs/p (i.e., used for specifying the response for a given RT/probability). Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth. Ignored if \code{rt} or \code{p} is a \code{data.frame}.}
 
 \item{A}{start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.}
 
@@ -45,6 +45,10 @@ rLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma", "frechet",
 \item{p}{vector of probabilities. Or for convenience also a \code{data.frame} with columns \code{p} and \code{response}. See examples.}
 
 \item{interval}{a vector containing the end-points of the interval to be searched for the desired quantiles (i.e., RTs) in \code{qLBA}. Default is \code{c(0, 10)}.}
+
+\item{scale_p}{logical. Should entered probabilities automatically be scaled by maximally predicted probability? Default is \code{FALSE}. Convenience argument for obtaining predicted quantiles. Can be slow as the maximally predicted probability is calculated individually for each \code{p}.}
+
+\item{scale_max}{numerical scalar. Value at which maximally predicted RT should be calculated if \code{scale_p} is \code{TRUE}.}
 
 \item{n}{desired number of observations (scalar integer).}
 }
@@ -154,7 +158,7 @@ legend("topleft", legend=c("1", "2", "3"), title="Response", lty=1:2)
 
 
 ## qLBA can only return values up to maximal predicted probability:
-pLBA(Inf, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+(max_p <- pLBA(Inf, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)))
 # [1] 0.6604696
 
 qLBA(0.66, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
@@ -162,6 +166,14 @@ qLBA(0.66, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2)
 
 qLBA(0.67, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
 # NA
+
+# to get predicted quantiles, scale required quantiles by maximally predicted response rate:
+qs <- c(.1, .3, .5, .7, .9)
+qLBA(qs*max_p, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+
+# or set scale_p to TRUE which scales automatically by maximum p
+# (but can be slow as it calculates max_p for each probability separately) 
+qLBA(qs, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2), scale_p=TRUE)
 
 # qLBA also accepts a data.frame as first argument:
 t <- data.frame(p = rep(c(0.05, 0.1, 0.66), 2), response = rep(1:2, each = 3))

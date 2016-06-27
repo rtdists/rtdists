@@ -18,8 +18,10 @@
 #' @param s diffusion constant; standard deviation of the random noise of the diffusion process (i.e., within-trial variability), scales \code{a}, \code{v}, and \code{sv}. Needs to be fixed to a constant in most applications. Default is 1. Note that the default used by Ratcliff and in other applications is often 0.1. 
 #' 
 #' @param precision \code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.
-#' @param maxt maximum \code{rt} allowed, used to stop integration problems (\code{prd} only).
+#' @param maxt maximum \code{rt} allowed, used to stop integration problems.
 #' @param interval a vector containing the end-points of the interval to be searched for the desired quantiles (i.e., RTs) in \code{qdiffusion}. Default is \code{c(0, 10)}.
+#' @param scale_p logical. Should entered probabilities automatically be scaled by maximally predicted probability? Default is \code{FALSE}. Convenience argument for obtaining predicted quantiles. Can be slow as the maximally predicted probability is calculated individually for each \code{p}.
+#' @param scale_max numerical scalar. Value at which maximally predicted RT should be calculated if \code{scale_p} is \code{TRUE}. 
 #'
 #' @return \code{ddiffusion} gives the density, \code{pdiffusion} gives the distribution function, \code{qdiffusion} gives the quantile function (i.e., predicted RTs), and \code{rdiffusion} generates random response times and decisions (returning a \code{data.frame} with columns \code{rt} (numeric) and \code{response} (factor)).
 #' 
@@ -341,7 +343,8 @@ inv_cdf_diffusion <- function(x, response, a, v, t0, z, d, sz, sv, st0, precisio
 #' @export
 qdiffusion <- function (p, response = "upper", 
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
-                 precision = 3, maxt = 1e4, interval = c(0, 10))
+                 precision = 3, maxt = 1e4, interval = c(0, 10),
+                 scale_p = FALSE, scale_max = 10)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and t0 must be supplied")
 
@@ -365,13 +368,15 @@ qdiffusion <- function (p, response = "upper",
   
   out <- vector("numeric", nn)
   for (i in seq_len(nn)) {
-    tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5))
+    if (scale_p) max_p <- pdiffusion(scale_max, response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt)
+    else max_p <- 1
+    tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i]*max_p, tol = .Machine$double.eps^0.5))
     if (tmp$objective > 0.0001) {
-      tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(c(min(interval),max(interval)/2)), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5))
+      tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(c(min(interval),max(interval)/2)), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i]*max_p, tol = .Machine$double.eps^0.5))
     }
     if (tmp$objective > 0.0001) {
       try({
-        uni_tmp <- do.call(uniroot, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i], tol = .Machine$double.eps^0.5, abs = FALSE))
+        uni_tmp <- do.call(uniroot, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i]*max_p, tol = .Machine$double.eps^0.5, abs = FALSE))
       tmp$objective <- uni_tmp$f.root
       tmp$minimum <- uni_tmp$root
       }, silent = TRUE)

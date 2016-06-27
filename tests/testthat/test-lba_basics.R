@@ -77,7 +77,7 @@ test_that("qLBA is equivalent to manual calculation",{
   expect_equal(suppressWarnings(qLBA(pred_prop_correct*q, 1, A = p11_norm$par["A"], b = p11_norm$par["A"]+p11_norm$par["b"], t0 = p11_norm$par["t0"], mean_v = c(p11_norm$par["v1"], p11_norm$par["v2"]), sd_v = c(1, p11_norm$par["sv"]), silent = TRUE)),as.numeric(rep(NA, 5)))
 })
 
-test_that("LBA works wit all distributions", {
+test_that("rLBA works wit all distributions", {
   expect_is(rLBA(100, A=c(0.5, 0.6), b=1, t0 = 0.5, meanlog_v=c(1.2, 1), sdlog_v=c(0.2,0.3), distribution = "lnorm"), "data.frame")
   expect_is(rLBA(100, A=c(0.5, 0.6), b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3), distribution = "frechet"), "data.frame")
   expect_is(rLBA(100, A=c(0.5, 0.6), b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3), distribution = "gamma"), "data.frame")

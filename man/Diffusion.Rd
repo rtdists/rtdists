@@ -17,7 +17,7 @@ pdiffusion(rt, response = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
 
 qdiffusion(p, response = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
   sv = 0, st0 = 0, s = 1, precision = 3, maxt = 10000,
-  interval = c(0, 10))
+  interval = c(0, 10), scale_p = FALSE, scale_max = 10)
 
 rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
   s = 1, precision = 3)
@@ -47,11 +47,15 @@ rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
 
 \item{precision}{\code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.}
 
-\item{maxt}{maximum \code{rt} allowed, used to stop integration problems (\code{prd} only).}
+\item{maxt}{maximum \code{rt} allowed, used to stop integration problems.}
 
 \item{p}{vector of probabilities. Or for convenience also a \code{data.frame} with columns \code{p} and \code{response}. See examples.}
 
 \item{interval}{a vector containing the end-points of the interval to be searched for the desired quantiles (i.e., RTs) in \code{qdiffusion}. Default is \code{c(0, 10)}.}
+
+\item{scale_p}{logical. Should entered probabilities automatically be scaled by maximally predicted probability? Default is \code{FALSE}. Convenience argument for obtaining predicted quantiles. Can be slow as the maximally predicted probability is calculated individually for each \code{p}.}
+
+\item{scale_max}{numerical scalar. Value at which maximally predicted RT should be calculated if \code{scale_p} is \code{TRUE}.}
 
 \item{n}{is a desired number of observations.}
 }
@@ -149,7 +153,7 @@ legend("topleft", legend=c("upper", "lower"), title="response boundary", lty=1:2
 
 ### qLBA can only return values up to maximal predicted probability:
 # maximum probability for a given set
-pdiffusion(20, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
+(max_p <- pdiffusion(20, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u"))
 # [1] 0.8705141
 
 # equal but much slower:
@@ -162,6 +166,15 @@ qdiffusion(0.87, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
 qdiffusion(0.88, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
 # NA with warning.
 
+# to get predicted quantiles, scale required quantiles by maximally predicted response rate:
+qs <- c(.1, .3, .5, .7, .9)
+qdiffusion(qs*max_p, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
+
+# or set scale_p to TRUE which scales automatically by maximum p
+# (but can be slow as it calculates max_p for each probability separately) 
+qdiffusion(qs, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u", scale_p = TRUE)
+
+
 # qdiffusion also accepts a data.frame as first argument:
 t3 <- data.frame(p = rep(c(0.05, 0.1, 0.87), 2), response = rep(c("upper", "lower"), each = 3))
 #      p response
@@ -172,6 +185,7 @@ t3 <- data.frame(p = rep(c(0.05, 0.1, 0.87), 2), response = rep(c("upper", "lowe
 # 5 0.10    lower
 # 6 0.87    lower
 qdiffusion(t3, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5)
+
 }
 \author{
 Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, Scott Brown, and Henrik Singmann. \code{qdiffusion} by Henrik Singmann.
