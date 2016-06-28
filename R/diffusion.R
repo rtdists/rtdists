@@ -25,7 +25,7 @@
 #'
 #' @return \code{ddiffusion} gives the density, \code{pdiffusion} gives the distribution function, \code{qdiffusion} gives the quantile function (i.e., predicted RTs), and \code{rdiffusion} generates random response times and decisions (returning a \code{data.frame} with columns \code{rt} (numeric) and \code{response} (factor)).
 #' 
-#' The length of the result is determined by \code{n} for \code{rdiffusion}, and is equal to the length of \code{rt} for \code{ddiffusion} and \code{pdiffusion}.
+#' The length of the result is determined by \code{n} for \code{rdiffusion}, equal to the length of \code{rt} for \code{ddiffusion} and \code{pdiffusion}, and equal to the length of \code{p} for \code{qdiffusion}.
 #' 
 #' The distribution parameters (as well as \code{response}) are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the response boundary.
 #'

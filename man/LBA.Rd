@@ -54,6 +54,10 @@ rLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma", "frechet",
 }
 \value{
 \code{dLBA} returns the density (PDF), \code{pLBA} returns the distribution function (CDF), \code{qLBA} returns the quantile/RT, \code{rLBA} return random response times and responses (in a \code{data.frame}).
+
+The length of the result is determined by \code{n} for \code{rLBA}, equal to the length of \code{rt} for \code{dLBA} and \code{pLBA}, and equal to the length of \code{p} for \code{qLBA}.
+
+The distribution parameters (as well as \code{response}) are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the response.
 }
 \description{
 Density, distribution function, quantile function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the accumulator given in the response argument winning.
@@ -79,7 +83,9 @@ To make the difference between both paragraphs clear: Whereas for the accumulato
 }
 
 \subsection{Quantile Function}{
-Due to the bivariate nature of the LBA, single accumulators only return defective CDFs that do not reach 1. Only the sum of all accumulators reaches 1. Therefore, \code{qLBA} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at \code{Inf} (see examples). 
+Due to the bivariate nature of the LBA, single accumulators only return defective CDFs that do not reach 1. Only the sum of all accumulators reaches 1. Therefore, \code{qLBA} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at \code{Inf}. 
+
+As a conveniece for the user, if \code{scale_p = TRUE} in the call to \code{qLBA} the desired probabilities are automatically scaled by the maximal probability for the corresponding response. Note that this can be slow as the maximal probability is calculated separately for each desired probability. See examples.
 
 Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probability and the value returned from \code{pLBA} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
 }
