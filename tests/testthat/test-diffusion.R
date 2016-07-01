@@ -1,6 +1,7 @@
 context("Diffusion pdiffusion and ddiffusion functions.")
 
 # Include the old non-vectorised pdiffusion and ddiffusion funcs to ensure they haven't been broken
+# note that these functions still use a relative z and not  the absolute z used now by the diffusion functions.
 
 # [MG 20150616]
 # In line with LBA, adjust t0 to be the lower bound of the non-decision time distribution rather than the average 
@@ -101,16 +102,17 @@ test_that("ensure vectorised functions are equal to previous non-vectorised vers
                                t0=vec_t0[i], d=vec_d[i], sz =vec_sz[i], sv=vec_sv[i], st0 = vec_st0[i])
   }  
   
-  pdiffusions <- pdiffusion (vec_rts, response=vec_bounds, a=vec_a, z=vec_z, v=vec_v, t0=vec_t0, d=vec_d, sz=vec_sz, sv=vec_sv, st0=vec_st0)
-  ddiffusions <- ddiffusion (vec_rts, response=vec_bounds, a=vec_a, z=vec_z, v=vec_v, t0=vec_t0, d=vec_d, sz=vec_sz, sv=vec_sv, st0=vec_st0)
+  pdiffusions <- pdiffusion (vec_rts, response=vec_bounds, a=vec_a, z=vec_z*vec_a, v=vec_v, t0=vec_t0, d=vec_d, sz=vec_sz*vec_a, sv=vec_sv, st0=vec_st0)
+  ddiffusions <- ddiffusion (vec_rts, response=vec_bounds, a=vec_a, z=vec_z*vec_a, v=vec_v, t0=vec_t0, d=vec_d, sz=vec_sz*vec_a, sv=vec_sv, st0=vec_st0)
   # Note: allow a lot of tolerance for pdiffusion difference due to sampling error 
   #       (should never be as high as 1e-3, though)
-  #expect_that (pdiffusions, equals (correct_pdiffusion_vals, tolerance=1e-3)) # disabled due to wrong ddiffusion values initially (HS, 2016-05-19)
+  #expect_that (pdiffusions, equals (correct_pdiffusion_vals, tolerance=1e-3)) # disabled due to wrong pdiffusion values initially (HS, 2016-05-19)
   expect_that (ddiffusions, equals (correct_ddiffusion_vals)) 
   
-  pdiffusions2 <- pdiffusion (vec_rts, response=vec_bounds, a=vec_a, z=vec_z[1:sample(test_vec_len, 1)], v=vec_v[1:sample(test_vec_len, 1)], t0=vec_t0[1:sample(test_vec_len, 1)], d=vec_d[1:sample(test_vec_len, 1)], sz=vec_sz[1:sample(test_vec_len, 1)], sv=vec_sv[1:sample(test_vec_len, 1)], st0=vec_st0[1:sample(test_vec_len, 1)])
-  ddiffusions2 <- ddiffusion (vec_rts, response=vec_bounds, a=vec_a, z=vec_z[1:sample(test_vec_len, 1)], v=vec_v[1:sample(test_vec_len, 1)], t0=vec_t0[1:sample(test_vec_len, 1)], d=vec_d[1:sample(test_vec_len, 1)], sz=vec_sz[1:sample(test_vec_len, 1)], sv=vec_sv[1:sample(test_vec_len, 1)], st0=vec_st0[1:sample(test_vec_len, 1)])
-  #expect_that (pdiffusions2, equals (correct_pdiffusion_vals, tolerance=1e-3)) # disabled due to wrong ddiffusion values initially (HS, 2016-05-19)
+  # in the following code, z and sz are not adapted to absolute z scale.
+  #pdiffusions2 <- pdiffusion (vec_rts, response=vec_bounds, a=vec_a, z=vec_z[1:sample(test_vec_len, 1)], v=vec_v[1:sample(test_vec_len, 1)], t0=vec_t0[1:sample(test_vec_len, 1)], d=vec_d[1:sample(test_vec_len, 1)], sz=vec_sz[1:sample(test_vec_len, 1)], sv=vec_sv[1:sample(test_vec_len, 1)], st0=vec_st0[1:sample(test_vec_len, 1)])
+  ddiffusions2 <- ddiffusion (vec_rts, response=vec_bounds, a=vec_a, z=vec_z*vec_a, v=vec_v[1:sample(test_vec_len, 1)], t0=vec_t0[1:sample(test_vec_len, 1)], d=vec_d[1:sample(test_vec_len, 1)], sz=vec_sz*vec_a, sv=vec_sv[1:sample(test_vec_len, 1)], st0=vec_st0[1:sample(test_vec_len, 1)])
+  #expect_that (pdiffusions2, equals (correct_pdiffusion_vals, tolerance=1e-3)) # disabled due to wrong pdiffusion values initially (HS, 2016-05-19)
   expect_that (ddiffusions2, equals (correct_ddiffusion_vals))
 })
 
@@ -130,11 +132,15 @@ test_that("ensure vectorised functions are equal to previous non-vectorised vers
     correct_ddiffusion_vals[i+1] <- old_ddiffusion(rts[i+1, "rt"], response=as.character(rts[i+1, "response"]), a=1.5, z=0.75, v=2.25, t0=0.4, d=0.1, sz = 0.1, sv = 0.1, st0 = 0.1)
   }  
   
-  pdiffusions <- pdiffusion(sort(rts[, "rt"]), response=as.character(rts[, "response"]), a=c(1, 1.5), z=c(0.5, 0.75), v=c(2, 2.25), t0=c(0.5, 0.4), d=c(0,0.1), sz = c(0,0.1), sv = c(0,0.1), st0 = c(0, 0.1))
-  ddiffusions <- ddiffusion (rts[, "rt"], response=as.character(rts[, "response"]), a=c(1, 1.5), z=c(0.5, 0.75), v=c(2, 2.25), t0=c(0.5, 0.4), d=c(0,0.1), sz = c(0,0.1), sv = c(0,0.1), st0 = c(0, 0.1))
+  pdiffusions <- pdiffusion(sort(rts[, "rt"]), response=as.character(rts[, "response"]), 
+                            a=c(1, 1.5), z=c(0.5, 0.75)*c(1, 1.5), v=c(2, 2.25), t0=c(0.5, 0.4), 
+                            d=c(0,0.1), sz = c(0,0.1)*c(1, 1.5), sv = c(0,0.1), st0 = c(0, 0.1))
+  ddiffusions <- ddiffusion (rts[, "rt"], response=as.character(rts[, "response"]), 
+                             a=c(1, 1.5), z=c(0.5, 0.75)*c(1, 1.5), v=c(2, 2.25), t0=c(0.5, 0.4), 
+                             d=c(0,0.1), sz = c(0,0.1)*c(1, 1.5), sv = c(0,0.1), st0 = c(0, 0.1))
   # Note: allow a lot of tolerance for pdiffusion difference due to sampling error 
   #       (should never be as high as 1e-3, though)
-  #expect_equal(pdiffusions, correct_pdiffusion_vals, tolerance=1e-3) ## disabled due to wrong ddiffusion values initially (HS, 2016-05-19)
+  #expect_equal(pdiffusions, correct_pdiffusion_vals, tolerance=1e-3) ## disabled due to wrong pdiffusion values initially (HS, 2016-05-19)
   expect_equal(ddiffusions, correct_ddiffusion_vals)
   
 })
@@ -184,16 +190,15 @@ test_that("diffusion functions are identical with all input options", {
 test_that("qdiffusion is equivalent to manual calculation",{
   p11_fit <- structure(list(par = structure(c(1.32060063610882, 3.27271614698074, 0.338560144920614, 0.34996447540773, 0.201794924457386, 1.05516829794661), .Names = c("a", "v", "t0", "sz", "st0", "sv"))))
   q <- c(0.1, 0.3, 0.5, 0.7, 0.9)
-  prop_correct <- do.call(pdiffusion, args = c(rt = 20, as.list(p11_fit$par), response = "upper"))
   
 #   i_pdiffusion <- function(x, args, value, response) {
 #     abs(value - do.call(pdiffusion, args = c(rt = x, args, response = response)))
 #   }
   #pred_dir <- sapply(q*prop_correct, function(y) optimize(i_pdiffusion, c(0, 3), args = as.list(p11_fit$par), value = y, response = "upper")[[1]])
 
-  expect_equal(qdiffusion(q*prop_correct, response = "upper", a=p11_fit$par["a"], v=p11_fit$par["v"], t0=p11_fit$par["t0"], sz=p11_fit$par["sz"], st0=p11_fit$par["st0"], sv=p11_fit$par["sv"]),c(0.474993255765253, 0.548947327845059, 0.607841745594437, 0.681887193854516, 0.844859938530477), tolerance=0.0001)
+  expect_equal(qdiffusion(q, response = "upper", a=p11_fit$par["a"], v=p11_fit$par["v"], t0=p11_fit$par["t0"], sz=p11_fit$par["sz"]*p11_fit$par["a"], st0=p11_fit$par["st0"], sv=p11_fit$par["sv"], scale_p = TRUE),c(0.474993255765253, 0.548947327845059, 0.607841745594437, 0.681887193854516, 0.844859938530477), tolerance=0.0001)
   
-  expect_equal(suppressWarnings(qdiffusion(q*prop_correct, response = "lower", a=p11_fit$par["a"], v=p11_fit$par["v"], t0=p11_fit$par["t0"], sz=p11_fit$par["sz"], st0=p11_fit$par["st0"], sv=p11_fit$par["sv"])),as.numeric(rep(NA, 5)))
+  expect_equal(suppressWarnings(qdiffusion(q, response = "lower", a=p11_fit$par["a"], v=p11_fit$par["v"], t0=p11_fit$par["t0"], sz=p11_fit$par["sz"]*p11_fit$par["a"], st0=p11_fit$par["st0"], sv=p11_fit$par["sv"])),as.numeric(rep(NA, 5)))
 })
 
 test_that("s works as expected", {

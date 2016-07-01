@@ -9,17 +9,17 @@
 \alias{rdiffusion}
 \title{The Ratcliff Diffusion Model}
 \usage{
-ddiffusion(rt, response = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
+ddiffusion(rt, response = "upper", a, v, t0, z = 0.5 * a, d = 0, sz = 0,
   sv = 0, st0 = 0, s = 1, precision = 3)
 
-pdiffusion(rt, response = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
+pdiffusion(rt, response = "upper", a, v, t0, z = 0.5 * a, d = 0, sz = 0,
   sv = 0, st0 = 0, s = 1, precision = 3, maxt = 10000)
 
-qdiffusion(p, response = "upper", a, v, t0, z = 0.5, d = 0, sz = 0,
+qdiffusion(p, response = "upper", a, v, t0, z = 0.5 * a, d = 0, sz = 0,
   sv = 0, st0 = 0, s = 1, precision = 3, maxt = 10000,
-  interval = c(0, 10), scale_p = FALSE, scale_max = 10)
+  interval = c(0, 10), scale_p = FALSE, scale_max = Inf)
 
-rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
+rdiffusion(n, a, v, t0, z = 0.5 * a, d = 0, sz = 0, sv = 0, st0 = 0,
   s = 1, precision = 3)
 }
 \arguments{
@@ -33,11 +33,11 @@ rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
 
 \item{t0}{non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution). Typical range: 0.1 < \code{t0} < 0.5}
 
-\item{z}{relative starting point. Indicator of an a priori bias in decision making. When the relative starting point \code{z} deviates from 0.5, the amount of information necessary for a decision differs between response alternatives. Typical range: 0.3 < \code{z} < 0.7. Default is 0.5 (i.e., no bias).}
+\item{z}{starting point. Indicator of an a priori bias in decision making. When the relative starting point \code{z} deviates from \code{0.5*a}, the amount of information necessary for a decision differs between response alternatives. Default is \code{0.5*a} (i.e., no bias).}
 
 \item{d}{differences in speed of response execution (in seconds). Positive values indicate that response execution is faster for responses linked to the upper threshold than for responses linked to the lower threshold. Typical range: -0.1 < \code{d} < 0.1. Default is 0.}
 
-\item{sz}{inter-trial-variability of (relative) starting point. Range of a uniform distribution with mean \code{z} describing the distribution of actual starting points from specific trials. Minimal impact on the RT distributions, values different from 0 can predict slow errors. Can be fixed to 0 in most applications. Typical range: 0 < \code{sz} < 0.5. Default is 0.}
+\item{sz}{inter-trial-variability of starting point. Range of a uniform distribution with mean \code{z} describing the distribution of actual starting points from specific trials. Minimal impact on the RT distributions, values different from 0 can predict slow errors. Can be fixed to 0 in most applications. Typical range: 0 < \code{sz} < 0.5. Default is 0.}
 
 \item{sv}{inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials. Minimal impact on the RT distributions, values different from 0 can predict fast errors. Can be fixed to 0 in most applications. Typical range: 0 < \code{sv} < 2. Default is 0.}
 
@@ -47,7 +47,7 @@ rdiffusion(n, a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0,
 
 \item{precision}{\code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.}
 
-\item{maxt}{maximum \code{rt} allowed, used to stop integration problems.}
+\item{maxt}{maximum \code{rt} allowed, used to stop integration problems. \emph{Currently ignored as numerical integration works fine with Inf.}}
 
 \item{p}{vector of probabilities. Or for convenience also a \code{data.frame} with columns \code{p} and \code{response}. See examples.}
 
@@ -67,7 +67,7 @@ The length of the result is determined by \code{n} for \code{rdiffusion}, equal 
 The distribution parameters (as well as \code{response}) are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the response boundary.
 }
 \description{
-Density, distribution function, quantile function, and random generation for the Ratcliff diffusion model with following parameters: \code{a} (threshold separation), \code{z} (\emph{relative} starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), \code{sz} (inter-trial-variability of relative starting point), and \code{s} (diffusion constant). \strong{Note that the parameterization or defaults of start point \code{z}, non-decision time variability \code{st0}, and diffusion constant \code{s} differ from what is often found in the literature.}
+Density, distribution function, quantile function, and random generation for the Ratcliff diffusion model with following parameters: \code{a} (threshold separation), \code{z} (starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), \code{sz} (inter-trial-variability of relative starting point), and \code{s} (diffusion constant). \strong{Note that the parameterization or defaults of non-decision time variability \code{st0} and diffusion constant \code{s} differ from what is often found in the literature and that the parameterization of \code{z} and \code{sz} have changed compared to previous versions (now absolute and not relative).}
 }
 \details{
 The Ratcliff diffusion model (Ratcliff, 1978) is a mathematical model for two-choice discrimination tasks. It is based on the assumption that information is accumulated continuously until one of two decision thresholds is hit. For more information, see Voss, Rothermund, and Voss (2004), Voss, Nagler, and Lerche (2013), or Wagenmakers (2009).
@@ -120,7 +120,7 @@ ll_diffusion <- function(pars, rt, response)
   densities <- tryCatch(
     ddiffusion(rt, response=response, 
                a=pars[1], v=pars[2], t0=pars[3], 
-               z=0.5, sz=pars[4], 
+               sz=pars[4], 
                st0=pars[5], sv=pars[6]), 
     error = function(e) 0)
   if (any(densities == 0)) return(1e6)
@@ -132,8 +132,8 @@ start <- c(runif(2, 0.5, 3), 0.1, runif(3, 0, 0.5))
 names(start) <- c("a", "v", "t0", "sz", "st0", "sv")
 recov <- nlminb(start, ll_diffusion, lower = 0, rt=rt1$rt, response=rt1$response)
 round(recov$par, 3)
-#     a     v    t0    sz   st0    sv 
-# 1.017 2.186 0.505 0.345 0.000 0.000 
+#    a     v    t0    sz   st0    sv 
+#0.954 1.764 0.503 0.000 0.000 0.000 
 }
 
 # plot density:
@@ -154,13 +154,10 @@ legend("topleft", legend=c("upper", "lower"), title="response boundary", lty=1:2
 
 
 ### qLBA can only return values up to maximal predicted probability:
-# maximum probability for a given set
-(max_p <- pdiffusion(20, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u"))
-# [1] 0.8705141
-
 # equal but much slower:
-# pdiffusion(Inf, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u") 
-# [1] 0.8705141
+pdiffusion(Inf, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u") 
+# [1] 0.87
+# (Note that with the current integration routine for pdiffusion use Inf and not smaller values.)
 
 qdiffusion(0.87, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u")
 # [1] 1.945802

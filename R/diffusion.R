@@ -1,6 +1,6 @@
 #' The Ratcliff Diffusion Model
 #' 
-#' Density, distribution function, quantile function, and random generation for the Ratcliff diffusion model with following parameters: \code{a} (threshold separation), \code{z} (\emph{relative} starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), \code{sz} (inter-trial-variability of relative starting point), and \code{s} (diffusion constant). \strong{Note that the parameterization or defaults of start point \code{z}, non-decision time variability \code{st0}, and diffusion constant \code{s} differ from what is often found in the literature.}
+#' Density, distribution function, quantile function, and random generation for the Ratcliff diffusion model with following parameters: \code{a} (threshold separation), \code{z} (starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), \code{sz} (inter-trial-variability of relative starting point), and \code{s} (diffusion constant). \strong{Note that the parameterization or defaults of non-decision time variability \code{st0} and diffusion constant \code{s} differ from what is often found in the literature and that the parameterization of \code{z} and \code{sz} have changed compared to previous versions (now absolute and not relative).}
 #'
 #' @param rt a vector of RTs. Or for convenience also a \code{data.frame} with columns \code{rt} and \code{response} (such as returned from \code{rdiffusion} or \code{\link{rLBA}}). See examples.
 #' @param n is a desired number of observations.
@@ -10,15 +10,15 @@
 #' @param a threshold separation. Amount of information that is considered for a decision. Large values indicate a conservative decisional style. Typical range: 0.5 < \code{a} < 2
 #' @param v drift rate. Average slope of the information accumulation process. The drift gives information about the speed and direction of the accumulation of information. Large (absolute) values of drift indicate a good performance. If received information supports the response linked to the upper threshold the sign will be positive and vice versa. Typical range: -5 < \code{v} < 5
 #' @param t0 non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution). Typical range: 0.1 < \code{t0} < 0.5
-#' @param z relative starting point. Indicator of an a priori bias in decision making. When the relative starting point \code{z} deviates from 0.5, the amount of information necessary for a decision differs between response alternatives. Typical range: 0.3 < \code{z} < 0.7. Default is 0.5 (i.e., no bias).
+#' @param z starting point. Indicator of an a priori bias in decision making. When the relative starting point \code{z} deviates from \code{0.5*a}, the amount of information necessary for a decision differs between response alternatives. Default is \code{0.5*a} (i.e., no bias).
 #' @param d differences in speed of response execution (in seconds). Positive values indicate that response execution is faster for responses linked to the upper threshold than for responses linked to the lower threshold. Typical range: -0.1 < \code{d} < 0.1. Default is 0.
-#' @param sz inter-trial-variability of (relative) starting point. Range of a uniform distribution with mean \code{z} describing the distribution of actual starting points from specific trials. Minimal impact on the RT distributions, values different from 0 can predict slow errors. Can be fixed to 0 in most applications. Typical range: 0 < \code{sz} < 0.5. Default is 0.
+#' @param sz inter-trial-variability of starting point. Range of a uniform distribution with mean \code{z} describing the distribution of actual starting points from specific trials. Minimal impact on the RT distributions, values different from 0 can predict slow errors. Can be fixed to 0 in most applications. Typical range: 0 < \code{sz} < 0.5. Default is 0.
 #' @param sv inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials. Minimal impact on the RT distributions, values different from 0 can predict fast errors. Can be fixed to 0 in most applications. Typical range: 0 < \code{sv} < 2. Default is 0.
 #' @param st0 inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0 + st0/2} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{st0} < 0.2. Default is 0.
 #' @param s diffusion constant; standard deviation of the random noise of the diffusion process (i.e., within-trial variability), scales \code{a}, \code{v}, and \code{sv}. Needs to be fixed to a constant in most applications. Default is 1. Note that the default used by Ratcliff and in other applications is often 0.1. 
 #' 
 #' @param precision \code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.
-#' @param maxt maximum \code{rt} allowed, used to stop integration problems.
+#' @param maxt maximum \code{rt} allowed, used to stop integration problems. \emph{Currently ignored as numerical integration works fine with Inf.}
 #' @param interval a vector containing the end-points of the interval to be searched for the desired quantiles (i.e., RTs) in \code{qdiffusion}. Default is \code{c(0, 10)}.
 #' @param scale_p logical. Should entered probabilities automatically be scaled by maximally predicted probability? Default is \code{FALSE}. Convenience argument for obtaining predicted quantiles. Can be slow as the maximally predicted probability is calculated individually for each \code{p}.
 #' @param scale_max numerical scalar. Value at which maximally predicted RT should be calculated if \code{scale_p} is \code{TRUE}. 
@@ -120,7 +120,7 @@ recalc_t0 <- function (t0, st0) { t0 <- t0 + st0/2 }
 #' @rdname Diffusion
 #' @export
 ddiffusion <- function (rt, response = "upper", 
-                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
+                 a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
@@ -149,8 +149,10 @@ ddiffusion <- function (rt, response = "upper",
   v <- rep(v/s, length.out = nn)
   t0 <- rep(t0, length.out = nn)
   z <- rep(z, length.out = nn)
+  z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
   d <- rep(d, length.out = nn)
   sz <- rep(sz, length.out = nn)
+  sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
   sv <- rep(sv/s, length.out = nn)
   st0 <- rep(st0, length.out = nn)
   t0 <- recalc_t0 (t0, st0) 
@@ -207,7 +209,7 @@ ddiffusion <- function (rt, response = "upper",
 #' @rdname Diffusion
 #' @export
 pdiffusion <- function (rt, response = "upper", 
-                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
+                 a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3, maxt = 1e4) #subdivisions = 100L, stop.on.error = TRUE) 
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
@@ -217,7 +219,7 @@ pdiffusion <- function (rt, response = "upper",
     rt <- rt$rt
   }
   
-  rt[rt>maxt] <- maxt
+  #rt[rt>maxt] <- maxt
   if(!all(rt == sort(rt)))  stop("rt needs to be sorted")
   
   # Convert boundaries to numeric
@@ -239,8 +241,10 @@ pdiffusion <- function (rt, response = "upper",
   v <- rep(v/s, length.out = nn)
   t0 <- rep(t0, length.out = nn)
   z <- rep(z, length.out = nn)
+  z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
   d <- rep(d, length.out = nn)
   sz <- rep(sz, length.out = nn)
+  sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
   sv <- rep(sv/s, length.out = nn)
   st0 <- rep(st0, length.out = nn)
   t0 <- recalc_t0 (t0, st0) 
@@ -344,9 +348,9 @@ inv_cdf_diffusion <- function(x, response, a, v, t0, z, d, sz, sv, st0, precisio
 #' @rdname Diffusion
 #' @export
 qdiffusion <- function (p, response = "upper", 
-                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
+                 a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3, maxt = 1e4, interval = c(0, 10),
-                 scale_p = FALSE, scale_max = 10)
+                 scale_p = FALSE, scale_max = Inf)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and t0 must be supplied")
 
@@ -396,7 +400,7 @@ qdiffusion <- function (p, response = "upper",
 #' @rdname Diffusion
 #' @export
 rdiffusion <- function (n, 
-                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
+                 a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
@@ -405,8 +409,10 @@ rdiffusion <- function (n,
   v <- rep(v/s, length.out = n)
   t0 <- rep(t0, length.out = n)
   z <- rep(z, length.out = n)
+  z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
   d <- rep(d, length.out = n)
   sz <- rep(sz, length.out = n)
+  sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
   sv <- rep(sv/s, length.out = n)
   st0 <- rep(st0, length.out = n)
   t0 <- recalc_t0 (t0, st0) 

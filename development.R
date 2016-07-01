@@ -15,6 +15,7 @@ test(filter = "input")
 test(filter = "lba")
 test_file("tests/testthat/test-diffusion.R")
 test_file("tests/testthat/test-diffusion-math.R")
+test_file("tests/testthat/test-diffusion-bugs.R")
 test_file("tests/testthat/test-ilba_basics.R")
 test_file("tests/testthat/test-lba-bugs.R")
 test_file("tests/testthat/test-lba-math.R")
@@ -41,7 +42,7 @@ R.libs <- "."
 
 roxy.package(
   pck.source.dir = ".",
-  pck.version = "0.6-2",
+  pck.version = "0.6-3",
   pck.description = data.frame(
     Package = "rtdists",
     Type = "Package",

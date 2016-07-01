@@ -1,5 +1,9 @@
 Changes to Version 0.6-x (released July 2016)
 
+  o Start point z in diffusion model is now on absolute scale and not relative
+    to be in line with A (start point of LBA) which is also on absolute scale.
+    (Thanks to Steve Lewandowsky for noticing this.)
+
   o PDFs, CDFs, and quantile functions of both models now accept a data.frame as
     first argument containing both RTs/probabilities and responses. Allows more
     convenient way to pass data.

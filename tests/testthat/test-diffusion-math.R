@@ -8,7 +8,7 @@ test_that("ddiffusion is equal to dwiener", {
         for (t0 in seq(0.05, 0.5, length.out = 10)) {
           for (z in seq(0.4, 0.6, length.out = 7)) {
             expect_equivalent(
-              ddiffusion(seq(0, 3, length.out = 15), a=a, v=v, t0=t0, z = z)
+              ddiffusion(seq(0, 3, length.out = 15), a=a, v=v, t0=t0, z = z*a)
               ,
               dwiener(seq(0, 3, length.out = 15), resp = rep("upper", 15), alpha=a, delta=v, tau = t0, beta = z)
             )
@@ -27,7 +27,7 @@ test_that("pdiffusion is equal to pwiener", {
         for (t0 in seq(0.05, 0.5, length.out = 10)) {
           for (z in seq(0.4, 0.6, length.out = 7)) {
             expect_equal(
-              pdiffusion(seq(0, 3, length.out = 15), a=a, v=v, t0=t0, z = z)
+              pdiffusion(seq(0, 3, length.out = 15), a=a, v=v, t0=t0, z = z*a)
               ,
               pwiener(seq(0, 3, length.out = 15), resp = rep("upper", 15), alpha=a, delta=v, tau = t0, beta = z)
             , tolerance = 0.01)
@@ -66,11 +66,11 @@ test_that("Norm: pdiffusion corresponds to random derivates", {
   t0 <- runif(1, 0.1, 0.5)
   v <- runif(1, 0.5, 2.5)
   z <- runif(1, 0.5, 0.6)
-  r_diffusion <- rdiffusion(samples, a=a, t0=t0, v=v, z=z)
-  t1 <- tryCatch.W.E(ks.test(r_diffusion$rt[r_diffusion$response=="upper"], normalised_pdiffusion, a=a*2, t0=t0, v=v*2, z=z))
+  r_diffusion <- rdiffusion(samples, a=a, t0=t0, v=v, z=z*a)
+  t1 <- tryCatch.W.E(ks.test(r_diffusion$rt[r_diffusion$response=="upper"], normalised_pdiffusion, a=a*2, t0=t0, v=v*2, z=z*a))
   expect_lt(t1$value$p.value, p_min)
   
-  t2 <- tryCatch.W.E(ks.test(r_diffusion$rt[r_diffusion$response=="upper"], normalised_pdiffusion, a=a, t0=t0, v=v, z=z))
+  t2 <- tryCatch.W.E(ks.test(r_diffusion$rt[r_diffusion$response=="upper"], normalised_pdiffusion, a=a, t0=t0, v=v, z=z*a))
   expect_gt(t2$value$p.value, p_max)
   
   t3 <- tryCatch.W.E(ks.test(r_diffusion$rt[r_diffusion$response=="upper"], normalised_pwiener, alpha=a, delta=v, tau = t0, beta = z))
@@ -91,11 +91,11 @@ test_that("Norm: pdiffusion corresponds to random derivates (with variabilities)
   sv <- runif(1, 0.1, 0.5)
   sz <- runif(1, 0.05, 0.2)
   z <- runif(1, 0.5, 0.6)
-  r_diffusion <- rdiffusion(samples, a=a, t0=t0, v=v, z=z, sz=sz, sv = sv)
-  t1 <- tryCatch.W.E(ks.test(r_diffusion$rt[r_diffusion$response=="upper"], normalised_pdiffusion, a=a, t0=t0, v=v, z=z, sv=1, sz = 0.6))
+  r_diffusion <- rdiffusion(samples, a=a, t0=t0, v=v, z=z*a, sz=sz, sv = sv)
+  t1 <- tryCatch.W.E(ks.test(r_diffusion$rt[r_diffusion$response=="upper"], normalised_pdiffusion, a=a, t0=t0, v=v, z=z*a, sv=1, sz = 0.6*a))
   expect_lt(t1$value$p.value, p_min)
   
-  t2 <- tryCatch.W.E(ks.test(r_diffusion$rt[r_diffusion$response=="upper"], normalised_pdiffusion, a=a, t0=t0, v=v, z=z,sv=sv, sz=sz))
+  t2 <- tryCatch.W.E(ks.test(r_diffusion$rt[r_diffusion$response=="upper"], normalised_pdiffusion, a=a, t0=t0, v=v, z=z*a,sv=sv, sz=sz))
   expect_gt(t2$value$p.value, p_max)
   
 })
