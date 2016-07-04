@@ -42,7 +42,7 @@ R.libs <- "."
 
 roxy.package(
   pck.source.dir = ".",
-  pck.version = "0.6-3",
+  pck.version = "0.6-4",
   pck.description = data.frame(
     Package = "rtdists",
     Type = "Package",
@@ -62,6 +62,7 @@ roxy.package(
     Description = "Provides response time distributions (density/PDF, distribution function/CDF, quantile function, and random generation): (a) Ratcliff diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distributions underlying the drift rate.",
     URL = "https://github.com/rtdists/rtdists/",
     License = "GPL (>=3)",
+    BugReports = "https://github.com/rtdists/rtdists/issues",
     VignetteBuilder = "knitr",
     stringsAsFactors = FALSE),
   actions = c("roxy"),
