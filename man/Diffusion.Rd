@@ -102,7 +102,7 @@ RTs need to be sorted (in increasing order) for \code{pdiffusion}.
 ## identical calls (but different random values)
 rt1 <- rdiffusion(500, a=1, v=2, t0=0.5)
 head(rt1)
-rt2 <- rdiffusion(500, a=1, v=2, t0=0.5, z=0.5, d=0, sz=0, sv=0, st0=0)
+rt2 <- rdiffusion(500, a=1, v=2, t0=0.5, d=0, sz=0, sv=0, st0=0)
 head(rt2)
   
 # get density for random RTs (possible to specify arguments for pdiffusion in same way):
@@ -153,7 +153,7 @@ curve(pdiffusion(x, a=1, v=2, t0=0.5, st0=0.2, response="l"),
 legend("topleft", legend=c("upper", "lower"), title="response boundary", lty=1:2)
 
 \dontrun{
-### qLBA can only return values up to maximal predicted probability:
+### qdiffusion can only return values up to maximal predicted probability:
 (max_p <- pdiffusion(Inf, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u"))
 # [1] 0.87
 # (Note that with the current integration routine for pdiffusion use Inf and not smaller values.)
