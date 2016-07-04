@@ -89,11 +89,11 @@ Also note that quantiles (i.e., predicted RTs) are obtained by numerically minim
 }
 }
 \note{
-The start point \code{z} is the relative start point and \emph{not} the absolute start point. 
-
 The parameterization of the non-decisional components, \code{t0} and \code{st0}, differs from the parameterization used by, for example, Andreas Voss or Roger Ratcliff in that \code{t0} is \emph{not} the lower bound of the uniform distribution of length \code{st0}, but its midpoint.
 
 The default diffusion constant \code{s} is 1 and not 0.1 as in most applications of Roger Ratcliff and others.
+
+We have changed the parameterization of the start point \code{z} which is now the absolute start point (it was the relative start point in previous versions of \pkg{rtdists}). 
 
 RTs need to be sorted (in increasing order) for \code{pdiffusion}.
 }

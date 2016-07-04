@@ -47,11 +47,11 @@
 #' Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probability and the value returned from \code{pdiffusion} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
 #' }
 #' 
-#' @note The start point \code{z} is the relative start point and \emph{not} the absolute start point. 
-#' 
-#' The parameterization of the non-decisional components, \code{t0} and \code{st0}, differs from the parameterization used by, for example, Andreas Voss or Roger Ratcliff in that \code{t0} is \emph{not} the lower bound of the uniform distribution of length \code{st0}, but its midpoint.
+#' @note The parameterization of the non-decisional components, \code{t0} and \code{st0}, differs from the parameterization used by, for example, Andreas Voss or Roger Ratcliff in that \code{t0} is \emph{not} the lower bound of the uniform distribution of length \code{st0}, but its midpoint.
 #' 
 #' The default diffusion constant \code{s} is 1 and not 0.1 as in most applications of Roger Ratcliff and others.
+#' 
+#' We have changed the parameterization of the start point \code{z} which is now the absolute start point (it was the relative start point in previous versions of \pkg{rtdists}). 
 #' 
 #' RTs need to be sorted (in increasing order) for \code{pdiffusion}.
 #' 
@@ -145,15 +145,16 @@ ddiffusion <- function (rt, response = "upper",
   }
   numeric_bounds <- rep(numeric_bounds, length.out = nn)
   # all parameters brought to length of rt
-  a <- rep(a/s, length.out = nn)
-  v <- rep(v/s, length.out = nn)
+  s <- rep(s, length.out = nn)
+  a <- rep(a, length.out = nn)/s
+  v <- rep(v, length.out = nn)/s
   t0 <- rep(t0, length.out = nn)
   z <- rep(z, length.out = nn)
   z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
   d <- rep(d, length.out = nn)
   sz <- rep(sz, length.out = nn)
   sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
-  sv <- rep(sv/s, length.out = nn)
+  sv <- rep(sv, length.out = nn)/s
   st0 <- rep(st0, length.out = nn)
   t0 <- recalc_t0 (t0, st0) 
   
@@ -237,15 +238,16 @@ pdiffusion <- function (rt, response = "upper",
   }
   numeric_bounds <- rep(numeric_bounds, length.out = nn)
   # all parameters brought to length of rt
-  a <- rep(a/s, length.out = nn)
-  v <- rep(v/s, length.out = nn)
+  s <- rep(s, length.out = nn)
+  a <- rep(a, length.out = nn)/s
+  v <- rep(v, length.out = nn)/s
   t0 <- rep(t0, length.out = nn)
   z <- rep(z, length.out = nn)
   z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
   d <- rep(d, length.out = nn)
   sz <- rep(sz, length.out = nn)
   sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
-  sv <- rep(sv/s, length.out = nn)
+  sv <- rep(sv, length.out = nn)/s
   st0 <- rep(st0, length.out = nn)
   t0 <- recalc_t0 (t0, st0) 
   
@@ -362,13 +364,14 @@ qdiffusion <- function (p, response = "upper",
   
   nn <- length(p)
   response <- rep(unname(response), length.out = nn)
-  a <- rep(unname(a)/s, length.out = nn)
-  v <- rep(unname(v)/s, length.out = nn)
+  s <- rep(s, length.out = nn)
+  a <- rep(unname(a), length.out = nn)/s
+  v <- rep(unname(v), length.out = nn)/s
   t0 <- rep(unname(t0), length.out = nn)
   z <- rep(unname(z), length.out = nn)
   d <- rep(unname(d), length.out = nn)
   sz <- rep(unname(sz), length.out = nn)
-  sv <- rep(unname(sv)/s, length.out = nn)
+  sv <- rep(unname(sv), length.out = nn)/s
   st0 <- rep(unname(st0), length.out = nn)
   p <- unname(p)
   
@@ -405,15 +408,16 @@ rdiffusion <- function (n,
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
   
-  a <- rep(a/s, length.out = n)
-  v <- rep(v/s, length.out = n)
+  s <- rep(s, length.out = n)
+  a <- rep(a, length.out = n)/s
+  v <- rep(v, length.out = n)/s
   t0 <- rep(t0, length.out = n)
   z <- rep(z, length.out = n)
   z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
   d <- rep(d, length.out = n)
   sz <- rep(sz, length.out = n)
   sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
-  sv <- rep(sv/s, length.out = n)
+  sv <- rep(sv, length.out = n)/s
   st0 <- rep(st0, length.out = n)
   t0 <- recalc_t0 (t0, st0) 
   # Build parameter matrix
