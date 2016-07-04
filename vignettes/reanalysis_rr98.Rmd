@@ -487,7 +487,7 @@ p2 + as.layer(p1) + as.layer(p1e)
 
 ```
 
-Overall the diffusion model provides a good account of the data. Only when considering all quantiles we see some cler misfits. Nevertheless, the general trends in the data are well recovered, the only exceptions here are conditions with very low numbers of trials. 
+Overall the diffusion model provides a good account of the data. Only when considering all quantiles we see some clear misfits. Nevertheless, the general trends in the data are well recovered, the only exceptions here are conditions with very low numbers of trials. 
 
 # LBA analysis
 
