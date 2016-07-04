@@ -155,7 +155,7 @@ legend("topleft", legend=c("upper", "lower"), title="response boundary", lty=1:2
 
 ### qLBA can only return values up to maximal predicted probability:
 # equal but much slower:
-pdiffusion(Inf, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u") 
+(max_p <- pdiffusion(Inf, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u"))
 # [1] 0.87
 # (Note that with the current integration routine for pdiffusion use Inf and not smaller values.)
 

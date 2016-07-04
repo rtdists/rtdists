@@ -33,5 +33,5 @@ Authors@R: c( person(given="Henrik", family="Singmann", email="singmann+rtdists@
                   person(given="Andreas", family="Voss", role=c("ctb")), person(given="Jochen", family="Voss", role=c("ctb")), person(given="Andrew", family="Terry",
                   role=c("ctb")) )
 Version: 0.6-3
-Date: 2016-07-01
+Date: 2016-07-04
 RoxygenNote: 5.0.1
