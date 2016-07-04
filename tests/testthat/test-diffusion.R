@@ -153,8 +153,8 @@ test_that("diffusion functions work with numeric and factor boundaries", {
   expect_is(pdiffusion(sort(rts$rt), response = rts$response, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), "numeric")
   expect_is(ddiffusion(rts$rt, response = sample(1:2, 20, replace = TRUE), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), "numeric")
   expect_is(pdiffusion(sort(rts$rt), response = sample(1:2, 20, replace = TRUE), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), "numeric")
-  expect_error(ddiffusion(rts$rt, sample(1:3, 20, replace = TRUE), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), "response")
-  expect_error(pdiffusion(sort(rts$rt), sample(1:3, 20, replace = TRUE), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), "response")
+  expect_error(ddiffusion(rts$rt, rep_len(1:3, length.out=20), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), "response")
+  expect_error(pdiffusion(sort(rts$rt), rep_len(1:3, length.out=20), a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0), "response")
 })
 
 test_that("diffusion functions are identical with all input options", {
