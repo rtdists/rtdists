@@ -52,9 +52,8 @@ curve(pdiffusion(x, a=1, v=2, t0=0.5, st0=0.2, response="l"),
      add=TRUE, lty = 2)
 legend("topleft", legend=c("upper", "lower"), title="response boundary", lty=1:2)
 
-
+\dontrun{
 ### qLBA can only return values up to maximal predicted probability:
-# equal but much slower:
 (max_p <- pdiffusion(Inf, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u"))
 # [1] 0.87
 # (Note that with the current integration routine for pdiffusion use Inf and not smaller values.)
@@ -84,7 +83,7 @@ t3 <- data.frame(p = rep(c(0.05, 0.1, 0.87), 2), response = rep(c("upper", "lowe
 # 5 0.10    lower
 # 6 0.87    lower
 qdiffusion(t3, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5)
-
+}
 
 ## LBA and diffusion can be used interchangeably:
 rt1 <- rLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
