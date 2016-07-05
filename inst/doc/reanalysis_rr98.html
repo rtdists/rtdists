@@ -12,7 +12,7 @@
 
 <meta name="author" content="Henrik Singmann" />
 
-<meta name="date" content="2016-07-04" />
+<meta name="date" content="2016-07-05" />
 
 <title>Reanalysis of Ratcliff and Rouder (1998) with Diffusion Model and LBA</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Reanalysis of Ratcliff and Rouder (1998) with Diffusion Model and LBA</h1>
 <h4 class="author"><em>Henrik Singmann</em></h4>
-<h4 class="date"><em>2016-07-04</em></h4>
+<h4 class="date"><em>2016-07-05</em></h4>
 
 
 <div id="TOC">
@@ -100,7 +100,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 
 <p>This vignette provides the <code>R</code> scripts for a reanalysis of Experiment 1 of Ratcliff and Rouder (1998). In contrast to the original analysis, which used RT bins, we will employ trial-wise maximum likelihood estimation.</p>
-<p>The code heavily uses <a href="https://cran.r-project.org/web/packages/dplyr"><code>dplyr</code></a> (<a href="https://cran.r-project.org/web/packages/dplyr/vignettes/introduction.html">vignette</a>) and <a href="https://cran.r-project.org/web/packages/tidyr"><code>tidyr</code></a> (<a href="https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html">vignette</a>) for data handling and <code>lattice</code> for plotting (see <code>?Lattice</code>).</p>
+<p>The code heavily uses <a href="https://cran.r-project.org/package=dplyr"><code>dplyr</code></a> (<a href="https://cran.r-project.org/web/packages/dplyr/vignettes/introduction.html">vignette</a>) and <a href="https://cran.r-project.org/package=tidyr"><code>tidyr</code></a> (<a href="https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html">vignette</a>) for data handling and <code>lattice</code> (see <code>?Lattice</code>) and <code>latticeExtra</code> (specifically <code>as.layer</code>) for plotting.</p>
 <div id="description-of-the-experiment" class="section level1">
 <h1>Description of the Experiment</h1>
 <p>In the experiment, three participants were asked to decide whether the overall brightness of pixel arrays displayed on a computer monitor was “high” or “low”. To this end, the number of white versus black pixels (i.e., the brightness <code>strength</code>) was manipulated in 33 levels from 0% white pixels (level 0) to 100% white pixels (level 32). In addition, instruction manipulated speed and accuracy between blocks. In total, each participant contributed around 4000 trials per instruction condition.</p>

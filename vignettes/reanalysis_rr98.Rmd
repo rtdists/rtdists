@@ -13,7 +13,7 @@ vignette: >
 
 This vignette provides the `R` scripts for a reanalysis of Experiment 1 of Ratcliff and Rouder (1998). In contrast to the original analysis, which used RT bins, we will employ trial-wise maximum likelihood estimation. 
 
-The code heavily uses [`dplyr`](https://cran.r-project.org/web/packages/dplyr) ([vignette](https://cran.r-project.org/web/packages/dplyr/vignettes/introduction.html)) and [`tidyr`](https://cran.r-project.org/web/packages/tidyr) ([vignette](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html)) for data handling and `lattice` for plotting (see `?Lattice`). 
+The code heavily uses [`dplyr`](https://cran.r-project.org/package=dplyr) ([vignette](https://cran.r-project.org/web/packages/dplyr/vignettes/introduction.html)) and [`tidyr`](https://cran.r-project.org/package=tidyr) ([vignette](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html)) for data handling and `lattice` (see `?Lattice`) and `latticeExtra` (specifically `as.layer`) for plotting. 
 
 # Description of the Experiment
 
