@@ -136,7 +136,45 @@ round(recov$par, 3)
 #0.954 1.764 0.503 0.000 0.000 0.000 
 }
 
-# plot density:
+
+\dontrun{
+## replicate Table 1 from Wagenmakers et al. (2007) using rdiffusion:
+
+n <- 1e5 # number of samples
+# take parameter valeus from Table 2 and set s to 0.1
+george <- rdiffusion(n, a = 0.12, v = 0.25, t0 = 0.3, s = 0.1)
+rich   <- rdiffusion(n, a = 0.12, v = 0.25, t0 = 0.25, s = 0.1)
+amy    <- rdiffusion(n, a = 0.08, v = 0.25, t0 = 0.3, s = 0.1)
+mark   <- rdiffusion(n, a = 0.08, v = 0.25, t0 = 0.25, s = 0.1)
+
+george$id <- "george"
+rich$id <- "rich"
+amy$id <- "amy"
+mark$id <- "mark"
+
+wag <- rbind(george, rich, amy, mark)
+wag$id <- factor(wag$id, levels = c("george", "rich", "amy", "mark"))
+
+opt <- options()
+options(digits = 3)
+aggregate(cbind(rt, as.numeric(response)-1) ~ id, wag, mean)
+#       id    rt    V2
+# 1 george 0.517 0.952
+# 2   rich 0.467 0.953
+# 3    amy 0.422 0.881
+# 4   mark 0.372 0.882
+options(digits = 1)
+aggregate(rt ~ id, wag, var)
+#       id    rt
+# 1 george 0.024
+# 2   rich 0.024
+# 3    amy 0.009
+# 4   mark 0.009
+options(opt)
+}
+
+
+## plot density:
 curve(ddiffusion(x, a=1, v=2, t0=0.5, response = "upper"), 
       xlim=c(0,3), main="Density of upper responses", ylab="density", xlab="response time")
 curve(ddiffusion(x, a=1, v=2, t0=0.5, st0=0.2, response = "upper"), 
@@ -196,7 +234,6 @@ sum(log(dLBA(rt2, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))))
 sum(log(ddiffusion(rt1, a=1, v=2, t0=0.5)))
 sum(log(ddiffusion(rt2, a=1, v=2, t0=0.5)))
 
-
 }
 \author{
 Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, Scott Brown, and Henrik Singmann. \code{qdiffusion} by Henrik Singmann.
@@ -207,6 +244,8 @@ Ratcliff, R. (1978). A theory of memory retrieval. \emph{Psychological Review}, 
 Voss, A., Rothermund, K., & Voss, J. (2004). Interpreting the parameters of the diffusion model: An empirical validation. \emph{Memory & Cognition}. Vol 32(7), 32, 1206-1220.
 
 Voss, A., Nagler, M., & Lerche, V. (2013). Diffusion Models in Experimental Psychology: A Practical Introduction. \emph{Experimental Psychology}, 60(6), 385-402. doi:10.1027/1618-3169/a000218
+
+Wagenmakers, E.-J., van der Maas, H. L. J., & Grasman, R. P. P. P. (2007). An EZ-diffusion model for response time and accuracy. \emph{Psychonomic Bulletin & Review}, 14(1), 3-22.
 
 Wagenmakers, E.-J. (2009). Methodological and empirical developments for the Ratcliff diffusion model of response times and accuracy. \emph{European Journal of Cognitive Psychology}, 21(5), 641-671.
 }

@@ -205,19 +205,34 @@ test_that("s works as expected", {
   set.seed(1)
   x <- rdiffusion(n = 100, a = 1, v = 2, t0 = 0.3, z = 0.5, s = 1)
   set.seed(1)
-  y <- rdiffusion(n = 100, a = 0.1, v = 0.2, t0 = 0.3, z = 0.5, s = 0.1)
+  y <- rdiffusion(n = 100, a = 0.1, v = 0.2, t0 = 0.3, z = 0.05, s = 0.1)
   expect_identical(x, y)
+  set.seed(1)
+  z <- rdiffusion(n = 100, a = 0.1, v = 0.2, t0 = 0.3, s = 0.1)
+  expect_identical(x, z)
   expect_identical(
     ddiffusion(x[x$response == "upper", "rt"], a = 1, v = 2, t0 = 0.3, z = 0.5, s=1), 
-    ddiffusion(x[x$response == "upper", "rt"], a = 0.1, v = 0.2, t0 = 0.3, z = 0.5, s=0.1)
+    ddiffusion(x[x$response == "upper", "rt"], a = 0.1, v = 0.2, t0 = 0.3, z = 0.05, s=0.1)
+    )
+  expect_identical(
+    ddiffusion(x[x$response == "upper", "rt"], a = 1, v = 2, t0 = 0.3, z = 0.5, s=1), 
+    ddiffusion(x[x$response == "upper", "rt"], a = 0.1, v = 0.2, t0 = 0.3, s=0.1)
     )
   expect_identical(
     pdiffusion(sort(x[x$response == "upper", "rt"]), a = 1, v = 2, t0 = 0.3, z = 0.5, s=1),
-    pdiffusion(sort(x[x$response == "upper", "rt"]), a = 0.1, v = 0.2, t0 = 0.3, z = 0.5, s=0.1)
+    pdiffusion(sort(x[x$response == "upper", "rt"]), a = 0.1, v = 0.2, t0 = 0.3, z = 0.05, s=0.1)
+  )
+  expect_identical(
+    pdiffusion(sort(x[x$response == "upper", "rt"]), a = 1, v = 2, t0 = 0.3, z = 0.5, s=1),
+    pdiffusion(sort(x[x$response == "upper", "rt"]), a = 0.1, v = 0.2, t0 = 0.3, s=0.1)
   )
   expect_identical(
     qdiffusion(0.6, a = 1, v = 2, t0 = 0.3, z = 0.5, s=1),
-    qdiffusion(0.6, a = 0.1, v = 0.2, t0 = 0.3, z = 0.5, s=0.1)
+    qdiffusion(0.6, a = 0.1, v = 0.2, t0 = 0.3, z = 0.05, s=0.1)
+  )
+  expect_identical(
+    qdiffusion(0.6, a = 1, v = 2, t0 = 0.3, z = 0.5, s=1),
+    qdiffusion(0.6, a = 0.1, v = 0.2, t0 = 0.3, s=0.1)
   )
 })
 

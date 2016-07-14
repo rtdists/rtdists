@@ -148,20 +148,20 @@ ddiffusion <- function (rt, response = "upper",
   numeric_bounds <- rep(numeric_bounds, length.out = nn)
   # all parameters brought to length of rt
   s <- rep(s, length.out = nn)
-  a <- rep(a, length.out = nn)/s
-  v <- rep(v, length.out = nn)/s
+  a <- rep(a, length.out = nn)
+  v <- rep(v, length.out = nn)
   t0 <- rep(t0, length.out = nn)
   z <- rep(z, length.out = nn)
   z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
   d <- rep(d, length.out = nn)
   sz <- rep(sz, length.out = nn)
   sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
-  sv <- rep(sv, length.out = nn)/s
+  sv <- rep(sv, length.out = nn)
   st0 <- rep(st0, length.out = nn)
   t0 <- recalc_t0 (t0, st0) 
   
-  # bind params to matrix
-  params <- cbind (a, v, t0, d, sz, sv, st0, z, numeric_bounds)
+  # Build parameter matrix (and divide a, v, and sv, by s)
+  params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z, numeric_bounds)
   
   # Check for illegal parameter values
   if(ncol(params)<9) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
@@ -241,20 +241,20 @@ pdiffusion <- function (rt, response = "upper",
   numeric_bounds <- rep(numeric_bounds, length.out = nn)
   # all parameters brought to length of rt
   s <- rep(s, length.out = nn)
-  a <- rep(a, length.out = nn)/s
-  v <- rep(v, length.out = nn)/s
+  a <- rep(a, length.out = nn)
+  v <- rep(v, length.out = nn)
   t0 <- rep(t0, length.out = nn)
   z <- rep(z, length.out = nn)
   z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
   d <- rep(d, length.out = nn)
   sz <- rep(sz, length.out = nn)
   sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
-  sv <- rep(sv, length.out = nn)/s
+  sv <- rep(sv, length.out = nn)
   st0 <- rep(st0, length.out = nn)
   t0 <- recalc_t0 (t0, st0) 
   
-  # bind params to matrix
-  params <- cbind (a, v, t0, d, sz, sv, st0, z, numeric_bounds)
+  # Build parameter matrix (and divide a, v, and sv, by s)
+  params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z, numeric_bounds)
   
   
   # Check for illegal parameter values
@@ -344,9 +344,9 @@ pdiffusion <- function (rt, response = "upper",
 # }
 
 
-inv_cdf_diffusion <- function(x, response, a, v, t0, z, d, sz, sv, st0, precision, maxt, value, abs = TRUE) {
-  if (abs) abs(value - pdiffusion(rt=x, response=response, a=a, v=v, t0=t0, z=z, d=d, sz=sz, sv=sv, st0=st0, precision=precision, maxt=maxt))
-  else (value - pdiffusion(rt=x, response=response, a=a, v=v, t0=t0, z=z, d=d, sz=sz, sv=sv, st0=st0, precision=precision, maxt=maxt))
+inv_cdf_diffusion <- function(x, response, a, v, t0, z, d, sz, sv, st0, s, precision, maxt, value, abs = TRUE) {
+  if (abs) abs(value - pdiffusion(rt=x, response=response, a=a, v=v, t0=t0, z=z, d=d, sz=sz, sv=sv, s=s, st0=st0, precision=precision, maxt=maxt))
+  else (value - pdiffusion(rt=x, response=response, a=a, v=v, t0=t0, z=z, d=d, sz=sz, sv=sv, st0=st0, s=s, precision=precision, maxt=maxt))
 }
 
 #' @rdname Diffusion
@@ -366,28 +366,28 @@ qdiffusion <- function (p, response = "upper",
   
   nn <- length(p)
   response <- rep(unname(response), length.out = nn)
-  s <- rep(s, length.out = nn)
-  a <- rep(unname(a), length.out = nn)/s
-  v <- rep(unname(v), length.out = nn)/s
+  s <- rep(s, length.out = nn) # pass s to other functions for correct handling! No division here.
+  a <- rep(unname(a), length.out = nn)
+  v <- rep(unname(v), length.out = nn)
   t0 <- rep(unname(t0), length.out = nn)
   z <- rep(unname(z), length.out = nn)
   d <- rep(unname(d), length.out = nn)
   sz <- rep(unname(sz), length.out = nn)
-  sv <- rep(unname(sv), length.out = nn)/s
+  sv <- rep(unname(sv), length.out = nn)
   st0 <- rep(unname(st0), length.out = nn)
   p <- unname(p)
   
   out <- vector("numeric", nn)
   for (i in seq_len(nn)) {
-    if (scale_p) max_p <- pdiffusion(scale_max, response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt)
+    if (scale_p) max_p <- pdiffusion(scale_max, response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], s=s[i], precision=precision, maxt=maxt)
     else max_p <- 1
-    tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i]*max_p, tol = .Machine$double.eps^0.5))
+    tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], s=s[i], precision=precision, maxt=maxt, value =p[i]*max_p, tol = .Machine$double.eps^0.5))
     if (tmp$objective > 0.0001) {
-      tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(c(min(interval),max(interval)/2)), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i]*max_p, tol = .Machine$double.eps^0.5))
+      tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(c(min(interval),max(interval)/2)), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], s=s[i], precision=precision, maxt=maxt, value =p[i]*max_p, tol = .Machine$double.eps^0.5))
     }
     if (tmp$objective > 0.0001) {
       try({
-        uni_tmp <- do.call(uniroot, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, maxt=maxt, value =p[i]*max_p, tol = .Machine$double.eps^0.5, abs = FALSE))
+        uni_tmp <- do.call(uniroot, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, s=s[i], maxt=maxt, value =p[i]*max_p, tol = .Machine$double.eps^0.5, abs = FALSE))
       tmp$objective <- uni_tmp$f.root
       tmp$minimum <- uni_tmp$root
       }, silent = TRUE)
@@ -411,19 +411,20 @@ rdiffusion <- function (n,
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
   
   s <- rep(s, length.out = n)
-  a <- rep(a, length.out = n)/s
-  v <- rep(v, length.out = n)/s
+  a <- rep(a, length.out = n)
+  v <- rep(v, length.out = n)
   t0 <- rep(t0, length.out = n)
   z <- rep(z, length.out = n)
   z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
   d <- rep(d, length.out = n)
   sz <- rep(sz, length.out = n)
   sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
-  sv <- rep(sv, length.out = n)/s
+  sv <- rep(sv, length.out = n)
   st0 <- rep(st0, length.out = n)
   t0 <- recalc_t0 (t0, st0) 
-  # Build parameter matrix
-  params <- cbind (a, v, t0, d, sz, sv, st0, z)
+  
+  # Build parameter matrix (and divide a, v, and sv, by s)
+  params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z)
   
   # Check for illegal parameter values
   if(ncol(params)<8) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
