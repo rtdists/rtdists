@@ -1,3 +1,8 @@
+Changes to Version 0.6-6 (bug-fix version, released July 2016)
+
+  o Bug when passing start point with s != 1 removed.
+
+
 Changes to Version 0.6-x (released July 2016)
 
   o Start point z in diffusion model is now on absolute scale and not relative

@@ -245,3 +245,37 @@ test_that("scale_p works as expected", {
                     qdiffusion(qs, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response="u", scale_p = TRUE))
   
 })
+
+test_that("rdiffusion recovers Table 1 from Wagenmakers et al. (2007)", {
+  set.seed(2)
+  n <- 1e4 # number of samples
+  # take parameter valeus from Table 2 and set s to 0.1
+  george <- rdiffusion(n, a = 0.12, v = 0.25, t0 = 0.3, s = 0.1)
+  rich   <- rdiffusion(n, a = 0.12, v = 0.25, t0 = 0.25, s = 0.1)
+  amy    <- rdiffusion(n, a = 0.08, v = 0.25, t0 = 0.3, s = 0.1)
+  mark   <- rdiffusion(n, a = 0.08, v = 0.25, t0 = 0.25, s = 0.1)
+  
+  george$id <- "george"
+  rich$id <- "rich"
+  amy$id <- "amy"
+  mark$id <- "mark"
+  
+  wag <- rbind(george, rich, amy, mark)
+  wag$id <- factor(wag$id, levels = c("george", "rich", "amy", "mark"))
+  
+  expect_equal(aggregate(rt ~ id, wag, mean)$rt, c(0.517, 0.467, 0.422, 0.372), tolerance = 0.003)
+  
+  expect_equal(aggregate(as.numeric(response)-1 ~ id, wag, mean)[,2], c(0.953, 0.953, 0.881, 0.881), tolerance = 0.01)
+  
+  expect_equal(aggregate(rt ~ id, wag, var)$rt, c(0.024, 0.024, 0.009, 0.009), tolerance = 0.003)
+})
+
+
+test_that("pdiffusion recovers proportions of Table 1 from Wagenmakers et al. (2007)", {
+  
+  props <- pdiffusion(rep(Inf, 4), a = rep(c(0.12, 0.08), each = 2), v = 0.25, t0 = c(0.3, 0.25), s = 0.1)
+  expect_equal(props, c(0.953, 0.953, 0.881, 0.881), tolerance = 0.001)
+  
+  props <- pdiffusion(rep(Inf, 4), a = rep(c(0.12, 0.08), each = 2), v = 0.25, t0 = c(0.3, 0.25), z = rep(c(0.06, 0.04), each = 2), s = 0.1)
+  expect_equal(props, c(0.953, 0.953, 0.881, 0.881), tolerance = 0.001)
+})
