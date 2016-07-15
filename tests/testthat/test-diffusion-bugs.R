@@ -37,3 +37,15 @@ test_that("numerical integration does not fail in certain cases", {
                0.5345517, tolerance = 0.0001)
 
 })
+
+
+test_that("pdiffusion does not add to 1 for both responses", {
+  
+  expect_equal(sum(pdiffusion(rep(Inf, 2), a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response=c("l", "u"))), 1, tolerance = 0.001)
+  
+  expect_equal(sum(pdiffusion(rep(Inf, 2), a=1, v=2, z = 0.4, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, response=c("l", "u"))), 1, tolerance = 0.001)
+  
+  testthat::skip("currently pdiffusion does not add up to 1 fo rthe following tests.")
+  expect_equal(sum(pdiffusion(rep(Inf, 2), response=c("l", "u"), a=0.08, v = 0.369, t0 = 0.3, sz = 0.07, sv = 0.12, st0 = 0, s=0.1, precision = 2)), 1, tolerance = 0.001)
+  expect_equal(sum(pdiffusion(rep(Inf, 2), response=c("l", "u"), a=0.08, v = 0.369, t0 = 0.3, sz = 0.07, sv = 0.12, st0 = 0, s=0.1, precision = 3)), 1, tolerance = 0.001)
+})
