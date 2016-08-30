@@ -69,7 +69,7 @@ integrate(struct function *F, double a, double b, double step_width)
 {
 	double width = b-a;
 	int N = imax(4, (int) (width / step_width));
-	double step = width / N;
+	double step = fmax(width / N, EPSILON);
 	double x;
 	double result = 0;
 
