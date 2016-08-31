@@ -2,6 +2,10 @@ Changes to Version 0.7-x (released XXX 2016)
 
   o sv can produce slow errors, and sz fast erros (this was the wrong way around
     in the documentation). Thanks to Gabriel Tillman for noticing that.
+    
+  o removed a bug in the pdifusion C code letting rtdists hang indefinitely
+    (see https://github.com/rtdists/rtdists/pull/3). Thanks to Tomas Kalibera 
+    for the fix.
 
 
 Changes to Version 0.6-6 (bug-fix version, released July 2016)

@@ -37,11 +37,11 @@ rdiffusion(n, a, v, t0, z = 0.5 * a, d = 0, sz = 0, sv = 0, st0 = 0,
 
 \item{d}{differences in speed of response execution (in seconds). Positive values indicate that response execution is faster for responses linked to the upper threshold than for responses linked to the lower threshold. Typical range: -0.1 < \code{d} < 0.1. Default is 0.}
 
-\item{sz}{inter-trial-variability of starting point. Range of a uniform distribution with mean \code{z} describing the distribution of actual starting points from specific trials. Minimal impact on the RT distributions, values different from 0 can predict slow errors. Can be fixed to 0 in most applications. Typical range: 0 < \code{sz} < 0.5. Default is 0.}
+\item{sz}{inter-trial-variability of starting point. Range of a uniform distribution with mean \code{z} describing the distribution of actual starting points from specific trials. Values different from 0 can predict fast errors (but can slow computation considerably). Typical range: 0 < \code{sz} < 0.5. Default is 0.}
 
-\item{sv}{inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials. Minimal impact on the RT distributions, values different from 0 can predict fast errors. Can be fixed to 0 in most applications. Typical range: 0 < \code{sv} < 2. Default is 0.}
+\item{sv}{inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials. Values different from 0 can predict slow errors. Typical range: 0 < \code{sv} < 2. Default is 0.}
 
-\item{st0}{inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0 + st0/2} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Can be fixed to 0 in most applications. Typical range: 0 < \code{st0} < 0.2. Default is 0.}
+\item{st0}{inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0 + st0/2} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Values different from 0 can slow computation considerably. Typical range: 0 < \code{st0} < 0.2. Default is 0.}
 
 \item{s}{diffusion constant; standard deviation of the random noise of the diffusion process (i.e., within-trial variability), scales \code{a}, \code{v}, and \code{sv}. Needs to be fixed to a constant in most applications. Default is 1. Note that the default used by Ratcliff and in other applications is often 0.1.}
 
@@ -70,30 +70,30 @@ The distribution parameters (as well as \code{response}) are recycled to the len
 Density, distribution function, quantile function, and random generation for the Ratcliff diffusion model with following parameters: \code{a} (threshold separation), \code{z} (starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), \code{sz} (inter-trial-variability of relative starting point), and \code{s} (diffusion constant). \strong{Note that the parameterization or defaults of non-decision time variability \code{st0} and diffusion constant \code{s} differ from what is often found in the literature and that the parameterization of \code{z} and \code{sz} have changed compared to previous versions (now absolute and not relative).}
 }
 \details{
-The Ratcliff diffusion model (Ratcliff, 1978) is a mathematical model for two-choice discrimination tasks. It is based on the assumption that information is accumulated continuously until one of two decision thresholds is hit. For more information, see Voss, Rothermund, and Voss (2004), Voss, Nagler, and Lerche (2013), or Wagenmakers (2009).
+The Ratcliff diffusion model (Ratcliff, 1978) is a mathematical model for two-choice discrimination tasks. It is based on the assumption that information is accumulated continuously until one of two decision thresholds is hit. For introductions see Ratcliff and McKoon (2008), Voss, Rothermund, and Voss (2004), Voss, Nagler, and Lerche (2013), or Wagenmakers (2009).
 
-All functions are fully vectorized across all parameters as well as the response. This allows for trialwise parameters for each parameter. 
+All functions are fully vectorized across all parameters as well as the response. This allows for trialwise parameters for each model parameter. 
 
-For convenience, all functions (with the exception of \code{rdiffusion}) allow that the first argument is a \code{data.frame} containing the information of the first and second argument in two columns (i.e., \code{rt}/\code{p} and \code{response}). Other columns will be ignored. This allows, for example, to pass the \code{data.frame} generated by \code{rdiffusion} directly to \code{pdiffusion}. See examples.
+For convenience, all functions (with the exception of \code{rdiffusion}) allow that the first argument is a \code{data.frame} containing the information of the first and second argument in two columns (i.e., \code{rt}/\code{p} and \code{response}). Other columns (as well as passing \code{response} separately argument) will be ignored. This allows, for example, to pass the \code{data.frame} generated by \code{rdiffusion} directly to \code{pdiffusion}. See examples.
 
 \subsection{Distribution Function (CDF)}{
-For the time being, the cumulative probability function (\code{pdiffusion}) uses numerical integration of \code{ddiffusion} via \code{\link{integral}} from package \pkg{pracma}. While this is somewhat slow, it reliably produces correct results. Please report all issues with the CDF to the package maintainer.
+For the time being, the cumulative probability function (\code{pdiffusion}) uses numerical integration of \code{ddiffusion} via \code{\link{integral}} from package \pkg{pracma}. While this is somewhat slow, it reliably produces correct results (in most cases). Please report all issues with the CDF to the package maintainer.
 }
 
 \subsection{Quantile Function}{
 Due to the bivariate nature of the diffusion model, the diffusion processes reaching each response boundary only return the defective CDF that does not reach 1. Only the sum of the CDF for both boundaries reaches 1. Therefore, \code{qdiffusion} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at \code{Inf}. 
 
-As a conveniece for the user, if \code{scale_p = TRUE} in the call to \code{qdiffusion} the desired probabilities are automatically scaled by the maximal probability for the corresponding response. Note that this can be slow as the maximal probability is calculated separately for each desired probability. See examples.
+As a convenience for the user, if \code{scale_p = TRUE} in the call to \code{qdiffusion} the desired probabilities are automatically scaled by the maximal probability for the corresponding response. Note that this can be slow as the maximal probability is calculated separately for each desired probability. See examples.
 
 Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probability and the value returned from \code{pdiffusion} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
 }
 }
 \note{
-The parameterization of the non-decisional components, \code{t0} and \code{st0}, differs from the parameterization used by, for example, Andreas Voss or Roger Ratcliff in that \code{t0} is \emph{not} the lower bound of the uniform distribution of length \code{st0}, but its midpoint.
+The parameterization of the non-decisional components, \code{t0} and \code{st0}, differs from the parameterization used by, for example, Andreas Voss or Roger Ratcliff in that \code{t0} is \emph{not} the lower bound of the uniform distribution of length \code{st0}, but its midpoint. The parameterization employed here is in line with the parametrization for the \link{LBA} code.
 
 The default diffusion constant \code{s} is 1 and not 0.1 as in most applications of Roger Ratcliff and others.
 
-We have changed the parameterization of the start point \code{z} which is now the absolute start point (it was the relative start point in previous versions of \pkg{rtdists}). 
+We have changed the parameterization of the start point \code{z} which is now the absolute start point in line with most published literature (it was the relative start point in previous versions of \pkg{rtdists}). 
 
 RTs need to be sorted (in increasing order) for \code{pdiffusion}.
 }
@@ -240,6 +240,8 @@ Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Mat
 }
 \references{
 Ratcliff, R. (1978). A theory of memory retrieval. \emph{Psychological Review}, 85(2), 59-108.
+
+Ratcliff, R., & McKoon, G. (2008). The diffusion decision model: Theory and data for two-choice decision tasks. \emph{Neural Computation}, 20(4), 873-922.
 
 Voss, A., Rothermund, K., & Voss, J. (2004). Interpreting the parameters of the diffusion model: An empirical validation. \emph{Memory & Cognition}. Vol 32(7), 32, 1206-1220.
 
