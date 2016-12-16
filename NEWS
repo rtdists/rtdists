@@ -6,6 +6,8 @@ Changes to Version 0.7-x (released XXX 2016)
   o removed a bug in the pdifusion C code letting rtdists hang indefinitely
     (see https://github.com/rtdists/rtdists/pull/3). Thanks to Tomas Kalibera 
     for the fix.
+    
+  o removed bug: meanlog_v and sdlog_v were not recycled for the lnorm LBA.
 
 
 Changes to Version 0.6-6 (bug-fix version, released July 2016)

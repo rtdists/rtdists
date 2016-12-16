@@ -460,8 +460,8 @@ dlba_lnorm <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
   A <- rep(A, length.out = nn)
   b <- rep(b, length.out = nn)
   t0 <- rep(t0, length.out = nn)
-  mean_v <- rep(meanlog_v, length.out = nn)
-  sd_v <- rep(sdlog_v, length.out = nn)
+  meanlog_v <- rep(meanlog_v, length.out = nn)
+  sdlog_v <- rep(sdlog_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
   
   dlba_lnorm_core(rt=rt,A=A,b=b,t0=t0,meanlog_v=meanlog_v, sdlog_v=sdlog_v, robust = robust, nn=nn)
