@@ -47,7 +47,7 @@
 #' Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probability and the value returned from \code{pdiffusion} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
 #' }
 #' 
-#' @note The parameterization of the non-decisional components, \code{t0} and \code{st0}, differs from the parameterization used by, for example, Andreas Voss or Roger Ratcliff in that \code{t0} is \emph{not} the lower bound of the uniform distribution of length \code{st0}, but its midpoint. The parameterization employed here is in line with the parametrization for the \link{LBA} code.
+#' @note The parameterization of the non-decisional components, \code{t0} and \code{st0}, differs from the parameterization used by, for example, Andreas Voss or Roger Ratcliff. In the present case \code{t0} is the lower bound of the uniform distribution of length \code{st0}, but \emph{not} its midpoint. The parameterization employed here is in line with the parametrization for the \link{LBA} code (where \code{t0} is also the lower bound).
 #' 
 #' The default diffusion constant \code{s} is 1 and not 0.1 as in most applications of Roger Ratcliff and others.
 #' 
