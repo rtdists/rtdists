@@ -1,0 +1,22 @@
+This software (the RCppFastDM portion of the rtdists package) is, to a very
+substantial degree, a derivative work of the fast-dm 30.2 software by:
+
+Jochen Voss <voss@seehuhn.de>
+Andreas Voss <andreas.voss@psychologie.uni-heidelberg.de>
+
+Which is available from:
+
+http://www.psychologie.uni-heidelberg.de/ae/meth/fast-dm/
+
+And is described in the following papers:
+
+Voss, A., Voss, J., 2008. A fast numerical algorithm for the estimation
+  of diffusion-model parameters. Journal of Mathematiocal Psychology.
+
+Voss, A., Voss, J., 2007. Fast-dm: A free program for efficient diffusion model
+  analysis.  Behavioral Research Methods, 39, 767-775.
+
+RCppFastDM, by Matthew Gretton <matthew.gretton@utas.edu.au>, modifies and
+encapsulates the core PDF, CDF and random sampling implementations of fast-dm
+into an RCpp library capable of being compiled via a C++ compiler and invoked
+via the R programming language.

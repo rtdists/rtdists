@@ -70,7 +70,7 @@
 #' 
 #' @author Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, Scott Brown, and Henrik Singmann. \code{qdiffusion} by Henrik Singmann.
 #'
-#' @useDynLib rtdists, dfastdm_b, pfastdm_b, rfastdm
+#' @useDynLib rtdists
 #'
 #' @name Diffusion
 #' @importFrom utils head
@@ -80,39 +80,6 @@
 #' 
 #' @example examples/examples.diffusion.R
 #' 
-NULL
-
-#pl <- get_rd_parameters(a = a, z = z, v = v, t0 = t0, d = d, sz = sz, sv = sv, st0 = st0, pl = parameters)
-# get_rd_parameters <- function(a, z, v, t0, d, sz, sv, st0, pl) {
-#   miss_p_indiv <- c(missing(a), missing(v), missing(t0), missing(z), missing(d), missing(sz), missing(sv), missing(st0))
-#   miss_pl <- missing(pl)
-#   if(all(miss_p_indiv) & miss_pl) stop("No parameter values specified.")
-#   if(any(!miss_p_indiv) & !miss_pl) stop("Parameter values need to be specified either via individual arguments or via 'pl', but not both.")
-#   if((sum(miss_p_indiv) > 0) & miss_pl) stop("Not all parameter values specified via individual arguments.")
-#   if(miss_pl) {
-#     rd_parameters <- c(a,v,t0,d,sz,sv,st0,z)
-#     if(length(rd_parameters)!=8) stop("Each parameter needs to be of length 1.")
-#     if(!is.numeric(rd_parameters)) stop("Parameters need to be numeric.")
-#     if (any(is.na(rd_parameters)) || !all(is.finite(rd_parameters))) stop("Parameters need to be numeric and finite.")
-#     return(rd_parameters)
-#   } else {
-#     if (!is.numeric(pl) | !is.vector(pl)) stop("pl needs to be a numeric vector.")
-#     if(length(pl)!=8) stop("Length of pl is incorrect (must be 8).")
-#     if (any(is.na(pl)) || !all(is.finite(pl))) stop("Parameters need to be numeric and finite.")
-#     if (!is.null(names(pl))) {
-#       if(!all(sapply(c("a","v","t0","d","sz","sv","st0","z"), function(x) x %in% names(pl)))) stop("names(pl) not complete. Need to be: c(\"a\",\"v\",\"t0\",\"z\",\"d\",\"sz\",\"sv\",\"st0\")")
-#       pl <- pl[c("a","v","t0","d","sz","sv","st0","z")]
-#     } else {
-#       names(pl) <- c("a","z","v","t0","d","sz","sv","st0")
-#       pl <- pl[c("a","v","t0","d","sz","sv","st0","z")]
-#     }
-#     return(pl)
-#   }
-# }
-#
-
-
-
 
 
 # [MG 20150616]
@@ -125,7 +92,7 @@ recalc_t0 <- function (t0, st0) { t0 <- t0 + st0/2 }
 #' @export
 ddiffusion <- function (rt, response = "upper", 
                  a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
-                 precision = 3)
+                 precision = 3, stop_on_error = TRUE)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
   
@@ -174,48 +141,18 @@ ddiffusion <- function (rt, response = "upper",
   densities <- vector("numeric",length=length(rt))  
   for (i in seq_len(nrow(uniques))) {
     ok_rows <- apply(params, 1, identical, y = uniques[i,])
-    
-    # Select the correct RT indices and parameters for this batch of 'ok' parameter rows
-    
-    # Call the C code
-    output <- .C("dfastdm_b", 
-                 as.integer (sum(ok_rows)),                       # 1  IN:  number of densities
-                 as.vector  (uniques[i,1:8]),                     # 2  IN:  parameters
-                 as.vector  (rt[ok_rows]),                         # 3  IN:  RTs
-                 as.double  (precision),                          # 4  IN:  precision
-                 as.integer (uniques[i,9]),                       # 5  IN:  boundary
-                 as.vector  (densities[ok_rows], mode="numeric")  # 6 OUT:  densities
-    )
-    densities[ok_rows] <- output[[6]]
+
+    densities[ok_rows] <- d_fastdm (rt[ok_rows], uniques[i,1:8], precision, uniques[i,9], stop_on_error)
   }
   abs(densities)
 }
 
-.ddiffusion <- function (rt, response, params, precision)
-{
-  
-  nn <- length(rt)
-  # bind params to matrix
-  #params <- c(a, v, t0, d, sz, sv, st0, z, numeric_bounds)
-  
-  densities <- vector("numeric", nn)
-  densities <- .C("dfastdm_b", 
-                  as.integer (nn),                       # 1  IN:  number of densities
-                  as.vector  (params[1:8]),                     # 2  IN:  parameters
-                  as.vector  (rt),                         # 3  IN:  RTs
-                  as.double  (precision),                          # 4  IN:  precision
-                  as.integer (params[9]),                       # 5  IN:  boundary
-                  as.vector  (densities, mode="numeric")  # 6 OUT:  densities
-  )[[6]]
-  
-  abs(densities)
-}
 
-#' @rdname Diffusion
-#' @export
-pdiffusion <- function (rt, response = "upper", 
-                 a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
-                 precision = 3, maxt = 1e4) #subdivisions = 100L, stop.on.error = TRUE) 
+## @param stop.on.error logical. If true (the default) an error stops the \code{integration} of \code{pdiffusion}. If false some errors will give a result with a warning in the message component.
+
+pdiffusion <- function (rt, response = "upper",
+                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
+                 precision = 3, maxt = 1e4, stop_on_error = TRUE, use_precise = TRUE)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
   # for convenience accept data.frame as first argument.
@@ -234,7 +171,7 @@ pdiffusion <- function (rt, response = "upper",
   if (is.character(response)) {
     response <- match.arg(response, choices=c("upper", "lower"),several.ok = TRUE)
     numeric_bounds <- ifelse(response == "upper", 2L, 1L)
-    }
+  }
   else {
     response <- as.numeric(response)
     if(any(!(response %in% 1:2))) stop("response needs to be either 'upper', 'lower', or as.numeric(response) %in% 1:2!")
@@ -258,97 +195,34 @@ pdiffusion <- function (rt, response = "upper",
   # Build parameter matrix (and divide a, v, and sv, by s)
   params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z, numeric_bounds)
   
-  
   # Check for illegal parameter values
   if(ncol(params)<9) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
   if(!is.numeric(params)) stop("Parameters need to be numeric.")
   if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
   
-  pvalues <- vector("numeric", length=length(rt))    
+  pvalues <- vector("numeric", length=length(rt))
   uniques <- unique(params)
-  for (i in seq_len(nrow(uniques))) {
-    ok_rows <- apply(params, 1, identical, y = uniques[i,])
-    for (j in seq_along(rt[ok_rows])) {
-      out <- integral(fun = .ddiffusion, 
-                       xmin=if(j==1) 0 else rt[ok_rows][j-1],
-                       xmax=rt[ok_rows][j],
-                       params=uniques[i,],
-                       precision=precision)
-      #browser()
-      #if (out$message != "OK") warning(out$message, call. = FALSE)
-      pvalues[ok_rows][j] <- out
+  
+  if (use_precise) {
+    for (i in seq_len(nrow(uniques))) {
+      ok_rows <- apply(params, 1, identical, y = uniques[i,])
+      
+      pvalues[ok_rows] <- p_precise_fastdm (rt[ok_rows], uniques[i,1:8], precision, uniques[i,9], stop_on_error)
     }
-    pvalues[ok_rows] <- cumsum(pvalues[ok_rows])
+  } else {
+    for (i in seq_len(nrow(uniques))) {
+      ok_rows <- apply(params, 1, identical, y = uniques[i,])
+      
+      pvalues[ok_rows] <- p_fastdm (rt[ok_rows], uniques[i,1:8], precision, uniques[i,9], stop_on_error)
+    }
   }
   pvalues
 }
-## @param subdivisions the maximum number of subintervals in the \code{integration} of \code{pdiffusion}.
-## @param stop.on.error logical. If true (the default) an error stops the \code{integration} of \code{pdiffusion}. If false some errors will give a result with a warning in the message component.
-
-# pdiffusion <- function (rt, response = "upper", 
-#                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, 
-#                  precision = 3, maxt = 1e4) 
-# {
-#   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
-# 
-#   rt[rt>maxt] <- maxt
-#   if(!all(rt == sort(rt)))  stop("rt needs to be sorted")
-# 
-#   # Convert boundaries to numeric
-#   nn <- length(rt)
-#   # Build parameter matrix  
-#   # Convert boundaries to numeric
-#   if (is.character(response)) {
-#     response <- match.arg(response, choices=c("upper", "lower"),several.ok = TRUE)
-#     numeric_bounds <- ifelse(response == "upper", 2L, 1L)
-#     }
-#   else {
-#     response <- as.numeric(response)
-#     if(any(!(response %in% 1:2))) stop("response needs to be either 'upper', 'lower', or as.numeric(response) %in% 1:2!")
-#     numeric_bounds <- as.integer(response)
-#   }
-#   numeric_bounds <- rep(numeric_bounds, length.out = nn)
-#   # all parameters brought to length of rt
-#   a <- rep(a, length.out = nn)
-#   v <- rep(v, length.out = nn)
-#   t0 <- rep(t0, length.out = nn)
-#   z <- rep(z, length.out = nn)
-#   d <- rep(d, length.out = nn)
-#   sz <- rep(sz, length.out = nn)
-#   sv <- rep(sv, length.out = nn)
-#   st0 <- rep(st0, length.out = nn)
-#   t0 <- recalc_t0 (t0, st0) 
-#   
-#   # bind params to matrix
-#   params <- cbind (a, v, t0, d, sz, sv, st0, z, numeric_bounds)
-#   
-#   
-#   # Check for illegal parameter values
-#   if(ncol(params)<9) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
-#   if(!is.numeric(params)) stop("Parameters need to be numeric.")
-#   if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
-#   
-#   pvalues <- vector("numeric", length=length(rt))    
-#   uniques <- unique(params)
-#   for (i in seq_len(nrow(uniques))) {
-#     ok_rows <- apply(params, 1, identical, y = uniques[i,])
-#     output <- .C("pfastdm_b", 
-#                  as.integer (sum(ok_rows)),                          # 1  IN:  number of densities
-#                  as.vector  (uniques[i,1:8]),                        # 2  IN:  parameters
-#                  as.vector  (rt[ok_rows]),                            # 3  IN:  RTs
-#                  as.double  (precision),                             # 4  IN:  precision
-#                  as.integer (uniques[i,9]),                          # 5  IN:  boundary
-#                  as.vector  (pvalues[ok_rows], mode="numeric")       # 6 OUT:  densities
-#     )
-#     pvalues[ok_rows] <- output[[6]]
-#   }
-#   pvalues
-# }
 
 
-inv_cdf_diffusion <- function(x, response, a, v, t0, z, d, sz, sv, st0, s, precision, maxt, value, abs = TRUE) {
-  if (abs) abs(value - pdiffusion(rt=x, response=response, a=a, v=v, t0=t0, z=z, d=d, sz=sz, sv=sv, s=s, st0=st0, precision=precision, maxt=maxt))
-  else (value - pdiffusion(rt=x, response=response, a=a, v=v, t0=t0, z=z, d=d, sz=sz, sv=sv, st0=st0, s=s, precision=precision, maxt=maxt))
+inv_cdf_diffusion <- function(x, response, a, v, t0, z, d, sz, sv, st0, s, precision, maxt, value, abs = TRUE, stop_on_error = TRUE) {
+  if (abs) abs(value - pdiffusion(rt=x, response=response, a=a, v=v, t0=t0, z=z, d=d, sz=sz, sv=sv, s=s, st0=st0, precision=precision, maxt=maxt, stop_on_error))
+  else (value - pdiffusion(rt=x, response=response, a=a, v=v, t0=t0, z=z, d=d, sz=sz, sv=sv, st0=st0, s=s, precision=precision, maxt=maxt, stop_on_error))
 }
 
 #' @rdname Diffusion
@@ -356,7 +230,7 @@ inv_cdf_diffusion <- function(x, response, a, v, t0, z, d, sz, sv, st0, s, preci
 qdiffusion <- function (p, response = "upper", 
                  a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3, maxt = 1e4, interval = c(0, 10),
-                 scale_p = FALSE, scale_max = Inf)
+                 scale_p = FALSE, scale_max = Inf, stop_on_error = TRUE)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and t0 must be supplied")
 
@@ -381,15 +255,15 @@ qdiffusion <- function (p, response = "upper",
   
   out <- vector("numeric", nn)
   for (i in seq_len(nn)) {
-    if (scale_p) max_p <- pdiffusion(scale_max, response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], s=s[i], precision=precision, maxt=maxt)
+    if (scale_p) max_p <- pdiffusion(scale_max, response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], s=s[i], precision=precision, maxt=maxt, stop_on_error=stop_on_error)
     else max_p <- 1
-    tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], s=s[i], precision=precision, maxt=maxt, value =p[i]*max_p, tol = .Machine$double.eps^0.5))
+    tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], s=s[i], precision=precision, maxt=maxt, stop_on_error=stop_on_error, value =p[i]*max_p, tol = .Machine$double.eps^0.5))
     if (tmp$objective > 0.0001) {
-      tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(c(min(interval),max(interval)/2)), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], s=s[i], precision=precision, maxt=maxt, value =p[i]*max_p, tol = .Machine$double.eps^0.5))
+      tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(c(min(interval),max(interval)/2)), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], s=s[i], precision=precision, maxt=maxt, stop_on_error=stop_on_error, value =p[i]*max_p, tol = .Machine$double.eps^0.5))
     }
     if (tmp$objective > 0.0001) {
       try({
-        uni_tmp <- do.call(uniroot, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, s=s[i], maxt=maxt, value =p[i]*max_p, tol = .Machine$double.eps^0.5, abs = FALSE))
+        uni_tmp <- do.call(uniroot, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, s=s[i], maxt=maxt, stop_on_error=stop_on_error, value =p[i]*max_p, tol = .Machine$double.eps^0.5, abs = FALSE))
       tmp$objective <- uni_tmp$f.root
       tmp$minimum <- uni_tmp$root
       }, silent = TRUE)
@@ -408,7 +282,7 @@ qdiffusion <- function (p, response = "upper",
 #' @export
 rdiffusion <- function (n, 
                  a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
-                 precision = 3)
+                 precision = 3, stop_on_error = TRUE)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
   
@@ -443,17 +317,10 @@ rdiffusion <- function (n,
       # Calculate n for this row
       current_n <- sum(ok_rows)
       
-      # Call the C code
-      output <- .C("rfastdm", 
-                   as.integer (current_n),                 # 1  IN:  number of densities
-                   as.vector  (uniques[i,1:8]),                        # 2  IN:  parameters
-                   as.double  (precision),                 # 3  IN:  precision
-                   as.vector  (randRTs[ok_rows], mode="numeric"),   # 4 OUT:  RTs 
-                   as.vector  (randBounds[ok_rows], mode="numeric") # 5 OUT:  bounds 
-      )
-
-      randRTs[ok_rows]    <- unlist(output[4])
-      randBounds[ok_rows] <- unlist(output[5])
+      out <- r_fastdm (current_n, uniques[i,1:8], precision, stop_on_error=stop_on_error)
+      
+      randRTs[ok_rows]    <- out$rt       
+      randBounds[ok_rows] <- out$boundary 
   }
   response <- factor(randBounds, levels = 0:1, labels = c("lower", "upper"))
   data.frame(rt = randRTs, response)

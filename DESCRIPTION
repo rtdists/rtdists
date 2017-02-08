@@ -20,7 +20,9 @@ Imports:
     gsl,
     pracma,
     stats,
-    utils
+    utils,
+    Rcpp (>= 0.12.9)
+LinkingTo: Rcpp
 Description: Provides response time distributions (density/PDF, distribution
     function/CDF, quantile function, and random generation): (a) Ratcliff diffusion
     model based on C code by Andreas and Jochen Voss and (b) linear ballistic
