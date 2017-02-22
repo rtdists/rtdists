@@ -70,7 +70,7 @@ static F_calculator *F_sz_new (Parameters *params)
     base_fc = F_plain_new (params);
     
     sz = params->szr*params->a;
-    if (sz == 0)  return base_fc;
+    if (sz < params->TUNE_SZ_EPSILON)  return base_fc;
     
     N = base_fc->N;
     dz = F_get_z (base_fc, 1) - F_get_z (base_fc, 0);

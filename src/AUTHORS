@@ -16,7 +16,7 @@ Voss, A., Voss, J., 2008. A fast numerical algorithm for the estimation
 Voss, A., Voss, J., 2007. Fast-dm: A free program for efficient diffusion model
   analysis.  Behavioral Research Methods, 39, 767-775.
 
-RCppFastDM, by Matthew Gretton <matthew.gretton@utas.edu.au>, modifies and
-encapsulates the core PDF, CDF and random sampling implementations of fast-dm
-into an RCpp library capable of being compiled via a C++ compiler and invoked
-via the R programming language.
+RCppFastDM, by Matthew Gretton <matthew.gretton@utas.edu.au>, encapsulates the 
+core PDF, CDF and random sampling implementations of fast-dm with minor 
+modifications to produce an RCpp library capable of being compiled via a C++
+compiler and invoked via the R programming language.

@@ -69,7 +69,7 @@ static F_calculator *F_sv_new (Parameters *params)
     
     double sv = params->sv; // convenience only: cache sv locally 
 
-    if (sv == 0)  return  F_sz_new (params);  // No need to integrate
+    if (sv < params->TUNE_SV_EPSILON)  return  F_sz_new (params);  // No need to integrate
     
     nv = (int)(sv/params->TUNE_DV + 0.5);
     if (nv < 3)  nv = 3;

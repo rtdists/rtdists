@@ -52,13 +52,16 @@ public:
     double  TUNE_DV;
     double  TUNE_DT0;
   
-    double  TUNE_PDE_DT_MIN;   // If std=c++11 we can default to = 1e-6;
+    double  TUNE_PDE_DT_MIN;   // If std=c++11 we can use C++ defaults to set as = 1e-6;
     double  TUNE_PDE_DT_MAX;   // ... we can default to = 1e-6;
     double  TUNE_PDE_DT_SCALE; // ... we can default to = 0.0;
   
     double  TUNE_INT_T0;
     double  TUNE_INT_Z;
-  
+    
+    double  TUNE_SV_EPSILON; // CONVERSION NOTE: See below in SetPrecision()
+    double  TUNE_SZ_EPSILON; // CONVERSION NOTE: See below in SetPrecision()
+    
 public:
   // Construct the object from the passed in params
     Parameters (NumericVector params, double precision) 
@@ -75,16 +78,16 @@ public:
         SetPrecision (precision);
     }
   
-    bool ValidateParams ()
+    bool ValidateParams (bool print)
     {
         bool valid = true;
-        if (a <= 0)                         { valid = false; Rcpp::Rcout << "error: invalid parameter a = " << a << std::endl;  }
-        if (szr < 0 || szr > 1)             { valid = false; Rcpp::Rcout << "error: invalid parameter szr = " << szr << std::endl; }
-        if (st0 < 0)                        { valid = false; Rcpp::Rcout << "error: invalid parameter st0 = " << st0 << std::endl; }
-        if (sv < 0)                         { valid = false; Rcpp::Rcout << "error: invalid parameter sv = " << sv << std::endl; }
-        if (t0 - fabs(0.5*d) - 0.5*st0 < 0) { valid = false; Rcpp::Rcout << "error: invalid parameter combination t0 = " << t0 << ", d = " << d << ", st0 =" << st0 << std::endl; }
-        if (zr - 0.5*szr <= 0)              { valid = false; Rcpp::Rcout << "error: invalid parameter combination zr = " << zr << ", szr = " << szr << std::endl;}
-        if (zr + 0.5*szr >= 1)              { valid = false; Rcpp::Rcout << "error: invalid parameter combination zr = " << zr << ", szr = " << szr << std::endl;}
+        if (a <= 0)                         { valid = false; if (print) Rcpp::Rcout << "error: invalid parameter a = " << a << std::endl;  }
+        if (szr < 0 || szr > 1)             { valid = false; if (print) Rcpp::Rcout << "error: invalid parameter szr = " << szr << std::endl; }
+        if (st0 < 0)                        { valid = false; if (print) Rcpp::Rcout << "error: invalid parameter st0 = " << st0 << std::endl; }
+        if (sv < 0)                         { valid = false; if (print) Rcpp::Rcout << "error: invalid parameter sv = " << sv << std::endl; }
+        if (t0 - fabs(0.5*d) - 0.5*st0 < 0) { valid = false; if (print) Rcpp::Rcout << "error: invalid parameter combination t0 = " << t0 << ", d = " << d << ", st0 =" << st0 << std::endl; }
+        if (zr - 0.5*szr <= 0)              { valid = false; if (print) Rcpp::Rcout << "error: invalid parameter combination zr = " << zr << ", szr = " << szr << std::endl;}
+        if (zr + 0.5*szr >= 1)              { valid = false; if (print) Rcpp::Rcout << "error: invalid parameter combination zr = " << zr << ", szr = " << szr << std::endl;}
     
         return valid;
     }
@@ -102,6 +105,12 @@ private:
     
         TUNE_INT_T0 = 0.089045 * exp(-1.037580*p);
         TUNE_INT_Z  = 0.508061 * exp(-1.022373*p);
+        
+        // CONVERSION NOTE: 
+        //     These have been added to optimise code paths by treating very small variances as 0
+        //     e.g. with precision = 3, sv or sz values < 10^-5 are considered 0
+        TUNE_SV_EPSILON = pow (10, -(p+2.0));
+        TUNE_SZ_EPSILON = pow (10, -(p+2.0));
     }
 };
 

@@ -39,7 +39,7 @@ NumericVector d_fastdm (NumericVector rts, NumericVector params, double precisio
 
     NumericVector out(length, 0.0);  // Should default to 0s when creating NumericVector, but just in case..
     
-    if (!g_Params->ValidateParams()) 
+    if (!g_Params->ValidateParams(!stop_on_error)) 
     {
         if (stop_on_error) { Rcpp::stop("Error validating parameters.\n"); }
                       else { return out; }
@@ -65,7 +65,7 @@ NumericVector p_fastdm (NumericVector rts, NumericVector params, double precisio
     
     NumericVector out(length, 0.0);
     
-    if (!g_Params->ValidateParams()) 
+    if (!g_Params->ValidateParams(!stop_on_error)) 
     {
         if (stop_on_error) { Rcpp::stop("Error validating parameters.\n"); }
         else return out;
@@ -94,7 +94,7 @@ NumericVector p_precise_fastdm (NumericVector rts, NumericVector params, double 
     
     NumericVector out(length, 0.0);
     
-    if (!g_Params->ValidateParams()) 
+    if (!g_Params->ValidateParams(!stop_on_error)) 
     {
         if (stop_on_error) { Rcpp::stop("Error validating parameters.\n"); }
                       else return out;
@@ -119,7 +119,7 @@ List r_fastdm (int num_values, NumericVector params, double precision=3, bool st
     
     g_Params = new Parameters (params, precision);
     
-    if (!g_Params->ValidateParams()) 
+    if (!g_Params->ValidateParams(!stop_on_error)) 
     {
       if (stop_on_error)
       {
