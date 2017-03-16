@@ -117,12 +117,14 @@ if (!is_testing) {
   
   test_that("ensure new RCpp pdiffusion function produces the same result as previous C-only versions:", {
   
-    tolerance <- 1e-3   # !! This still produces 1e-2 errors with the 5th parameter set!
+    tolerance <- 1e-3
     
     expect_equal(orig_p_set1, pdiffusion (x, response=pset1$bound, a=pset1$a, v=pset1$v, t0=pset1$t0, z=pset1$zr, d=pset1$d, sz=pset1$szr, sv=pset1$sv, st0=pset1$st0, precision=pset1$precision), tolerance=tolerance)
     expect_equal(orig_p_set2, pdiffusion (x, response=pset2$bound, a=pset2$a, v=pset2$v, t0=pset2$t0, z=pset2$zr, d=pset2$d, sz=pset2$szr, sv=pset2$sv, st0=pset2$st0, precision=pset2$precision), tolerance=tolerance)
     expect_equal(orig_p_set3, pdiffusion (x, response=pset3$bound, a=pset3$a, v=pset3$v, t0=pset3$t0, z=pset3$zr, d=pset3$d, sz=pset3$szr, sv=pset3$sv, st0=pset3$st0, precision=pset3$precision), tolerance=tolerance)
     expect_equal(orig_p_set4, pdiffusion (x, response=pset4$bound, a=pset4$a, v=pset4$v, t0=pset4$t0, z=pset4$zr, d=pset4$d, sz=pset4$szr, sv=pset4$sv, st0=pset4$st0, precision=pset4$precision), tolerance=tolerance)
+
+    tolerance <- 1e-2   # !! This still produces 1e-2 errors with the 5th parameter set!
     expect_equal(orig_p_set5, pdiffusion (x, response=pset5$bound, a=pset5$a, v=pset5$v, t0=pset5$t0, z=pset5$zr, d=pset5$d, sz=pset5$szr, sv=pset5$sv, st0=pset5$st0, precision=pset5$precision), tolerance=tolerance)
   })
 

@@ -151,7 +151,7 @@ ddiffusion <- function (rt, response = "upper",
 ## @param stop.on.error logical. If true (the default) an error stops the \code{integration} of \code{pdiffusion}. If false some errors will give a result with a warning in the message component.
 
 pdiffusion <- function (rt, response = "upper",
-                 a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
+                 a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3, maxt = 1e3, stop_on_error = TRUE, use_precise = TRUE)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
