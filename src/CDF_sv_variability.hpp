@@ -1,4 +1,4 @@
-/* CDF_sv_variability.hpp - Functions to calculate CDF when there is variance 
+/* CDF_sv_variability.hpp - Functions to calculate CDF when there is variance
  *   in the drift rate parameter (sv != 0) (originally in cdf.c and phi.c)
  *
  * Copyright (C) 2006  Jochen Voss, Andreas Voss.
@@ -39,10 +39,10 @@ static double        F_sv_get_z  (const F_calculator *fc, int i);
 
 
 
-struct F_sv_data 
+struct F_sv_data
 {
     int  nv;                // number of points in integration
-    F_calculator **base_fc; // F_calculators for different v 
+    F_calculator **base_fc; // F_calculators for different v
     double *avg;
 };
 
@@ -64,29 +64,29 @@ static F_calculator *F_sv_new (Parameters *params)
     struct F_calculator **base_fc;
     struct F_calculator *fc;
     struct F_sv_data *data;
-    
+
     int  nv, j;
-    
-    double sv = params->sv; // convenience only: cache sv locally 
+
+    double sv = params->sv; // convenience only: cache sv locally
 
     if (sv < params->TUNE_SV_EPSILON)  return  F_sz_new (params);  // No need to integrate
-    
+
     nv = (int)(sv/params->TUNE_DV + 0.5);
     if (nv < 3)  nv = 3;
-    
+
     // Create a temp copy of the parameters
     Parameters temp_params = *params;    // SHOULD WORK, BUT CHECK THIS
 
     // Integrate across svs
     temp_params.sv = 0;
-    base_fc = xnew (struct F_calculator *, nv);
+    base_fc = xnew (struct F_calculator *, nv);         // NOTE: MEMORY ALLOCATION
     for (j=0; j<nv; ++j)
     {
         double  x = Phi_inverse ((0.5+j)/nv);
-        temp_params.v = sv*x + params->v; 
+        temp_params.v = sv*x + params->v;
         base_fc[j] = F_sz_new (&temp_params);
     }
-    
+
     fc = xnew (struct F_calculator, 1);                   // NOTE: MEMORY ALLOCATION
     fc->N = base_fc[0]->N;
     fc->plus = -1;
@@ -95,12 +95,12 @@ static F_calculator *F_sv_new (Parameters *params)
     data->base_fc = base_fc;
     data->avg = xnew (double, fc->N+1);                   // NOTE: MEMORY ALLOCATION
     fc->data = data;
-    
+
     fc->start = F_sv_start;
     fc->free = F_sv_delete;
     fc->get_F = F_sv_get_F;
     fc->get_z = F_sv_get_z;
-    
+
     return  fc;
   }
 
@@ -110,7 +110,7 @@ static void F_sv_delete (F_calculator *fc)
 {
     F_sv_data *data = (F_sv_data *)fc->data;
     int  j;
-  
+
     for (j=0; j<data->nv; ++j) F_delete (data->base_fc[j]);
     xfree (data->base_fc);
     xfree (data->avg);
@@ -124,7 +124,7 @@ static void F_sv_start (F_calculator *fc, int plus)
 {
     F_sv_data *data = (F_sv_data *)fc->data;
     int  j;
-    
+
     fc->plus = plus;
     for (j=0; j<data->nv; ++j) F_start (data->base_fc[j], plus);
 }
@@ -145,16 +145,16 @@ static const double *F_sv_get_F (F_calculator *fc, double t)
     const double *F;
     double *avg = data->avg;
     int  i, j;
-    
+
     F = F_get_F(data->base_fc[0], t);
     for (i=0; i<=fc->N; ++i)  avg[i] = F[i];
-    for (j=1; j<data->nv; ++j) 
+    for (j=1; j<data->nv; ++j)
     {
         F = F_get_F(data->base_fc[j], t);
         for (i=0; i<=fc->N; ++i)  avg[i] += F[i];
     }
     for (i=0; i<=fc->N; ++i)  avg[i] /= data->nv;
-    
+
     return  avg;
 }
 
@@ -177,27 +177,27 @@ double Phi_inverse (double y)
 /* The inverse of Phi, calculated using the bisection method */
 {
     double  l, r;
-    
-    if (y<=0.5) 
+
+    if (y<=0.5)
     {
         l = -1;
         while (Phi(l)>=y)  l -= 1;
         r = l+1;
-    } 
-    else 
+    }
+    else
     {
         r = 0;
         while (Phi(r)<y)  r += 1;
         l = r-1;
     }
-    
+
     do
     {
         double m = 0.5*(l+r);
-        if (Phi(m) < y) { l = m; } 
+        if (Phi(m) < y) { l = m; }
                    else { r = m; }
     } while (r-l > 1e-8);
-    
+
     return  0.5*(l+r);
 }
 

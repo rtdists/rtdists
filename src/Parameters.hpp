@@ -34,37 +34,37 @@
 #define PARAM_st0 6
 #define PARAM_zr  7
 
-class Parameters 
+class Parameters
 {
 public:
     double a;     // Boundary separation
     double v;     // Mean of the drift
     double t0;    // Non-decision time
-    double d;     // Difference between boundaries of non-decision time IS THIS NEW AS WELL???
+    double d;     // Difference between boundaries of non-decision time
     double szr;   // width of zr distribution
     double sv;    // standard deviation of v distribution
     double st0;   // width of t0 distribution
     double zr;    // Mean of diffusion starting point relative to boundaries
 
-    
+
     // Precision constants set by SetPrecision()
     double  TUNE_DZ;
     double  TUNE_DV;
     double  TUNE_DT0;
-  
+
     double  TUNE_PDE_DT_MIN;   // If std=c++11 we can use C++ defaults to set as = 1e-6;
     double  TUNE_PDE_DT_MAX;   // ... we can default to = 1e-6;
     double  TUNE_PDE_DT_SCALE; // ... we can default to = 0.0;
-  
+
     double  TUNE_INT_T0;
     double  TUNE_INT_Z;
-    
+
     double  TUNE_SV_EPSILON; // CONVERSION NOTE: See below in SetPrecision()
     double  TUNE_SZ_EPSILON; // CONVERSION NOTE: See below in SetPrecision()
-    
+
 public:
   // Construct the object from the passed in params
-    Parameters (NumericVector params, double precision) 
+    Parameters (NumericVector params, double precision)
     {
         a   = params[PARAM_a];
         v   = params[PARAM_v];
@@ -74,13 +74,14 @@ public:
         sv  = params[PARAM_sv];
         st0 = params[PARAM_st0];
         zr  = params[PARAM_zr];
-        
+
         SetPrecision (precision);
     }
-  
+
     bool ValidateParams (bool print)
     {
         bool valid = true;
+        
         if (a <= 0)                         { valid = false; if (print) Rcpp::Rcout << "error: invalid parameter a = " << a << std::endl;  }
         if (szr < 0 || szr > 1)             { valid = false; if (print) Rcpp::Rcout << "error: invalid parameter szr = " << szr << std::endl; }
         if (st0 < 0)                        { valid = false; if (print) Rcpp::Rcout << "error: invalid parameter st0 = " << st0 << std::endl; }
@@ -88,25 +89,25 @@ public:
         if (t0 - fabs(0.5*d) - 0.5*st0 < 0) { valid = false; if (print) Rcpp::Rcout << "error: invalid parameter combination t0 = " << t0 << ", d = " << d << ", st0 =" << st0 << std::endl; }
         if (zr - 0.5*szr <= 0)              { valid = false; if (print) Rcpp::Rcout << "error: invalid parameter combination zr = " << zr << ", szr = " << szr << std::endl;}
         if (zr + 0.5*szr >= 1)              { valid = false; if (print) Rcpp::Rcout << "error: invalid parameter combination zr = " << zr << ", szr = " << szr << std::endl;}
-    
+
         return valid;
     }
-  
+
 private:
     void  SetPrecision (double p)
     {
-        // Try to achieve an accuracy of approximately 10^{-p} for the CDF.  
+        // Try to achieve an accuracy of approximately 10^{-p} for the CDF.
         TUNE_PDE_DT_MIN   = pow(10, -0.400825*p-1.422813);
         TUNE_PDE_DT_MAX   = pow(10, -0.627224*p+0.492689);
         TUNE_PDE_DT_SCALE = pow(10, -1.012677*p+2.261668);
         TUNE_DZ  = pow(10, -0.5*p-0.033403);
         TUNE_DV  = pow(10, -1.0*p+1.4);
         TUNE_DT0 = pow(10, -0.5*p-0.323859);
-    
+
         TUNE_INT_T0 = 0.089045 * exp(-1.037580*p);
         TUNE_INT_Z  = 0.508061 * exp(-1.022373*p);
-        
-        // CONVERSION NOTE: 
+
+        // CONVERSION NOTE:
         //     These have been added to optimise code paths by treating very small variances as 0
         //     e.g. with precision = 3, sv or sz values < 10^-5 are considered 0
         TUNE_SV_EPSILON = pow (10, -(p+2.0));

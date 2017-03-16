@@ -152,7 +152,7 @@ ddiffusion <- function (rt, response = "upper",
 
 pdiffusion <- function (rt, response = "upper",
                  a, v, t0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
-                 precision = 3, maxt = 1e4, stop_on_error = TRUE, use_precise = TRUE)
+                 precision = 3, maxt = 1e3, stop_on_error = TRUE, use_precise = TRUE)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
   # for convenience accept data.frame as first argument.
@@ -161,7 +161,7 @@ pdiffusion <- function (rt, response = "upper",
     rt <- rt$rt
   }
   
-  #rt[rt>maxt] <- maxt
+  rt[rt>maxt] <- maxt
   if(!all(rt == sort(rt)))  stop("rt needs to be sorted")
   
   # Convert boundaries to numeric
@@ -206,13 +206,11 @@ pdiffusion <- function (rt, response = "upper",
   if (use_precise) {
     for (i in seq_len(nrow(uniques))) {
       ok_rows <- apply(params, 1, identical, y = uniques[i,])
-      
       pvalues[ok_rows] <- p_precise_fastdm (rt[ok_rows], uniques[i,1:8], precision, uniques[i,9], stop_on_error)
     }
   } else {
     for (i in seq_len(nrow(uniques))) {
       ok_rows <- apply(params, 1, identical, y = uniques[i,])
-      
       pvalues[ok_rows] <- p_fastdm (rt[ok_rows], uniques[i,1:8], precision, uniques[i,9], stop_on_error)
     }
   }
