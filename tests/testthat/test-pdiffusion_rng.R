@@ -30,7 +30,7 @@ test_that("Norm: pdiffusion corresponds to random derivates with specific values
   #testthat::skip_on_travis()
   normalised_pdiffusion = function(rt,...) pdiffusion(rt,...)/pdiffusion(rt=Inf,...) 
   samples <- 1e3
-  p_min <- 0.001
+  p_min <- 0.01
   p_max <- 0.05
   diffusion_pars <- structure(list(par = structure(c(1.32060063610882, 3.27271614698074, 0.338560144920614, 0.34996447540773, 0.201794924457386, 1.05516829794661), .Names = c("a", "v", "t0", "sz", "st0", "sv"))))
   
