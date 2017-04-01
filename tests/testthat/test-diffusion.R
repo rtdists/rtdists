@@ -1,5 +1,4 @@
 context("Diffusion pdiffusion and ddiffusion functions.")
-tolerance = 0.0001)
 
 test_that("diffusion functions work with numeric and factor boundaries", {
   n_test <- 20
@@ -46,12 +45,13 @@ test_that("qdiffusion is equivalent to manual calculation",{
   p11_fit <- structure(list(par = structure(c(1.32060063610882, 3.27271614698074, 0.338560144920614, 0.34996447540773, 0.201794924457386, 1.05516829794661), .Names = c("a", "v", "t0", "sz", "st0", "sv"))))
   q <- c(0.1, 0.3, 0.5, 0.7, 0.9)
 
-#   i_pdiffusion <- function(x, args, value, response) {
-#     abs(value - do.call(pdiffusion, args = c(rt = x, args, response = response)))
-#   }
-  #pred_dir <- sapply(q*prop_correct, function(y) optimize(i_pdiffusion, c(0, 3), args = as.list(p11_fit$par), value = y, response = "upper")[[1]])
-
-  expect_equal(qdiffusion(q, response = "upper", a=p11_fit$par["a"], v=p11_fit$par["v"], t0=p11_fit$par["t0"], sz=p11_fit$par["sz"]*p11_fit$par["a"], st0=p11_fit$par["st0"], sv=p11_fit$par["sv"], scale_p = TRUE),c(0.474993255765253, 0.548947327845059, 0.607841745594437, 0.681887193854516, 0.844859938530477), tolerance=0.0001)
+  i_pdiffusion <- function(x, args, value, response) {
+    abs(value - do.call(pdiffusion, args = c(rt = x, args, response = response)))
+  }
+  prop_correct <- pdiffusion(Inf, response = "upper", a=p11_fit$par["a"], v=p11_fit$par["v"], t0=p11_fit$par["t0"], sz=p11_fit$par["sz"], st0=p11_fit$par["st0"], sv=p11_fit$par["sv"])
+  pred_dir <- sapply(q*prop_correct, function(y) optimize(i_pdiffusion, c(0, 5), args = as.list(p11_fit$par), value = y, response = "upper")[[1]])
+  
+  expect_equal(qdiffusion(q, response = "upper", a=p11_fit$par["a"], v=p11_fit$par["v"], t0=p11_fit$par["t0"], sz=p11_fit$par["sz"], st0=p11_fit$par["st0"], sv=p11_fit$par["sv"], scale_p = TRUE),pred_dir, tolerance=0.001)
 
   expect_equal(suppressWarnings(qdiffusion(q, response = "lower", a=p11_fit$par["a"], v=p11_fit$par["v"], t0=p11_fit$par["t0"], sz=p11_fit$par["sz"]*p11_fit$par["a"], st0=p11_fit$par["st0"], sv=p11_fit$par["sv"])),as.numeric(rep(NA, 5)))
 })
