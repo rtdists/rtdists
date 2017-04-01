@@ -152,7 +152,7 @@ ddiffusion <- function (rt, response = "upper",
 
 pdiffusion <- function (rt, response = "upper",
                  a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
-                 precision = 3, maxt = 1e3, stop_on_error = TRUE, use_precise = TRUE)
+                 precision = 3, maxt = 20, stop_on_error = TRUE, use_precise = TRUE)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
   # for convenience accept data.frame as first argument.
@@ -227,7 +227,7 @@ inv_cdf_diffusion <- function(x, response, a, v, t0, z, d, sz, sv, st0, s, preci
 #' @export
 qdiffusion <- function (p, response = "upper", 
                  a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
-                 precision = 3, maxt = 1e4, interval = c(0, 10),
+                 precision = 3, maxt = 20, interval = c(0, 10),
                  scale_p = FALSE, scale_max = Inf, stop_on_error = TRUE)
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and t0 must be supplied")
