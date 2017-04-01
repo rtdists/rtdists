@@ -68,7 +68,7 @@
 #' 
 #' @author Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, Scott Brown, and Henrik Singmann. \code{qdiffusion} by Henrik Singmann.
 #'
-#' @useDynLib rtdists
+#' @useDynLib rtdists, .registration = TRUE
 #'
 #' @name Diffusion
 #' @importFrom utils head
@@ -134,7 +134,10 @@ ddiffusion <- function (rt, response = "upper",
   # Check for illegal parameter values
   if(ncol(params)<9) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
   if(!is.numeric(params)) stop("Parameters need to be numeric.")
-  if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
+  if (any(is.na(params)) || !all(is.finite(params))) {
+    if (stop_on_error) stop("Parameters need to be numeric and finite.")
+    else return(rep(0, nn))
+  }
   
   uniques <- unique(params)
   densities <- vector("numeric",length=length(rt))  
@@ -198,7 +201,10 @@ pdiffusion <- function (rt, response = "upper",
   # Check for illegal parameter values
   if(ncol(params)<9) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
   if(!is.numeric(params)) stop("Parameters need to be numeric.")
-  if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
+    if (any(is.na(params)) || !all(is.finite(params))) {
+    if (stop_on_error) stop("Parameters need to be numeric and finite.")
+    else return(rep(0, nn))
+  }
   
   pvalues <- vector("numeric", length=length(rt))
   uniques <- unique(params)
