@@ -182,7 +182,7 @@ We will follow Ratcliff and Rouder (1998) and analyze the data with the diffusio
 
 Like in Ratcliff and Rouder (1998), the two response boundaries are the two response options "dark" and "light". To estimate the model we diverge from Ratcliff and Rouder and employ trial wise maximum likelihood estimation (i.e., no binning of responses). 
 
-To do so, we simply need to have a wrapper function which returns us the summed log-likelihood of the data (i.e., RTs and corresponding responses) given a set of parameters. The following function for which we simply loop across drift rates will do so:
+To do so, we simply need to have a wrapper function which returns us the negative summed log-likelihood of the data (i.e., RTs and corresponding responses) given a set of parameters. We need the negativ sum because most optimization function minimize whereas we want to obtain the maximum likelihood value. The following function for which we simply loop across drift rates will do so:
 
 ```{r}
 # objective function for diffusion with 1 a. loops over drift to assign drift rates to strength
@@ -191,15 +191,14 @@ objective_diffusion_separate <- function(pars, rt, response, drift, ...) {
   base_par <- length(non_v_pars)  # number of non-drift parameters
   densities <- vector("numeric", length(rt))
   for (i in seq_along(levels(drift))) {
-    densities[drift == levels(drift)[i]] <- tryCatch(
+    densities[drift == levels(drift)[i]] <- 
       ddiffusion(rt[drift == levels(drift)[i]], response=response[drift == levels(drift)[i]], 
                  a=pars["a"], t0=pars["t0"],  
                  sv=pars["sv"],
                  sz=if ("sz" %in% non_v_pars) pars["sz"] else 0.1,
                  z=if ("z" %in% non_v_pars) pars["z"]*pars["a"] else 0.5*pars["a"],
                  st0=if ("st0" %in% non_v_pars) pars["st0"] else 0, 
-                 v=pars[base_par+i]), 
-      error = function(e) 0)  
+                 v=pars[base_par+i])
   }
   if (any(densities == 0)) return(1e6)
   return(-sum(log(densities)))
@@ -207,7 +206,7 @@ objective_diffusion_separate <- function(pars, rt, response, drift, ...) {
 
 ```
 
-As one can see at this function we also wrap the call to `ddiffusion` (i.e., the PDF of the diffusion model) into a `tryCatch` statement. This prevents failures during optimization as `ddifussion` can fail for some impossible parameters values. Note also that the function is written in such a way that we could easily fix certain parameters without the necessity to change it (using `if`-`then` on the parameters names passed via `pars`).
+Note that the function is written in such a way that we could easily fix certain parameters without the necessity to change it (using `if`-`then` on the parameters names passed via `pars`).
 
 Additionally, we also need a function that generates a set of random starting values. And, as any random set of starting values may be impossible, another wrapper function that generates starting values until a set of valid starting values is found and then passes those to the optimization routine. As optimization routine we will be using `nlminb`. These functions are given next and are specified in a way that they will be usable for other model variants for this data (e.g., fixing parameters). 
 
@@ -268,7 +267,7 @@ load("rr98_full-lba_fits.rda")
 ```
 
 
-With these functions in place, we now simply need to loop over participants and items to obtain the fit. We do this (as above) using convenient `dplyr` syntax and the `dplyr::do`.
+With these functions in place, we now simply need to loop over participants and items to obtain the fit. We do this (as above) using convenient `dplyr` syntax and `dplyr::do`. To ensure we obtain the maximum likelihood estimate, we run five rounds of model fits (i.e., `n_fits=5`) and use the one with the maximum likelihood value. If we would not do so (as was done in previous versions of this document), we would obtain results that do not correspond to the maximum likelihood estimates but to so-called *local minima*.
 
 
 ```{r, eval = FALSE}
@@ -277,10 +276,11 @@ fits_separate <- rr98 %>%
   group_by(id, instruction) %>% # we loop across both, id and instruction
   do(diffusion = ensure_fit(data = ., start_function = get_start, 
                             objective_function = objective_diffusion_separate, 
-                            base_pars = c("a", "t0", "sv", "sz", "z"))) %>% ungroup()
+                            base_pars = c("a", "t0", "sv", "sz", "z"), 
+                            n_fits = 5)) %>% ungroup()
 ```
 
-The following table gives the parameters and the negative summed log-likelihoods obtained from this fit:
+The following table gives the parameters and the negative summed log-likelihoods (i.e., where smaller is better) obtained from this fit:
 
 ```{r}
 pars_separate <- fits_separate %>% group_by(id, instruction) %>% 
@@ -301,7 +301,7 @@ We can see from these values that there is a large effect of instruction on $a$.
 - $t_0$ is consistently larger in the accuracy compared to the speed condition, although this effect is small.
 - $s_v$ is estimated at 0 or very low in the speed condition, but 0.5 or 1 in the accuracy condition. This is consistent with the absence of slow "errors" in the speed condition.
 - $s_z$ is consistently larger in the speed conditions consistent with the presence or more fast "errors" in the speed than in the accuracy condition.
-- The differences in $v$ are not consistent across participants, but also do not seem completely negligible.
+- $v$ appears to be more extreme (i.e., smaller for $v_1$ and $v_2$ and larger for $v_4$ and $v_5$) in the speed compared to the accuracy condition.
 
 
 ```{r obtain_fits_not_run, eval = FALSE, include = FALSE}
@@ -310,14 +310,16 @@ fits_separate <- rr98 %>%
   group_by(id, instruction) %>% # we loop across both, id and instruction
   do(diffusion = ensure_fit(data = ., start_function = get_start, 
                             objective_function = objective_diffusion_separate, 
-                            base_pars = c("a", "t0", "sv", "sz", "z"))) %>% ungroup()
+                            base_pars = c("a", "t0", "sv", "sz", "z"), 
+                            n_fits = 5)) %>% ungroup()
 
 
 fits_separate_b <- rr98 %>% 
   group_by(id, instruction) %>% # we loop across both, id and instruction
   do(diffusion = ensure_fit(data = ., start_function = get_start, 
                             objective_function = objective_diffusion_separate, 
-                            base_pars = c("a", "t0", "sv", "sz", "z"))) %>% ungroup()
+                            base_pars = c("a", "t0", "sv", "sz", "z"), 
+                            n_fits = 5)) %>% ungroup()
 
 pars_separate_b <- as.data.frame(fits_separate_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% ungroup())
 pars_separate_b$ll <- (fits_separate_b %>% group_by(id, instruction) %>% do(ll = .$diffusion[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
@@ -542,7 +544,7 @@ get_start_lba <- function(base_par, n_drift = 10) {
 
 ```
 
-With this, we simply need to loop across participants and instructions to estimate the LBA. Interestingly, we need to run several fitting runs to reach the maximum likelihood estimate (i.e., the global optimum).
+With this, we simply need to loop across participants and instructions to estimate the LBA. Again, we need to run several fitting runs to reach the maximum likelihood estimate (i.e., the global optimum).
 
 ```{r, eval=FALSE}
 
@@ -552,7 +554,7 @@ fits_separate_lba <- rr98 %>%
                       objective_function = objective_lba_separate, 
                       base_pars = c("a_1", "a_2", "t0", "b", "sv"),
                       lower = c(rep(-Inf, 5), rep(0, 5)),
-                      n_drift = 5, n_fits = 5)) %>% ungroup()
+                      n_drift = 5, n_fits = 10)) %>% ungroup()
 
 ```
 
