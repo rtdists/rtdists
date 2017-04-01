@@ -34,7 +34,7 @@ using namespace Rcpp;
 
 
 // Used by both PDF and CDF (also includes tuning params)
-#include "Parameters.hpp"
+#include "Parameters.h"
 
 // While not enforced, this is the global parameters Singleton 
 //   To be created and freed in the d_, p_ and r_ calls in RFastDM.cpp
@@ -44,7 +44,7 @@ Parameters *g_Params;
 #define BOUNDARY_UPPER 1
 
 // PDF
-#include "Density.hpp"
+#include "Density.h"
 
 
 
@@ -86,7 +86,7 @@ void xfree (void *ptr)
 
 
 // CDF code
-#include "FCalculator.hpp"
+#include "FCalculator.h"
 
 // Forward declare all FController functions for access from all CDF_*
 F_calculator *F_new ();
@@ -97,10 +97,10 @@ double        F_get_z   (const F_calculator *fc, int i);
 const double *F_get_F   (F_calculator *fc, double t);
 double        F_get_val (F_calculator *fc, double t, double z);
 
-#include "FController.hpp"
+#include "FController.h"
 
-#include "Distribution.hpp"
-#include "Sampling.hpp"
+#include "Distribution.h"
+#include "Sampling.h"
 
 
 #endif // RFASTDM_H

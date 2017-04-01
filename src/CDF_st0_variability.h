@@ -31,7 +31,7 @@
 // biggest cached t-value is bigger or equal than t+0.5*st0.  The total length of the cached time interval is (M-1)*dt where M and dt
 // are chosen such that st0 = (M-2)*dt.
 
-#include "CDF_sv_variability.hpp"
+#include "CDF_sv_variability.h"
 
 // Forward declarations
 static void F_st0_start (F_calculator *fc, int plus);

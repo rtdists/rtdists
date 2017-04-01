@@ -22,7 +22,7 @@
 #ifndef FCONTROLLER_H
 #define FCONTROLLER_H
 
-#include "CDF_st0_variability.hpp"
+#include "CDF_st0_variability.h"
 
 //
 // All functions are externally visible

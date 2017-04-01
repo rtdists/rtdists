@@ -22,8 +22,8 @@
 #ifndef CDF_NO_VARIABILITY_H
 #define CDF_NO_VARIABILITY_H
 
-#include "Parameters.hpp"
-#include "FController.hpp"
+#include "Parameters.h"
+#include "FController.h"
 
 // Forward declarations
 static void          F_plain_delete (F_calculator *fc);

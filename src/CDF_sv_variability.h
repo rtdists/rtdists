@@ -24,7 +24,7 @@
 //
 // sv: variability in v
 //
-#include "CDF_sz_variability.hpp"
+#include "CDF_sz_variability.h"
 
 // Includes normal and inverse normal CDF code required only here (originally in phi.c)
 double Phi (double x);

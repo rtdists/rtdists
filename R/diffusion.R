@@ -77,6 +77,7 @@
 #' @importFrom stats optimize uniroot
 #' @importFrom pracma integral
 #' @aliases diffusion
+#' @importFrom Rcpp evalCpp
 #' 
 #' @example examples/examples.diffusion.R
 #' 
@@ -149,7 +150,8 @@ ddiffusion <- function (rt, response = "upper",
 
 
 ## @param stop.on.error logical. If true (the default) an error stops the \code{integration} of \code{pdiffusion}. If false some errors will give a result with a warning in the message component.
-
+#' @rdname Diffusion
+#' @export
 pdiffusion <- function (rt, response = "upper",
                  a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3, maxt = 20, stop_on_error = TRUE, use_precise = TRUE)

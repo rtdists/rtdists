@@ -24,7 +24,7 @@
 //
 // sz: variability in z
 //
-#include "CDF_no_variability.hpp"
+#include "CDF_no_variability.h"
 
 
 static void          F_sz_delete (F_calculator *fc);

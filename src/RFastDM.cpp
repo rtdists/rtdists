@@ -22,7 +22,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "RFastDM.hpp"
+#include "RFastDM.h"
 
 using namespace Rcpp;
 
