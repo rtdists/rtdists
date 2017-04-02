@@ -88,4 +88,10 @@ test_that("ddiffusion does not go crazy if sz, sv, and st0 goes to 0", {
   expect_equal(y1, sv1, tolerance=tolerance)
   expect_equal(y1, sv2, tolerance=tolerance)
   expect_equal(y1, sv3, tolerance=tolerance)
+  
+  ### shows the bug:
+  # curve(ddiffusion(rep(0.53, 101), a = 1.84, t0 = 0.14, sv =0 , sz =x, z = 0.879, v = -2.4, response = 1), from= 0, to = 0.00001, xlab = "sz")
+  # curve(ddiffusion(rep(0.53, 101), a = 1.84, t0 = 0.14, sv =x , sz =0, z = 0.879, v = -2.4, response = 1), from= 0, to = 0.00001, xlab = "sv")
+  # curve(ddiffusion(rep(0.53, 101), a = 1.84, t0 = 0.14, sv =0 , sz =0, z = 0.879, v = -2.4, st0 = x, response = 1), from= 0, to = 0.00001, xlab = "st0")
+  # curve(ddiffusion(rep(0.53, 101), a = 2, t0 = 0.3, sv =0 , sz =0, z = x, v = 1, response = 1), from= 0, to = 0.1, xlab = "sz")
 })
