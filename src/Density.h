@@ -76,7 +76,7 @@ static double integral_t0_g_minus (double t, Parameters *params)
 {
     double res;
     
-    if (params->st0 == 0) 
+    if (params->st0 < params->TUNE_ST0_EPSILON) // 170501   was == 0) 
     {
         res = integral_z_g_minus (t, params);
     } 
@@ -97,7 +97,7 @@ static double integral_z_g_minus (double t, Parameters *params)
     
     if (t <= 0) return 0;
     
-    if (params->szr == 0) 
+    if (params->szr < params->TUNE_SZ_EPSILON) // 170501   was == 0) 
     {
         res = integral_v_g_minus (t, params->zr, params);
     } 

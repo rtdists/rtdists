@@ -61,7 +61,8 @@ public:
 
     double  TUNE_SV_EPSILON; // CONVERSION NOTE: See below in SetPrecision()
     double  TUNE_SZ_EPSILON; // CONVERSION NOTE: See below in SetPrecision()
-
+    double  TUNE_ST0_EPSILON; // CONVERSION NOTE: See below in SetPrecision()
+    
 public:
   // Construct the object from the passed in params
     Parameters (NumericVector params, double precision)
@@ -110,8 +111,9 @@ private:
         // CONVERSION NOTE:
         //     These have been added to optimise code paths by treating very small variances as 0
         //     e.g. with precision = 3, sv or sz values < 10^-5 are considered 0
-        TUNE_SV_EPSILON = pow (10, -(p+2.0));
-        TUNE_SZ_EPSILON = pow (10, -(p+2.0));
+        TUNE_SV_EPSILON = pow (10, -(p+2.0));     // Used by pdiffusion
+        TUNE_SZ_EPSILON = pow (10, -(p+2.0));     // Used by ddiffusion and pdiffusion
+        TUNE_ST0_EPSILON = pow (10, -(p+2.0));     // Used by ddiffusion
     }
 };
 
