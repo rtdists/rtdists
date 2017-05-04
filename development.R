@@ -15,6 +15,7 @@ test_package("rtdists")  # no long tests of n1 functions
 test(filter = "bugs")
 test(filter = "input")
 test(filter = "lba")
+test(filter = "rng")
 test_file("tests/testthat/test-diffusion.R")
 test_file("tests/testthat/test-diffusion-math.R")
 test_file("tests/testthat/test-diffusion-bugs.R")
