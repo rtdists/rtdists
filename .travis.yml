@@ -12,5 +12,5 @@ r_binary_packages:
  - msm
  - dplyr
  - tidyr
- - latticeextra
+ - latticeExtra
 
