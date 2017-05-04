@@ -7,13 +7,15 @@ sudo: required
 addons:
   apt:
     packages:
-      - testthat
-      - knitr
-      - rmarkdown
-      - gsl
-      - evd
-      - msm
-      - dplyr
-      - tidyr
-      - latticeExtra
+      - libgsl0-dev
+r_binary_packages:
+ - testthat
+ - knitr
+ - rmarkdown
+ - gsl
+ - evd
+ - msm
+ - dplyr
+ - tidyr
+ - latticeExtra
 
