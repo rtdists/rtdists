@@ -1,9 +1,11 @@
-Changes to Version 0.7-x (released XXX 2016)
+Changes to Version 0.7-x (released May 2017)
 
+  o pdiffusion now uses the C++ CDF without numerical integration. 
+  
   o sv can produce slow errors, and sz fast erros (this was the wrong way around
     in the documentation). Thanks to Gabriel Tillman for noticing that.
     
-  o removed a bug in the pdifusion C code letting rtdists hang indefinitely
+  o removed a bug in the pdiffusion C code letting rtdists hang indefinitely
     (see https://github.com/rtdists/rtdists/pull/3). Thanks to Tomas Kalibera 
     for the fix.
     
