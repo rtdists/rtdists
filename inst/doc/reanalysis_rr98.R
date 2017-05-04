@@ -124,15 +124,14 @@ objective_diffusion_separate <- function(pars, rt, response, drift, ...) {
   base_par <- length(non_v_pars)  # number of non-drift parameters
   densities <- vector("numeric", length(rt))
   for (i in seq_along(levels(drift))) {
-    densities[drift == levels(drift)[i]] <- tryCatch(
+    densities[drift == levels(drift)[i]] <- 
       ddiffusion(rt[drift == levels(drift)[i]], response=response[drift == levels(drift)[i]], 
                  a=pars["a"], t0=pars["t0"],  
                  sv=pars["sv"],
                  sz=if ("sz" %in% non_v_pars) pars["sz"] else 0.1,
                  z=if ("z" %in% non_v_pars) pars["z"]*pars["a"] else 0.5*pars["a"],
                  st0=if ("st0" %in% non_v_pars) pars["st0"] else 0, 
-                 v=pars[base_par+i]), 
-      error = function(e) 0)  
+                 v=pars[base_par+i])
   }
   if (any(densities == 0)) return(1e6)
   return(-sum(log(densities)))
@@ -199,7 +198,8 @@ load("rr98_full-lba_fits.rda")
 #    group_by(id, instruction) %>% # we loop across both, id and instruction
 #    do(diffusion = ensure_fit(data = ., start_function = get_start,
 #                              objective_function = objective_diffusion_separate,
-#                              base_pars = c("a", "t0", "sv", "sz", "z"))) %>% ungroup()
+#                              base_pars = c("a", "t0", "sv", "sz", "z"),)) %>%
+#    ungroup()
 
 ## ------------------------------------------------------------------------
 pars_separate <- fits_separate %>% group_by(id, instruction) %>% 
@@ -220,20 +220,23 @@ knitr::kable(pars_separate)
 #    group_by(id, instruction) %>% # we loop across both, id and instruction
 #    do(diffusion = ensure_fit(data = ., start_function = get_start,
 #                              objective_function = objective_diffusion_separate,
-#                              base_pars = c("a", "t0", "sv", "sz", "z"))) %>% ungroup()
+#                              base_pars = c("a", "t0", "sv", "sz", "z"),
+#                              n_fits = 1)) %>% ungroup()
 #  
 #  
 #  fits_separate_b <- rr98 %>%
 #    group_by(id, instruction) %>% # we loop across both, id and instruction
 #    do(diffusion = ensure_fit(data = ., start_function = get_start,
 #                              objective_function = objective_diffusion_separate,
-#                              base_pars = c("a", "t0", "sv", "sz", "z"))) %>% ungroup()
+#                              base_pars = c("a", "t0", "sv", "sz", "z"),
+#                              n_fits = 1)) %>% ungroup()
 #  
 #  pars_separate_b <- as.data.frame(fits_separate_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% ungroup())
 #  pars_separate_b$ll <- (fits_separate_b %>% group_by(id, instruction) %>% do(ll = .$diffusion[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
 #  if (!("st0" %in% colnames(pars_separate_b))) pars_separate_b$st0 <- 0
 #  if (!("z" %in% colnames(pars_separate_b))) pars_separate_b$z <- 0.5
 #  if (!("sz" %in% colnames(pars_separate_b))) pars_separate_b$sz <- 0.1
+#  knitr::kable(pars_separate_b)
 #  
 #  all.equal(pars_separate, pars_separate_b, tolerance = 0.001)
 #  
@@ -408,7 +411,7 @@ get_start_lba <- function(base_par, n_drift = 10) {
 #                        objective_function = objective_lba_separate,
 #                        base_pars = c("a_1", "a_2", "t0", "b", "sv"),
 #                        lower = c(rep(-Inf, 5), rep(0, 5)),
-#                        n_drift = 5, n_fits = 5)) %>% ungroup()
+#                        n_drift = 5, n_fits = 10)) %>% ungroup()
 #  
 
 ## ------------------------------------------------------------------------

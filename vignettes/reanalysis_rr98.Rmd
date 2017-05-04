@@ -267,7 +267,7 @@ load("rr98_full-lba_fits.rda")
 ```
 
 
-With these functions in place, we now simply need to loop over participants and items to obtain the fit. We do this (as above) using convenient `dplyr` syntax and `dplyr::do`. To ensure we obtain the maximum likelihood estimate, we run five rounds of model fits (i.e., `n_fits=5`) and use the one with the maximum likelihood value. If we would not do so (as was done in previous versions of this document), we would obtain results that do not correspond to the maximum likelihood estimates but to so-called *local minima*.
+With these functions in place, we now simply need to loop over participants and items to obtain the fit. We do this (as above) using convenient `dplyr` syntax and `dplyr::do`.
 
 
 ```{r, eval = FALSE}
@@ -276,8 +276,8 @@ fits_separate <- rr98 %>%
   group_by(id, instruction) %>% # we loop across both, id and instruction
   do(diffusion = ensure_fit(data = ., start_function = get_start, 
                             objective_function = objective_diffusion_separate, 
-                            base_pars = c("a", "t0", "sv", "sz", "z"), 
-                            n_fits = 5)) %>% ungroup()
+                            base_pars = c("a", "t0", "sv", "sz", "z"),)) %>% 
+  ungroup()
 ```
 
 The following table gives the parameters and the negative summed log-likelihoods (i.e., where smaller is better) obtained from this fit:
@@ -311,7 +311,7 @@ fits_separate <- rr98 %>%
   do(diffusion = ensure_fit(data = ., start_function = get_start, 
                             objective_function = objective_diffusion_separate, 
                             base_pars = c("a", "t0", "sv", "sz", "z"), 
-                            n_fits = 5)) %>% ungroup()
+                            n_fits = 1)) %>% ungroup()
 
 
 fits_separate_b <- rr98 %>% 
@@ -319,13 +319,14 @@ fits_separate_b <- rr98 %>%
   do(diffusion = ensure_fit(data = ., start_function = get_start, 
                             objective_function = objective_diffusion_separate, 
                             base_pars = c("a", "t0", "sv", "sz", "z"), 
-                            n_fits = 5)) %>% ungroup()
+                            n_fits = 1)) %>% ungroup()
 
 pars_separate_b <- as.data.frame(fits_separate_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% ungroup())
 pars_separate_b$ll <- (fits_separate_b %>% group_by(id, instruction) %>% do(ll = .$diffusion[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
 if (!("st0" %in% colnames(pars_separate_b))) pars_separate_b$st0 <- 0
 if (!("z" %in% colnames(pars_separate_b))) pars_separate_b$z <- 0.5
 if (!("sz" %in% colnames(pars_separate_b))) pars_separate_b$sz <- 0.1
+knitr::kable(pars_separate_b)
 
 all.equal(pars_separate, pars_separate_b, tolerance = 0.001)
 
