@@ -25,16 +25,17 @@ test_that("qdiffusion does not fail for named probability", {
 test_that("pdiffusion is equal to pwiener", {
   if (require(RWiener)) {
     
-    expect_equivalent(pdiffusion(2, response = "upper", a = 1.63, v = 1.17, t0 = 0.22, z = 0.517*1.63), pwiener(2, resp = "upper", alpha = 1.63, delta = 1.17, tau = 0.22, beta =  0.517))
+    expect_equal(pdiffusion(2, response = "upper", a = 1.63, v = 1.17, t0 = 0.22, z = 0.517*1.63), pwiener(2, resp = "upper", alpha = 1.63, delta = 1.17, tau = 0.22, beta =  0.517),
+                      tolerance = 0.0001)
   }
 })
 
 test_that("numerical integration does not fail in certain cases", {
   # fails
   expect_equal(pdiffusion(0.640321329425053, response = "upper", a = 1.1, v=1.33, t0 = 0.3, z = 0.55*1.1, st0 = 0.2, sz = 0.7*1.1, precision = 3),
-               0.5345, tolerance = 0.0001)
+               0.5345, tolerance = 0.001)
   expect_equal(pdiffusion(0.640321329425053, response = "upper", a = 1.1, v=1.33, t0 = 0.3, z = 0.55*1.1, st0 = 0.2, sz = 0.7*1.1, precision = 2.9),
-               0.5345517, tolerance = 0.0001)
+               0.5345517, tolerance = 0.001)
 
 })
 
@@ -49,9 +50,48 @@ test_that("pdiffusion does not add to 1 for both responses in case sz goes towar
   
   expect_equal(sum(pdiffusion(rep(Inf, 2), response=c("l", "u"), a=1, v = 3.69, t0 = 0.3, sz = 0.5, sv = 1.2, st0 = 0)), 1, tolerance = 0.001)
 
-  testthat::skip("currently pdiffusion does not add up to 1 fo rthe following tests.")
+  #testthat::skip("currently pdiffusion does not add up to 1 fo rthe following tests.")
   
   expect_equal(sum(pdiffusion(rep(Inf, 2), response=c("l", "u"), a=1, v = 3.69, t0 = 0.3, sz = 0.9, sv = 1.2, st0 = 0)), 1, tolerance = 0.001)
   expect_equal(sum(pdiffusion(rep(Inf, 2), response=c("l", "u"), a=0.08, v = 0.369, t0 = 0.3, sz = 0.07, sv = 0.12, st0 = 0, s=0.1, precision = 2)), 1, tolerance = 0.001)
   expect_equal(sum(pdiffusion(rep(Inf, 2), response=c("l", "u"), a=0.08, v = 0.369, t0 = 0.3, sz = 0.07, sv = 0.12, st0 = 0, s=0.1, precision = 3)), 1, tolerance = 0.001)
+})
+
+test_that("ddiffusion does not go crazy if sz, sv, and st0 goes to 0", {
+  y1 <- ddiffusion(0.53, a = 1.84, t0 = 0.14, sv =0 , sz =0, z = 0.879, v = -2.4, st0 = 0, response = 1)
+  x1 <- ddiffusion(0.53, a = 1.84, t0 = 0.14, sv =0 , sz =0.0000001, z = 0.879, v = -2.4, response = 1)
+  x2 <- ddiffusion(0.53, a = 1.84, t0 = 0.14, sv =0 , sz =0.000001, z = 0.879, v = -2.4, response = 1)
+  x3 <- ddiffusion(0.53, a = 1.84, t0 = 0.14, sv =0 , sz =0.00001, z = 0.879, v = -2.4, response = 1)
+  
+  st00 <- ddiffusion(0.53, a = 1.84, t0 = 0.14, sv =0 , st0 =0.0000007, z = 0.879, v = -2.4, response = 1)
+  st01 <- ddiffusion(0.53, a = 1.84, t0 = 0.14, sv =0 , st0 =0.0000001, z = 0.879, v = -2.4, response = 1)
+  st02 <- ddiffusion(0.53, a = 1.84, t0 = 0.14, sv =0 , st0 =0.000001, z = 0.879, v = -2.4, response = 1)
+  st03 <- ddiffusion(0.53, a = 1.84, t0 = 0.14, sv =0 , st0 =0.00001, z = 0.879, v = -2.4, response = 1)
+  
+  sv0 <- ddiffusion(0.53, a = 1.84, t0 = 0.14, sv =0.0000007, z = 0.879, v = -2.4, response = 1)
+  sv1 <- ddiffusion(0.53, a = 1.84, t0 = 0.14, sv =0.0000001, z = 0.879, v = -2.4, response = 1)
+  sv2 <- ddiffusion(0.53, a = 1.84, t0 = 0.14, sv =0.000001, z = 0.879, v = -2.4, response = 1)
+  sv3 <- ddiffusion(0.53, a = 1.84, t0 = 0.14, sv =0.00001, z = 0.879, v = -2.4, response = 1)
+  
+  
+  tolerance <- 0.0001
+  expect_equal(y1, x1, tolerance=tolerance)
+  expect_equal(y1, x2, tolerance=tolerance)
+  expect_equal(y1, x3, tolerance=tolerance)
+  
+  expect_equal(y1, st00, tolerance=tolerance)
+  expect_equal(y1, st01, tolerance=tolerance)
+  expect_equal(y1, st02, tolerance=tolerance)
+  expect_equal(y1, st03, tolerance=tolerance)
+  
+  expect_equal(y1, sv0, tolerance=tolerance)
+  expect_equal(y1, sv1, tolerance=tolerance)
+  expect_equal(y1, sv2, tolerance=tolerance)
+  expect_equal(y1, sv3, tolerance=tolerance)
+  
+  ### shows the bug:
+  # curve(ddiffusion(rep(0.53, 101), a = 1.84, t0 = 0.14, sv =0 , sz =x, z = 0.879, v = -2.4, response = 1), from= 0, to = 0.00001, xlab = "sz")
+  # curve(ddiffusion(rep(0.53, 101), a = 1.84, t0 = 0.14, sv =x , sz =0, z = 0.879, v = -2.4, response = 1), from= 0, to = 0.00001, xlab = "sv")
+  # curve(ddiffusion(rep(0.53, 101), a = 1.84, t0 = 0.14, sv =0 , sz =0, z = 0.879, v = -2.4, st0 = x, response = 1), from= 0, to = 0.00001, xlab = "st0")
+  # curve(ddiffusion(rep(0.53, 101), a = 2, t0 = 0.3, sv =0 , sz =0, z = x, v = 1, response = 1), from= 0, to = 0.1, xlab = "sz")
 })

@@ -2,9 +2,9 @@
 % Please edit documentation in R/deprecated.R
 \name{drd}
 \alias{drd}
+\alias{rtdists-deprecated}
 \alias{prd}
 \alias{rrd}
-\alias{rtdists-deprecated}
 \title{Deprecated functions}
 \usage{
 drd(...)
@@ -23,4 +23,3 @@ These functions have been renamed and deprecated in \pkg{rtdists}:
 \code{rrd()} (use \code{\link{rdiffusion}()}).
 }
 \keyword{internal}
-

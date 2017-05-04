@@ -2,27 +2,35 @@
 % Please edit documentation in R/diffusion.R
 \name{Diffusion}
 \alias{Diffusion}
-\alias{ddiffusion}
+\alias{recalc_t0}
 \alias{diffusion}
+\alias{ddiffusion}
 \alias{pdiffusion}
 \alias{qdiffusion}
 \alias{rdiffusion}
 \title{The Ratcliff Diffusion Model}
 \usage{
+recalc_t0(t0, st0)
+
 ddiffusion(rt, response = "upper", a, v, t0, z = 0.5 * a, d = 0, sz = 0,
-  sv = 0, st0 = 0, s = 1, precision = 3)
+  sv = 0, st0 = 0, s = 1, precision = 3, stop_on_error = FALSE)
 
 pdiffusion(rt, response = "upper", a, v, t0, z = 0.5 * a, d = 0, sz = 0,
-  sv = 0, st0 = 0, s = 1, precision = 3, maxt = 10000)
+  sv = 0, st0 = 0, s = 1, precision = 3, maxt = 20,
+  stop_on_error = FALSE, use_precise = TRUE)
 
 qdiffusion(p, response = "upper", a, v, t0, z = 0.5 * a, d = 0, sz = 0,
-  sv = 0, st0 = 0, s = 1, precision = 3, maxt = 10000,
-  interval = c(0, 10), scale_p = FALSE, scale_max = Inf)
+  sv = 0, st0 = 0, s = 1, precision = 3, maxt = 20, interval = c(0,
+  10), scale_p = FALSE, scale_max = Inf, stop_on_error = FALSE)
 
 rdiffusion(n, a, v, t0, z = 0.5 * a, d = 0, sz = 0, sv = 0, st0 = 0,
-  s = 1, precision = 3)
+  s = 1, precision = 3, stop_on_error = TRUE)
 }
 \arguments{
+\item{t0}{non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution). Typical range: 0.1 < \code{t0} < 0.5}
+
+\item{st0}{inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0 + st0/2} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Values different from 0 can slow computation considerably. Typical range: 0 < \code{st0} < 0.2. Default is 0.}
+
 \item{rt}{a vector of RTs. Or for convenience also a \code{data.frame} with columns \code{rt} and \code{response} (such as returned from \code{rdiffusion} or \code{\link{rLBA}}). See examples.}
 
 \item{response}{character vector. Which response boundary should be tested? Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default. Alternatively, a numeric vector with values 1=lower and 2=upper. For convenience, \code{response} is converted via \code{as.numeric} also allowing factors (see examples). Ignored if the first argument is a \code{data.frame}.}
@@ -30,8 +38,6 @@ rdiffusion(n, a, v, t0, z = 0.5 * a, d = 0, sz = 0, sv = 0, st0 = 0,
 \item{a}{threshold separation. Amount of information that is considered for a decision. Large values indicate a conservative decisional style. Typical range: 0.5 < \code{a} < 2}
 
 \item{v}{drift rate. Average slope of the information accumulation process. The drift gives information about the speed and direction of the accumulation of information. Large (absolute) values of drift indicate a good performance. If received information supports the response linked to the upper threshold the sign will be positive and vice versa. Typical range: -5 < \code{v} < 5}
-
-\item{t0}{non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution). Typical range: 0.1 < \code{t0} < 0.5}
 
 \item{z}{starting point. Indicator of an a priori bias in decision making. When the relative starting point \code{z} deviates from \code{0.5*a}, the amount of information necessary for a decision differs between response alternatives. Default is \code{0.5*a} (i.e., no bias).}
 
@@ -41,13 +47,15 @@ rdiffusion(n, a, v, t0, z = 0.5 * a, d = 0, sz = 0, sv = 0, st0 = 0,
 
 \item{sv}{inter-trial-variability of drift rate. Standard deviation of a normal distribution with mean \code{v} describing the distribution of actual drift rates from specific trials. Values different from 0 can predict slow errors. Typical range: 0 < \code{sv} < 2. Default is 0.}
 
-\item{st0}{inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0 + st0/2} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Values different from 0 can slow computation considerably. Typical range: 0 < \code{st0} < 0.2. Default is 0.}
-
 \item{s}{diffusion constant; standard deviation of the random noise of the diffusion process (i.e., within-trial variability), scales \code{a}, \code{v}, and \code{sv}. Needs to be fixed to a constant in most applications. Default is 1. Note that the default used by Ratcliff and in other applications is often 0.1.}
 
 \item{precision}{\code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.}
 
-\item{maxt}{maximum \code{rt} allowed, used to stop integration problems. \emph{Currently ignored as numerical integration works fine with Inf.}}
+\item{stop_on_error}{Should the diffusion functions return 0 if the parameters values are outside the allowed range (= \code{FALSE}) or produce an error in this case (= \code{TRUE}).}
+
+\item{maxt}{maximum \code{rt} allowed, used to stop integration problems. Larger values lead to considerably longer calculation times.}
+
+\item{use_precise}{boolean. Should \code{pdiffusion} use the precise version for calculating the CDF? The default is \code{TRUE} which is highly recommended. Using \code{FALSE} (i.e., the imprecise version) is hardly any faster and produces clearly wrong results for most parameter settings.}
 
 \item{p}{vector of probabilities. Or for convenience also a \code{data.frame} with columns \code{p} and \code{response}. See examples.}
 
@@ -72,13 +80,9 @@ Density, distribution function, quantile function, and random generation for the
 \details{
 The Ratcliff diffusion model (Ratcliff, 1978) is a mathematical model for two-choice discrimination tasks. It is based on the assumption that information is accumulated continuously until one of two decision thresholds is hit. For introductions see Ratcliff and McKoon (2008), Voss, Rothermund, and Voss (2004), Voss, Nagler, and Lerche (2013), or Wagenmakers (2009).
 
-All functions are fully vectorized across all parameters as well as the response. This allows for trialwise parameters for each model parameter. 
+All functions are fully vectorized across all parameters as well as the response to match the length or \code{rt} (i.e., the output is always of length equal to \code{rt}). This allows for trialwise parameters for each model parameter. 
 
 For convenience, all functions (with the exception of \code{rdiffusion}) allow that the first argument is a \code{data.frame} containing the information of the first and second argument in two columns (i.e., \code{rt}/\code{p} and \code{response}). Other columns (as well as passing \code{response} separately argument) will be ignored. This allows, for example, to pass the \code{data.frame} generated by \code{rdiffusion} directly to \code{pdiffusion}. See examples.
-
-\subsection{Distribution Function (CDF)}{
-For the time being, the cumulative probability function (\code{pdiffusion}) uses numerical integration of \code{ddiffusion} via \code{\link{integral}} from package \pkg{pracma}. While this is somewhat slow, it reliably produces correct results (in most cases). Please report all issues with the CDF to the package maintainer.
-}
 
 \subsection{Quantile Function}{
 Due to the bivariate nature of the diffusion model, the diffusion processes reaching each response boundary only return the defective CDF that does not reach 1. Only the sum of the CDF for both boundaries reaches 1. Therefore, \code{qdiffusion} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at \code{Inf}. 
@@ -89,7 +93,7 @@ Also note that quantiles (i.e., predicted RTs) are obtained by numerically minim
 }
 }
 \note{
-The parameterization of the non-decisional components, \code{t0} and \code{st0}, differs from the parameterization used by, for example, Andreas Voss or Roger Ratcliff in that \code{t0} is \emph{not} the lower bound of the uniform distribution of length \code{st0}, but its midpoint. The parameterization employed here is in line with the parametrization for the \link{LBA} code.
+The parameterization of the non-decisional components, \code{t0} and \code{st0}, differs from the parameterization used by, for example, Andreas Voss or Roger Ratcliff. In the present case \code{t0} is the lower bound of the uniform distribution of length \code{st0}, but \emph{not} its midpoint. The parameterization employed here is in line with the parametrization for the \link{LBA} code (where \code{t0} is also the lower bound).
 
 The default diffusion constant \code{s} is 1 and not 0.1 as in most applications of Roger Ratcliff and others.
 
@@ -235,9 +239,6 @@ sum(log(ddiffusion(rt1, a=1, v=2, t0=0.5)))
 sum(log(ddiffusion(rt2, a=1, v=2, t0=0.5)))
 
 }
-\author{
-Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, Scott Brown, and Henrik Singmann. \code{qdiffusion} by Henrik Singmann.
-}
 \references{
 Ratcliff, R. (1978). A theory of memory retrieval. \emph{Psychological Review}, 85(2), 59-108.
 
@@ -251,4 +252,6 @@ Wagenmakers, E.-J., van der Maas, H. L. J., & Grasman, R. P. P. P. (2007). An EZ
 
 Wagenmakers, E.-J. (2009). Methodological and empirical developments for the Ratcliff diffusion model of response times and accuracy. \emph{European Journal of Cognitive Psychology}, 21(5), 641-671.
 }
-
+\author{
+Underlying C code by Jochen Voss and Andreas Voss. Porting and R wrapping by Matthew Gretton, Andrew Heathcote, Scott Brown, and Henrik Singmann. \code{qdiffusion} by Henrik Singmann.
+}

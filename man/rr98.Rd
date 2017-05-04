@@ -108,4 +108,3 @@ head(rr98)
 ## See vignette for more examples.
 }
 \keyword{dataset}
-

@@ -1,39 +1,27 @@
 Package: rtdists
 Type: Package
 Title: Response Time Distributions
-Depends:
-    R (>= 3.0.0)
-Suggests:
-    testthat,
-    glba,
-    knitr,
-    rmarkdown,
-    dplyr,
-    tidyr,
-    lattice,
-    latticeExtra,
-    binom,
-    RWiener
-Imports:
-    evd,
-    msm,
-    gsl,
-    pracma,
-    stats,
-    utils
+Depends: R (>= 3.0.0)
+Suggests: testthat, glba, knitr, rmarkdown, dplyr, tidyr, lattice, latticeExtra, binom,
+         RWiener
+Imports: evd, msm, gsl, pracma, stats, utils, Rcpp
+LinkingTo: Rcpp
 Description: Provides response time distributions (density/PDF, distribution
-    function/CDF, quantile function, and random generation): (a) Ratcliff diffusion
-    model based on C code by Andreas and Jochen Voss and (b) linear ballistic
-    accumulator (LBA) with different distributions underlying the drift rate.
+         function/CDF, quantile function, and random generation): (a) Ratcliff
+         diffusion model based on C code by Andreas and Jochen Voss and (b) linear
+         ballistic accumulator (LBA) with different distributions underlying the drift
+         rate.
 URL: https://github.com/rtdists/rtdists/
 License: GPL (>=3)
 BugReports: https://github.com/rtdists/rtdists/issues
 VignetteBuilder: knitr
-Authors@R: c( person(given="Henrik", family="Singmann", email="singmann+rtdists@gmail.com", role=c("aut", "cre")),
-             person(given="Scott", family="Brown", role=c("aut")), person(given="Matthew", family="Gretton",
-             role=c("aut")), person(given="Andrew", family="Heathcote", role=c("aut")), person(given="Andreas",
-             family="Voss", role=c("ctb")), person(given="Jochen", family="Voss", role=c("ctb")),
-             person(given="Andrew", family="Terry", role=c("ctb")) )
-Version: 0.7-0
-Date: 2016-08-31
-RoxygenNote: 5.0.1
+Authors@R: c( person(given="Henrik", family="Singmann",
+         email="singmann+rtdists@gmail.com", role=c("aut", "cre")),
+         person(given="Scott", family="Brown", role=c("aut")), person(given="Matthew",
+         family="Gretton", role=c("aut")), person(given="Andrew", family="Heathcote",
+         role=c("aut")), person(given="Andreas", family="Voss", role=c("ctb")),
+         person(given="Jochen", family="Voss", role=c("ctb")), person(given="Andrew",
+         family="Terry", role=c("ctb")) )
+Version: 0.7-1
+Date: 2017-04-02
+RoxygenNote: 6.0.1

@@ -8,11 +8,14 @@ options(error = NULL)
 
 build_vignettes()
 
+Rcpp::compileAttributes()
+
 test()
 test_package("rtdists")  # no long tests of n1 functions
 test(filter = "bugs")
 test(filter = "input")
 test(filter = "lba")
+test(filter = "rng")
 test_file("tests/testthat/test-diffusion.R")
 test_file("tests/testthat/test-diffusion-math.R")
 test_file("tests/testthat/test-diffusion-bugs.R")
@@ -42,7 +45,7 @@ R.libs <- "."
 
 roxy.package(
   pck.source.dir = ".",
-  pck.version = "0.7-0",
+  pck.version = "0.7-1",
   pck.description = data.frame(
     Package = "rtdists",
     Type = "Package",
@@ -58,7 +61,8 @@ roxy.package(
     )",
     Depends = "R (>= 3.0.0)",
     Suggests = "testthat, glba, knitr, rmarkdown, dplyr, tidyr, lattice, latticeExtra, binom, RWiener",
-    Imports = "evd, msm, gsl, pracma, stats, utils",
+    Imports = "evd, msm, gsl, pracma, stats, utils, Rcpp",
+    LinkingTo = "Rcpp",
     Description = "Provides response time distributions (density/PDF, distribution function/CDF, quantile function, and random generation): (a) Ratcliff diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distributions underlying the drift rate.",
     URL = "https://github.com/rtdists/rtdists/",
     License = "GPL (>=3)",

@@ -58,4 +58,3 @@ aggregate(corr ~ condition + freq + corr, speed_acc, mean)
 Heathcote, A., & Love, J. (2012). Linear deterministic accumulator models of simple choice. \emph{Frontiers in Psychology: Cognitive Science}, 3, 292. doi:10.3389/fpsyg.2012.00292
 }
 \keyword{dataset}
-

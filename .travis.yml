@@ -1,8 +1,13 @@
 # Sample .travis.yml for R projects
 
+dist: trusty
 language: r
 warnings_are_errors: true
 sudo: required
+addons:
+  apt:
+    packages:
+      - libgsl0-dev
 r_binary_packages:
  - testthat
  - knitr
@@ -12,5 +17,5 @@ r_binary_packages:
  - msm
  - dplyr
  - tidyr
- - latticeextra
+ - latticeExtra
 
