@@ -4,14 +4,16 @@ dist: trusty
 language: r
 warnings_are_errors: true
 sudo: required
-r_binary_packages:
- - testthat
- - knitr
- - rmarkdown
- - gsl
- - evd
- - msm
- - dplyr
- - tidyr
- - latticeExtra
+addons:
+  apt:
+    packages:
+      - testthat
+      - knitr
+      - rmarkdown
+      - gsl
+      - evd
+      - msm
+      - dplyr
+      - tidyr
+      - latticeExtra
 
