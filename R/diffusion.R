@@ -139,12 +139,19 @@ ddiffusion <- function (rt, response = "upper",
     else return(rep(0, nn))
   }
   
-  uniques <- unique(params)
-  densities <- vector("numeric",length=length(rt))  
-  for (i in seq_len(nrow(uniques))) {
-    ok_rows <- apply(params, 1, identical, y = uniques[i,])
+  parameter_char <- apply(params, 1, paste0, collapse = "\t")
+  parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
+  parameter_indices <- split(seq_len(nn), f = parameter_factor)
+  
+  densities <- vector("numeric",length=nn)  
+  for (i in seq_len(length(parameter_indices))) {
+    ok_rows <- parameter_indices[[i]]
 
-    densities[ok_rows] <- d_fastdm (rt[ok_rows], uniques[i,1:8], precision, uniques[i,9], stop_on_error)
+    densities[ok_rows] <- d_fastdm (rt[ok_rows], 
+                                params[ok_rows[1],1:8], 
+                                precision, 
+                                params[ok_rows[1],9], 
+                                stop_on_error)
   }
   abs(densities)
 }
@@ -206,20 +213,33 @@ pdiffusion <- function (rt, response = "upper",
     else return(rep(0, nn))
   }
   
-  pvalues <- vector("numeric", length=length(rt))
-  uniques <- unique(params)
+
+  parameter_char <- apply(params, 1, paste0, collapse = "\t")
+  parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
+  parameter_indices <- split(seq_len(nn), f = parameter_factor)
+  
+  pvalues <- vector("numeric",length=nn)  
   
   if (use_precise) {
-    for (i in seq_len(nrow(uniques))) {
-      ok_rows <- apply(params, 1, identical, y = uniques[i,])
-      pvalues[ok_rows] <- p_precise_fastdm (rt[ok_rows], uniques[i,1:8], precision, uniques[i,9], stop_on_error)
+    for (i in seq_len(length(parameter_indices))) {
+      ok_rows <- parameter_indices[[i]]
+      pvalues[ok_rows] <- p_precise_fastdm (rt[ok_rows], 
+                                        params[ok_rows[1],1:8], 
+                                        precision, 
+                                        params[ok_rows[1],9], 
+                                        stop_on_error)
     }
   } else {
-    for (i in seq_len(nrow(uniques))) {
-      ok_rows <- apply(params, 1, identical, y = uniques[i,])
-      pvalues[ok_rows] <- p_fastdm (rt[ok_rows], uniques[i,1:8], precision, uniques[i,9], stop_on_error)
+    for (i in seq_len(length(parameter_indices))) {
+      ok_rows <- parameter_indices[[i]]
+      pvalues[ok_rows] <- p_fastdm (rt[ok_rows], 
+                                params[ok_rows[1],1:8], 
+                                precision, 
+                                params[ok_rows[1],9], 
+                                stop_on_error)
     }
   }
+  #pvalues <- unsplit(densities, f = parameter_factor)
   pvalues
 }
 
@@ -314,14 +334,22 @@ rdiffusion <- function (n,
   randRTs    <- vector("numeric",length=n)
   randBounds <- vector("numeric",length=n)
 
-  uniques <- unique(params)
-  for (i in seq_len(nrow(uniques))) {
-      ok_rows <- apply(params, 1, identical, y = uniques[i,])
+  #uniques <- unique(params)
+  parameter_char <- apply(params, 1, paste0, collapse = "\t")
+  parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
+  parameter_indices <- split(seq_len(n), f = parameter_factor)
+  
+  for (i in seq_len(length(parameter_indices))) {
+      ok_rows <- parameter_indices[[i]]
     
       # Calculate n for this row
-      current_n <- sum(ok_rows)
+      current_n <- length(ok_rows)
       
-      out <- r_fastdm (current_n, uniques[i,1:8], precision, stop_on_error=stop_on_error)
+      out <- r_fastdm (current_n, 
+                       params[ok_rows[1],1:8], 
+                       precision, 
+                       stop_on_error=stop_on_error)
+        #current_n, uniques[i,1:8], precision, stop_on_error=stop_on_error)
       
       randRTs[ok_rows]    <- out$rt       
       randBounds[ok_rows] <- out$boundary 

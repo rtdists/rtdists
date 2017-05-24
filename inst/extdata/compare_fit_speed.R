@@ -52,13 +52,12 @@ start <- structure(c(0.604158850735985, 0.0458056061761454, 0.00925190048292279,
 ## vectorized version:
 
 # objective function for diffusion. names of a and v need to be passed as vectors of length(rt)
-objective_diffusion <- function(pars, rt, boundary, v, a) {
-  densities <- tryCatch(
-    ddiffusion(rt, boundary=boundary, 
+objective_diffusion <- function(pars, rt, response, v, a) {
+  densities <- 
+    ddiffusion(rt, response=response, 
                a=pars[a], t0=pars["t0"], z=0.5, 
                sz=0.1, sv=pars["sv"], #st0=pars["st0"], 
-               v=pars[v]), 
-    error = function(e) 0)  
+               v=pars[v])
   if (any(densities == 0)) return(1e6)
   return(-sum(log(densities)))
 }
@@ -74,29 +73,27 @@ objective_diffusion <- function(pars, rt, boundary, v, a) {
 # }
 
 
-objective_diffusion_2 <- function(pars, rt, boundary, v, a) {
-  densities <- tryCatch(
-    ddiffusion(rt, boundary=boundary, 
+objective_diffusion_2 <- function(pars, rt, response, v, a) {
+  densities <- 
+    ddiffusion(rt, response=response, 
                a=pars["a"], t0=pars["t0"], z=0.5, 
                sz=0.1, sv=pars["sv"], #st0=pars["st0"], 
-               v=pars[v]), 
-    error = function(e) 0)  
+               v=pars[v])
   if (any(densities == 0)) return(1e6)
   return(-sum(log(densities)))
 }
 
 
-objective_diffusion_3 <- function(pars, rt, boundary, drift) 
+objective_diffusion_3 <- function(pars, rt, response, drift) 
 {
   base_par <- 3
   densities <- vector("numeric", length(rt))
   for (i in seq_along(levels(drift))) {
-    densities[drift == levels(drift)[i]] <- tryCatch(
-      ddiffusion(rt[drift == levels(drift)[i]], boundary=boundary[drift == levels(drift)[i]], 
+    densities[drift == levels(drift)[i]] <- 
+      ddiffusion(rt[drift == levels(drift)[i]], response=response[drift == levels(drift)[i]], 
                  a=pars["a"], t0=pars["t0"], z=0.5, 
                  sz=0.1, sv=pars["sv"], #st0=pars["st0"], 
-                 v=pars[base_par+i]), 
-      error = function(e) 0)  
+                 v=pars[base_par+i])
   }
   if (any(densities == 0)) return(1e6)
   return(-sum(log(densities)))
@@ -138,22 +135,12 @@ all.equal(out_loop_1, out_vector_2) #TRUE
 require(microbenchmark)
 
 microbenchmark(
-  objective_diffusion_3(start, rt = data$rt, boundary = data$response_num, drift = factor(data$strength)),
-  objective_diffusion_2(start, rt = data$rt, boundary = data$response_num,  v=data$v, a=data$a),
-  objective_diffusion(start, rt = data$rt, boundary = data$response_num,  v=data$v, a=data$a)
+  objective_diffusion_3(start, rt = data$rt, response = data$response_num, drift = factor(data$strength)),
+  objective_diffusion_2(start, rt = data$rt, response = data$response_num,  v=data$v, a=data$a),
+  objective_diffusion(start, rt = data$rt, response = data$response_num,  v=data$v, a=data$a)
 )
 
 
-Rprof("profile1.out", line.profiling=FALSE, interval = 0.001)
-objective_diffusion(start, rt = data$rt, boundary = data$response_num,  v=data$v, a=data$a)
-Rprof(NULL)
-
-summaryRprof("profile1.out", lines = "show")
-summaryRprof("profile1.out")
-
-Rprof("profile2.out", line.profiling=FALSE, interval = 0.001)
-objective_diffusion_3(start, rt = data$rt, boundary = data$response_num, drift = factor(data$strength))
-Rprof(NULL)
-
-summaryRprof("profile2.out", lines = "show")
-summaryRprof("profile2.out")
+profvis({
+  replicate(10, objective_diffusion(start, rt = data$rt, response = data$response_num,  v=data$v, a=data$a))
+})

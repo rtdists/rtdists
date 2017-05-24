@@ -1,5 +1,8 @@
 Changes to Version 0.7-x (released May 2017)
 
+  o Performance of diffusion functions and rLBA increased, especially for calls
+    with parameters that differ trialwise.
+  
   o All C functions are now accessed via Rcpp.
   
   o pdiffusion now uses the C++ CDF without numerical integration. 
