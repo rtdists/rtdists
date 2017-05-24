@@ -62,7 +62,7 @@ make_r <- function(drifts, n,b,A,n_v,t0,st0=0) {
     resp <- resp[!bad]
     rt <- rt[!bad]
   }
-  as.data.frame(cbind(rt=rt,response=resp))
+  cbind(rt=rt,response=resp)
 }
 
 rem_t0 <- function(rt, t0) pmax(rt - t0, 0)

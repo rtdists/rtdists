@@ -355,24 +355,21 @@ rLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "freche
   tmp_acc <- as.data.frame(dots, optional = TRUE)
   colnames(tmp_acc) <- sub("\\.c\\(.+", "", colnames(tmp_acc))
   
-  parameter_char <- apply(tmp_acc, 1, paste, collapse = "\t")
+  parameter_char <- apply(tmp_acc, 1, paste0, collapse = "\t")
   parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
   parameter_indices <- split(seq_len(nn), f = parameter_factor)
   
-  out <- vector('list', length(parameter_indices))  
+  out <- data.frame(rt = rep(0, n), response = 0)  
   for (i in seq_len(length(parameter_indices))) {
     ok_rows <- parameter_indices[[i]]
     tmp_dots <- lapply(dots, function(x) sapply(x, "[[", i = ok_rows[1]))
-    out[[i]] <- do.call(rng, 
+    out[ok_rows,] <- do.call(rng, 
                         args = c(n=list(length(ok_rows)), 
                                  A = list(sapply(A, "[", i = ok_rows)), 
                                  b = list(sapply(b, "[", i = ok_rows)), 
                                  t0 = list(sapply(t0, "[", i = ok_rows)), 
                                  st0 = list(st0[ok_rows]), 
                                  tmp_dots, args.dist=args.dist))
-    rownames(out[[i]]) <- parameter_indices[[i]]
   }
-  #browser()
-  out <- unsplit(out, f = parameter_factor)
   out
 }
