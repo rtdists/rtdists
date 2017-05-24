@@ -60,7 +60,7 @@ roxy.package(
         person(given=\"Andrew\", family=\"Terry\", role=c(\"ctb\"))
     )",
     Depends = "R (>= 3.0.0)",
-    Suggests = "testthat, glba, knitr, rmarkdown, dplyr, tidyr, lattice, latticeExtra, binom, RWiener",
+    Suggests = "testthat, glba, knitr, rmarkdown, dplyr, tidyr, purrr, lattice, latticeExtra, binom, RWiener",
     Imports = "evd, msm, gsl, pracma, stats, utils, Rcpp",
     LinkingTo = "Rcpp",
     Description = "Provides response time distributions (density/PDF, distribution function/CDF, quantile function, and random generation): (a) Ratcliff diffusion model based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA) with different distributions underlying the drift rate.",

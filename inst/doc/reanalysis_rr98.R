@@ -2,6 +2,7 @@
 require(rtdists)
 require(dplyr)   # for data manipulations and looping
 require(tidyr)   # for data manipulations
+require(purrr)   # for data manipulations
 require(lattice) # for plotting and corresponding themes
 require(latticeExtra)
 lattice.options(default.theme = standard.theme(color = FALSE))
@@ -26,12 +27,13 @@ xyplot(prop ~ strength|id, agg_rr98, group = instruction, type = "b",
 
 quantiles <- c(0.1, 0.3, 0.5, 0.7, 0.9)
 ## aggregate data for quantile plot
-quantiles_rr98 <- rr98  %>% group_by(id, instruction, strength) %>% 
-  do(as.data.frame(t(quantile(.$rt, probs = quantiles)))) %>%
-  ungroup() %>%
-  gather(quantile, rt,  -id, - instruction, - strength)
-quantiles_rr98$quantile <- factor(quantiles_rr98$quantile, 
-                                  levels = c("90%", "70%", "50%", "30%", "10%"))
+quantiles_rr98 <- rr98  %>% 
+  group_by(id, instruction, strength) %>% 
+  nest() %>% 
+  mutate(quantiles = map(data, ~ as.data.frame(t(quantile(.x$rt, probs = quantiles))))) %>% 
+  unnest(quantiles) %>% 
+  gather("quantile", "rt",`10%`:`90%`) %>% 
+  arrange(id, instruction, strength)
 
 xyplot(rt ~ strength|id + instruction, quantiles_rr98, group = quantile, type = "b", 
        auto.key = list(lines = TRUE), ylab = "RT (in seconds)", subset = instruction == "speed")
@@ -49,14 +51,14 @@ rr98$strength_bin <- cut(rr98$strength, breaks = bins, include.lowest = TRUE)
 levels(rr98$strength_bin) <- as.character(1:7)
 
 # aggregate data for response probability plot:
-agg_rr98_bin <- rr98 %>% group_by(id, instruction, strength_bin) %>%
+agg_rr98_bin <- rr98 %>% 
+  group_by(id, instruction, strength_bin) %>%
   summarise(n = n(), 
             dark = sum(response == "dark"),
             light = sum(response == "light")) %>%
   ungroup() %>%
-   mutate(prop = binom.confint(dark, n, methods = "agresti-coull")[,"mean"],
-     lower = binom.confint(dark, n, methods = "agresti-coull")$lower,
-     upper = binom.confint(dark, n, methods = "agresti-coull")$upper)
+  mutate(prop = map2(dark, n, ~ binom.confint(.x, .y, methods = "agresti-coull"))) %>% 
+  unnest(prop)
   
 
 knitr::kable(
@@ -68,19 +70,20 @@ knitr::kable(
 
 
 ## ---- fig.height=4, fig.width=7------------------------------------------
-xyplot(prop ~ strength_bin|id, agg_rr98_bin, group = instruction, type = "b", 
+xyplot(mean ~ strength_bin|id, agg_rr98_bin, group = instruction, type = "b", 
        auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses")
 
 
 ## ---- fig.height=6, fig.width=7------------------------------------------
 
 ## aggregate data for quantile plot
-quantiles_rr98_bin <- rr98  %>% group_by(id, instruction, strength_bin) %>% 
-  do(as.data.frame(t(quantile(.$rt, probs = quantiles)))) %>%
-  ungroup() %>%
-  gather(quantile, rt,  -id, -instruction, -strength_bin)
-quantiles_rr98_bin$quantile <- factor(quantiles_rr98_bin$quantile, 
-                                      levels = c("90%", "70%", "50%", "30%", "10%"))
+quantiles_rr98_bin <- rr98  %>% 
+  group_by(id, instruction, strength_bin) %>% 
+  nest() %>% 
+  mutate(quantiles = map(data, ~ as.data.frame(t(quantile(.x$rt, probs = quantiles))))) %>% 
+  unnest(quantiles) %>% 
+  gather("quantile", "rt",`10%`:`90%`) %>% 
+  arrange(id, instruction, strength_bin)
 
 xyplot(rt ~ strength_bin|id + instruction, quantiles_rr98_bin, group = quantile, type = "b", 
        auto.key = list(lines = TRUE), ylab = "RT (in seconds)", subset = instruction == "speed")
@@ -91,12 +94,13 @@ xyplot(rt ~ strength_bin|id + instruction, quantiles_rr98_bin, group = quantile,
 
 ## ---- fig.height=6, fig.width=7------------------------------------------
 
-agg2_rr98_response <- rr98  %>% group_by(id, instruction, strength_bin, response) %>% 
- do(as.data.frame(t(quantile(.$rt, probs = c(0.1, 0.3, 0.5, 0.7, 0.9))))) %>%
-  ungroup() %>%
-  gather(quantile, rt,  -id, - instruction, - strength_bin, -response)
-agg2_rr98_response$quantile <- factor(agg2_rr98_response$quantile, 
-                                      levels = c("90%", "70%", "50%", "30%", "10%"))
+agg2_rr98_response <- rr98  %>% 
+  group_by(id, instruction, strength_bin, response) %>% 
+  nest() %>% 
+  mutate(quantiles = map(data, ~ as.data.frame(t(quantile(.x$rt, probs = quantiles))))) %>% 
+  unnest(quantiles) %>% 
+  gather("quantile", "rt",`10%`:`90%`) %>% 
+  arrange(id, instruction, response, strength_bin)
 
 p1 <- xyplot(rt ~ strength_bin|id, agg2_rr98_response, group = quantile, type = "b", 
              auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
@@ -116,6 +120,12 @@ p2 <- xyplot(rt ~ strength_bin|id, agg2_rr98_response, group = quantile, type = 
 p1 + as.layer(p2)
 
 
+
+## ------------------------------------------------------------------------
+d_nested <- rr98 %>% 
+  group_by(id, instruction) %>% # we loop across both, id and instruction
+  nest()
+d_nested
 
 ## ------------------------------------------------------------------------
 # objective function for diffusion with 1 a. loops over drift to assign drift rates to strength
@@ -159,10 +169,12 @@ get_start <- function(base_par, n_drift = 5) {
 }
 
 # function that tries different random start values until it works:
-ensure_fit <- function(data, start_function, objective_function, base_pars, n_drift = 5, n_fits = 1,
-                       lower = c(rep(0, length(base_pars)), -Inf,
-                                 rep(-Inf, length(start_function(base_pars))-length(base_pars)))) {
-  best_fit <- list(objective = 1e+06)
+ensure_fit <- 
+  function(data, start_function, objective_function, 
+           base_pars, n_drift = 5, n_fits = 1, 
+           lower = c(rep(0, length(base_pars)), -Inf,
+                     rep(-Inf,length(start_function(base_pars))-length(base_pars)))) {
+    best_fit <- list(objective = 1e+06)
   for (i in seq_len(n_fits)) {
     start_ll <- 1e+06
     #browser()
@@ -183,7 +195,9 @@ ensure_fit <- function(data, start_function, objective_function, base_pars, n_dr
     
     if (fit$objective < best_fit$objective) best_fit <- fit
   }
-  best_fit
+  out <- as.data.frame(t(unlist(best_fit[1:3])))
+  colnames(out) <- sub("par.", "", colnames(out))
+  out
 }
 
 
@@ -193,54 +207,61 @@ load("rr98_full-lba_fits.rda")
 
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  
-#  fits_separate <- rr98 %>%
-#    group_by(id, instruction) %>% # we loop across both, id and instruction
-#    do(diffusion = ensure_fit(data = ., start_function = get_start,
+#  fit_diffusion <- d_nested %>%
+#    mutate(fit =
+#             map(data,
+#                 ~ensure_fit(data = ., start_function = get_start,
 #                              objective_function = objective_diffusion_separate,
-#                              base_pars = c("a", "t0", "sv", "sz", "z"),)) %>%
-#    ungroup()
+#                              base_pars = c("a", "t0", "sv", "sz", "z")))) %>%
+#    unnest(fit)
+
+## ---- eval = FALSE-------------------------------------------------------
+#  require(parallel)
+#  
+#  fit_diffusion <- d_nested
+#  fit_diffusion$fit <-
+#    mclapply(d_nested$data, function(x)
+#      ensure_fit(data = x, start_function = get_start,
+#                 objective_function = objective_diffusion_separate,
+#                 base_pars = c("a", "t0", "sv", "sz", "z")),
+#      mc.cores = 2)
+#  fit_diffusion <- unnest(fit_diffusion, fit)
 
 ## ------------------------------------------------------------------------
-pars_separate <- fits_separate %>% group_by(id, instruction) %>% 
-  do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% ungroup() %>%
-  as.data.frame()
-pars_separate$ll <- (fits_separate %>% group_by(id, instruction) %>% 
-                       do(ll = .$diffusion[[1]][["objective"]]) %>%  
-                       summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-if (!("st0" %in% colnames(pars_separate))) pars_separate$st0 <- 0
-if (!("z" %in% colnames(pars_separate))) pars_separate$z <- 0.5
-if (!("sz" %in% colnames(pars_separate))) pars_separate$sz <- 0.1
-knitr::kable(pars_separate)
+
+fit_diffusion$data <- NULL
+if (!("st0" %in% colnames(fit_diffusion))) fit_diffusion$st0 <- 0
+if (!("z" %in% colnames(fit_diffusion))) fit_diffusion$z <- 0.5
+if (!("sz" %in% colnames(fit_diffusion))) fit_diffusion$sz <- 0.1
+knitr::kable(fit_diffusion)
 
 
 ## ----obtain_fits_not_run, eval = FALSE, include = FALSE------------------
 #  
-#  fits_separate <- rr98 %>%
-#    group_by(id, instruction) %>% # we loop across both, id and instruction
-#    do(diffusion = ensure_fit(data = ., start_function = get_start,
+#  require(parallel)
+#  
+#  fit_diffusion <- d_nested %>%
+#    mutate(fit =
+#             map(data,
+#                 ~ensure_fit(data = ., start_function = get_start,
 #                              objective_function = objective_diffusion_separate,
-#                              base_pars = c("a", "t0", "sv", "sz", "z"),
-#                              n_fits = 1)) %>% ungroup()
+#                              base_pars = c("a", "t0", "sv", "sz", "z")))) %>%
+#    unnest(fit)
+#  fit_diffusion$data <- NULL
 #  
+#  fit_diffusion2 <- d_nested
+#  fit_diffusion2$fit <-
+#    mclapply(d_nested$data, function(x)
+#      ensure_fit(data = x, start_function = get_start,
+#                 objective_function = objective_diffusion_separate,
+#                 base_pars = c("a", "t0", "sv", "sz", "z")),
+#      mc.cores = 3)
+#  fit_diffusion2 <- unnest(fit_diffusion2, fit)
+#  fit_diffusion2$data <- NULL
 #  
-#  fits_separate_b <- rr98 %>%
-#    group_by(id, instruction) %>% # we loop across both, id and instruction
-#    do(diffusion = ensure_fit(data = ., start_function = get_start,
-#                              objective_function = objective_diffusion_separate,
-#                              base_pars = c("a", "t0", "sv", "sz", "z"),
-#                              n_fits = 1)) %>% ungroup()
+#  all.equal(as.data.frame(fit_diffusion), as.data.frame(fit_diffusion2), tolerance = 0.01)
 #  
-#  pars_separate_b <- as.data.frame(fits_separate_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% ungroup())
-#  pars_separate_b$ll <- (fits_separate_b %>% group_by(id, instruction) %>% do(ll = .$diffusion[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-#  if (!("st0" %in% colnames(pars_separate_b))) pars_separate_b$st0 <- 0
-#  if (!("z" %in% colnames(pars_separate_b))) pars_separate_b$z <- 0.5
-#  if (!("sz" %in% colnames(pars_separate_b))) pars_separate_b$sz <- 0.1
-#  knitr::kable(pars_separate_b)
-#  
-#  all.equal(pars_separate, pars_separate_b, tolerance = 0.001)
-#  
-#  save(fits_separate, fits_separate_b, file = "rr98_full-diffusion_fits.rda")
+#  save(fit_diffusion, fit_diffusion2, file = "rr98_full-diffusion_fits.rda")
 #  
 #  
 
@@ -248,7 +269,7 @@ knitr::kable(pars_separate)
 
 
 # get predicted response proportions
-pars_separate_l <- pars_separate %>% gather("strength_bin", "v", starts_with("v"))
+pars_separate_l <- fit_diffusion %>% gather("strength_bin", "v", starts_with("v"))
 pars_separate_l$strength_bin <- factor(substr(pars_separate_l$strength_bin, 3,3), 
                                        levels = as.character(seq_len(length(bins)-1)))
 #pars_separate_l <- inner_join(pars_separate_l, agg_rr98_bin)
@@ -256,7 +277,7 @@ pars_separate_l <- pars_separate_l  %>% group_by(id, instruction, strength_bin) 
   mutate(resp_prop = pdiffusion(rt=Inf, response="lower", 
                                 a=a, v=v, t0=t0, sz = sz, z=a*z, sv=sv, st0=st0))
 
-p1 <- xyplot(prop ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
+p1 <- xyplot(mean ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
                list(lines = TRUE), ylab = "Proportion of 'dark' responses", col = "grey")
 p2 <- segplot(strength_bin ~ upper+lower|id + instruction, agg_rr98_bin, 
               auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
@@ -405,69 +426,61 @@ get_start_lba <- function(base_par, n_drift = 10) {
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  
-#  fits_separate_lba <- rr98 %>%
-#    group_by(id, instruction) %>% # we loop across both, id and instruction
-#    do(lba = ensure_fit(data = ., start_function = get_start_lba,
+#  fit_lba <- d_nested %>%
+#    mutate(fit =
+#             map(data,
+#                 ~ensure_fit(data = ., start_function = get_start_lba,
 #                        objective_function = objective_lba_separate,
 #                        base_pars = c("a_1", "a_2", "t0", "b", "sv"),
 #                        lower = c(rep(-Inf, 5), rep(0, 5)),
-#                        n_drift = 5, n_fits = 10)) %>% ungroup()
+#                        n_drift = 5, n_fits = 10))) %>%
+#    unnest(fit)
 #  
 
+## ---- eval = FALSE-------------------------------------------------------
+#  require(parallel)
+#  
+#  fit_lba <- d_nested
+#  fit_lba$fit <-
+#    mclapply(d_nested$data, function(x)
+#      ensure_fit(data = x, start_function = get_start_lba,
+#                        objective_function = objective_lba_separate,
+#                        base_pars = c("a_1", "a_2", "t0", "b", "sv"),
+#                        lower = c(rep(-Inf, 5), rep(0, 5)),
+#                        n_drift = 5, n_fits = 10),
+#      mc.cores = 2)
+#  fit_lba <- unnest(fit_lba, fit)
+
 ## ------------------------------------------------------------------------
-lba_pars <- fits_separate_lba %>% group_by(id, instruction) %>% 
-  do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup() %>%
-  as.data.frame()
-lba_pars$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% 
-                       do(ll = .$lba[[1]][["objective"]]) %>%  
-                       summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-lba_pars <- lba_pars %>% group_by(id, instruction) %>%
-  mutate(b = max(a_1, a_2) + b) %>%
-  ungroup()
-knitr::kable(lba_pars)
+knitr::kable(fit_lba)
 
 
 ## ----obtain_fits_lba, eval = FALSE, include = FALSE----------------------
-#  
-#  fits_separate_lba <- rr98 %>%
-#    group_by(id, instruction) %>% # we loop across both, id and instruction
-#    do(lba = ensure_fit(data = ., start_function = get_start_lba,
+#  fit_lba <- d_nested %>%
+#    mutate(fit =
+#             map(data,
+#                 ~ensure_fit(data = ., start_function = get_start_lba,
 #                        objective_function = objective_lba_separate,
 #                        base_pars = c("a_1", "a_2", "t0", "b", "sv"),
 #                        lower = c(rep(-Inf, 5), rep(0, 5)),
-#                        n_drift = 5, n_fits = 5)) %>% ungroup()
+#                        n_drift = 5, n_fits = 10))) %>%
+#    unnest(fit)
+#  fit_lba$data <- NULL
 #  
-#  lba_pars_separate <- as.data.frame(fits_separate_lba %>% group_by(id, instruction) %>% do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup())
-#  lba_pars_separate$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% do(ll = .$lba[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-#  round(lba_pars_separate[,-c(1:2)], 4)
-#  
-#  
-#  fits_separate_lba_b <- rr98 %>%
-#    group_by(id, instruction) %>% # we loop across both, id and instruction
-#    do(lba = ensure_fit(data = ., start_function = get_start_lba,
+#  fit_lba2 <- d_nested
+#  fit_lba2$fit <-
+#    mclapply(d_nested$data, function(x)
+#      ensure_fit(data = x, start_function = get_start_lba,
 #                        objective_function = objective_lba_separate,
 #                        base_pars = c("a_1", "a_2", "t0", "b", "sv"),
 #                        lower = c(rep(-Inf, 5), rep(0, 5)),
-#                        n_drift = 5, n_fits = 5)) %>% ungroup()
+#                        n_drift = 5, n_fits = 10),
+#      mc.cores = 2)
+#  fit_lba2 <- unnest(fit_lba2, fit)
+#  fit_lba2$data <- NULL
 #  
-#  lba_pars_separate_b <- as.data.frame(fits_separate_lba_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup())
-#  lba_pars_separate_b$ll <- (fits_separate_lba_b %>% group_by(id, instruction) %>% do(ll = .$lba[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-#  
-#  all.equal(lba_pars_separate, lba_pars_separate_b, tolerance = 0.02)
-#  save(fits_separate_lba, fits_separate_lba_b, file = "rr98_full-lba_fits.rda")
-#  
-#  fits_separate_lba_b <- rr98 %>%
-#    group_by(id, instruction) %>% # we loop across both, id and instruction
-#    do(lba = ensure_fit(data = ., start_function = get_start_lba,
-#                        objective_function = objective_lba_separate,
-#                        base_pars = c("a_1", "a_2", "t0", "b", "sv"),
-#                        lower = c(rep(-Inf, 10), rep(0, 5)),
-#                        n_drift = 10)) %>% ungroup()
-#  
-#  lba_pars_separate_b <- as.data.frame(fits_separate_lba_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup())
-#  lba_pars_separate_b$ll <- (fits_separate_lba_b %>% group_by(id, instruction) %>% do(ll = .$lba[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-#  
-#  fits_separate_lba_b[2,"lba"][[1]]
+#  all.equal(as.data.frame(fit_lba), as.data.frame(fit_lba2), tolerance = 0.03)
+#  save(fit_lba, fit_lba2, file = "rr98_full-lba_fits.rda")
 #  
 #  
 #  
@@ -511,14 +524,8 @@ knitr::kable(lba_pars)
 #  
 
 ## ---- fig.height=5, fig.width=7, message=FALSE---------------------------
-lba_pars_separate <- fits_separate_lba %>% group_by(id, instruction) %>% 
-  do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup() %>% as.data.frame()
-lba_pars_separate$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% 
-                           do(ll = .$lba[[1]][["objective"]]) %>%  
-                           summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-
 # get predicted response proportions
-lba_pars_separate_l <- lba_pars_separate %>% gather("strength_bin", "v", starts_with("v"))
+lba_pars_separate_l <- fit_lba %>% gather("strength_bin", "v", starts_with("v"))
 lba_pars_separate_l$strength_bin <- factor(substr(lba_pars_separate_l$strength_bin, 3,3), 
                                        levels = as.character(seq_len(length(bins)-1)))
 #pars_separate_l <- inner_join(pars_separate_l, agg_rr98_bin)
@@ -526,7 +533,7 @@ lba_pars_separate_l <- lba_pars_separate_l  %>% group_by(id, instruction, streng
   mutate(resp_prop = pLBA(rt=Inf, response=1, A=list(a_1, a_2), sd_v=sv,
                           mean_v=c(v, 1-v), t0=t0, b=max(a_1, a_2)+b, silent=TRUE))
 
-p1 <- xyplot(prop ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
+p1 <- xyplot(mean ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
                list(lines = TRUE), ylab = "Proportion of 'dark' responses", col = "grey")
 p2 <- segplot(strength_bin ~ upper+lower|id + instruction, agg_rr98_bin, 
               auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
@@ -631,7 +638,7 @@ key$lines$lty <- c(1, 1, 2)
 key$points$col <- c("grey", "black", "black")
 key$points$pch <- c(1, 0, 4)
 
-p1 <- xyplot(prop ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
+p1 <- xyplot(mean ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
                list(lines = TRUE), ylab = "Proportion of 'dark' responses", col = "grey")
 p2 <- segplot(strength_bin ~ upper+lower|id + instruction, agg_rr98_bin, 
               auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 

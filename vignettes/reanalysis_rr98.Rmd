@@ -13,7 +13,7 @@ vignette: >
 
 This vignette provides the `R` scripts for a reanalysis of Experiment 1 of Ratcliff and Rouder (1998). In contrast to the original analysis, which used RT bins, we will employ trial-wise maximum likelihood estimation. 
 
-The code heavily uses [`dplyr`](https://cran.r-project.org/package=dplyr) ([vignette](https://cran.r-project.org/web/packages/dplyr/vignettes/introduction.html)) and [`tidyr`](https://cran.r-project.org/package=tidyr) ([vignette](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html)) for data handling and `lattice` (see `?Lattice`) and `latticeExtra` (specifically `as.layer`) for plotting. 
+The code heavily uses [`dplyr`](https://cran.r-project.org/package=dplyr) ([vignette](https://cran.r-project.org/web/packages/dplyr/vignettes/introduction.html)),  [`tidyr`](https://cran.r-project.org/package=tidyr) ([vignette](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html)), and [`purrr`](https://cran.r-project.org/package=purrr) for data handling and `lattice` (see `?Lattice`) and `latticeExtra` (specifically `as.layer`) for plotting. A throrough introduction to the former three packages is provided in [R for Data Science](http://r4ds.had.co.nz) by Wickham and Gorlemund, see especially Chapter 25.
 
 # Description of the Experiment
 
@@ -29,6 +29,7 @@ As a first step, we load the data and then plot the probability with which each 
 require(rtdists)
 require(dplyr)   # for data manipulations and looping
 require(tidyr)   # for data manipulations
+require(purrr)   # for data manipulations
 require(lattice) # for plotting and corresponding themes
 require(latticeExtra)
 lattice.options(default.theme = standard.theme(color = FALSE))
@@ -56,12 +57,13 @@ Next, we want to get an overview of the response time distributions. For this we
 
 quantiles <- c(0.1, 0.3, 0.5, 0.7, 0.9)
 ## aggregate data for quantile plot
-quantiles_rr98 <- rr98  %>% group_by(id, instruction, strength) %>% 
-  do(as.data.frame(t(quantile(.$rt, probs = quantiles)))) %>%
-  ungroup() %>%
-  gather(quantile, rt,  -id, - instruction, - strength)
-quantiles_rr98$quantile <- factor(quantiles_rr98$quantile, 
-                                  levels = c("90%", "70%", "50%", "30%", "10%"))
+quantiles_rr98 <- rr98  %>% 
+  group_by(id, instruction, strength) %>% 
+  nest() %>% 
+  mutate(quantiles = map(data, ~ as.data.frame(t(quantile(.x$rt, probs = quantiles))))) %>% 
+  unnest(quantiles) %>% 
+  gather("quantile", "rt",`10%`:`90%`) %>% 
+  arrange(id, instruction, strength)
 
 xyplot(rt ~ strength|id + instruction, quantiles_rr98, group = quantile, type = "b", 
        auto.key = list(lines = TRUE), ylab = "RT (in seconds)", subset = instruction == "speed")
@@ -86,14 +88,14 @@ rr98$strength_bin <- cut(rr98$strength, breaks = bins, include.lowest = TRUE)
 levels(rr98$strength_bin) <- as.character(1:7)
 
 # aggregate data for response probability plot:
-agg_rr98_bin <- rr98 %>% group_by(id, instruction, strength_bin) %>%
+agg_rr98_bin <- rr98 %>% 
+  group_by(id, instruction, strength_bin) %>%
   summarise(n = n(), 
             dark = sum(response == "dark"),
             light = sum(response == "light")) %>%
   ungroup() %>%
-   mutate(prop = binom.confint(dark, n, methods = "agresti-coull")[,"mean"],
-     lower = binom.confint(dark, n, methods = "agresti-coull")$lower,
-     upper = binom.confint(dark, n, methods = "agresti-coull")$upper)
+  mutate(prop = map2(dark, n, ~ binom.confint(.x, .y, methods = "agresti-coull"))) %>% 
+  unnest(prop)
   
 
 knitr::kable(
@@ -108,7 +110,7 @@ knitr::kable(
 We first look again and the response proportions and see more clearly the difference between the strength conditions at the outer bins.
 
 ```{r, fig.height=4, fig.width=7}
-xyplot(prop ~ strength_bin|id, agg_rr98_bin, group = instruction, type = "b", 
+xyplot(mean ~ strength_bin|id, agg_rr98_bin, group = instruction, type = "b", 
        auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses")
 
 ```
@@ -118,12 +120,13 @@ Now we also look again at the RT quantiles and see more clearly the symmetrical 
 ```{r, fig.height=6, fig.width=7}
 
 ## aggregate data for quantile plot
-quantiles_rr98_bin <- rr98  %>% group_by(id, instruction, strength_bin) %>% 
-  do(as.data.frame(t(quantile(.$rt, probs = quantiles)))) %>%
-  ungroup() %>%
-  gather(quantile, rt,  -id, -instruction, -strength_bin)
-quantiles_rr98_bin$quantile <- factor(quantiles_rr98_bin$quantile, 
-                                      levels = c("90%", "70%", "50%", "30%", "10%"))
+quantiles_rr98_bin <- rr98  %>% 
+  group_by(id, instruction, strength_bin) %>% 
+  nest() %>% 
+  mutate(quantiles = map(data, ~ as.data.frame(t(quantile(.x$rt, probs = quantiles))))) %>% 
+  unnest(quantiles) %>% 
+  gather("quantile", "rt",`10%`:`90%`) %>% 
+  arrange(id, instruction, strength_bin)
 
 xyplot(rt ~ strength_bin|id + instruction, quantiles_rr98_bin, group = quantile, type = "b", 
        auto.key = list(lines = TRUE), ylab = "RT (in seconds)", subset = instruction == "speed")
@@ -137,12 +140,13 @@ With this clear pattern we now take a look at the RT distributions separately fo
 
 ```{r, fig.height=6, fig.width=7}
 
-agg2_rr98_response <- rr98  %>% group_by(id, instruction, strength_bin, response) %>% 
- do(as.data.frame(t(quantile(.$rt, probs = c(0.1, 0.3, 0.5, 0.7, 0.9))))) %>%
-  ungroup() %>%
-  gather(quantile, rt,  -id, - instruction, - strength_bin, -response)
-agg2_rr98_response$quantile <- factor(agg2_rr98_response$quantile, 
-                                      levels = c("90%", "70%", "50%", "30%", "10%"))
+agg2_rr98_response <- rr98  %>% 
+  group_by(id, instruction, strength_bin, response) %>% 
+  nest() %>% 
+  mutate(quantiles = map(data, ~ as.data.frame(t(quantile(.x$rt, probs = quantiles))))) %>% 
+  unnest(quantiles) %>% 
+  gather("quantile", "rt",`10%`:`90%`) %>% 
+  arrange(id, instruction, response, strength_bin)
 
 p1 <- xyplot(rt ~ strength_bin|id, agg2_rr98_response, group = quantile, type = "b", 
              auto.key = list(lines = TRUE), ylab = "RT (in seconds)", 
@@ -169,9 +173,19 @@ These two plots reveal an interesting pattern. In the speed condition (upper plo
 For the accuracy condition in the lower plot the pattern is noticeably different. First of all, there are only very few or no "error" responses in the extreme bins. Consequently, there does not seem to be any evidence for fast errors at the extremes (and also not at intermediate strength levels). However, we here more clearly see the slow errors at the intermediate bins. When "dark" is somewhat more probably (i.e., to the left of the middle) "light" responses are noticeably slower than "dark" responses. The same holds for "dark" responses if "light" is more probable. Importantly, this shows that the symmetrical inverse u-shaped increase for the middle bins described above is actually a consequence of a mixture of slow "errors", two asymmetric increases for the two different responses.
 
 
+
 # Diffusion Model Analysis
 
-We will follow Ratcliff and Rouder (1998) and analyze the data with the diffusion model. For this, we will fit a separate model to each participant and instruction condition. Like Ratcliff and Rouder we will fit the data to the strength bins instead of the full strength manipulation. We fit basically the full diffusion model (with the exception of $s_{t0}$) to each instruction condition which results in 10 parameters per participant and instruction condition:
+We will follow Ratcliff and Rouder (1998) and analyze the data with the diffusion model. For this, we will fit a separate model to each participant and instruction condition. To do so, we will first create a new data set we will use for fitting. This data set will be `nested` with one row for each combinations of the variables:
+
+```{r}
+d_nested <- rr98 %>% 
+  group_by(id, instruction) %>% # we loop across both, id and instruction
+  nest()
+d_nested
+```
+
+Like Ratcliff and Rouder we will fit the data to the strength bins instead of the full strength manipulation. We fit basically the full diffusion model (with the exception of $s_{t0}$) to each instruction condition which results in 10 parameters per participant and instruction condition:
 
 - 5 drift rates $v$ (i.e., one per strength bin)
 - 1 boundary separation $a$
@@ -182,7 +196,7 @@ We will follow Ratcliff and Rouder (1998) and analyze the data with the diffusio
 
 Like in Ratcliff and Rouder (1998), the two response boundaries are the two response options "dark" and "light". To estimate the model we diverge from Ratcliff and Rouder and employ trial wise maximum likelihood estimation (i.e., no binning of responses). 
 
-To do so, we simply need to have a wrapper function which returns us the negative summed log-likelihood of the data (i.e., RTs and corresponding responses) given a set of parameters. We need the negativ sum because most optimization function minimize whereas we want to obtain the maximum likelihood value. The following function for which we simply loop across drift rates will do so:
+For this, we simply need to have a wrapper function which returns us the negative summed log-likelihood of the data (i.e., RTs and corresponding responses) given a set of parameters. We need the negativ sum because most optimization function minimize whereas we want to obtain the maximum likelihood value. The following function for which we simply loop across drift rates will do so:
 
 ```{r}
 # objective function for diffusion with 1 a. loops over drift to assign drift rates to strength
@@ -231,10 +245,12 @@ get_start <- function(base_par, n_drift = 5) {
 }
 
 # function that tries different random start values until it works:
-ensure_fit <- function(data, start_function, objective_function, base_pars, n_drift = 5, n_fits = 1,
-                       lower = c(rep(0, length(base_pars)), -Inf,
-                                 rep(-Inf, length(start_function(base_pars))-length(base_pars)))) {
-  best_fit <- list(objective = 1e+06)
+ensure_fit <- 
+  function(data, start_function, objective_function, 
+           base_pars, n_drift = 5, n_fits = 1, 
+           lower = c(rep(0, length(base_pars)), -Inf,
+                     rep(-Inf,length(start_function(base_pars))-length(base_pars)))) {
+    best_fit <- list(objective = 1e+06)
   for (i in seq_len(n_fits)) {
     start_ll <- 1e+06
     #browser()
@@ -255,7 +271,9 @@ ensure_fit <- function(data, start_function, objective_function, base_pars, n_dr
     
     if (fit$objective < best_fit$objective) best_fit <- fit
   }
-  best_fit
+  out <- as.data.frame(t(unlist(best_fit[1:3])))
+  colnames(out) <- sub("par.", "", colnames(out))
+  out
 }
 
 ```
@@ -266,33 +284,44 @@ load("rr98_full-lba_fits.rda")
 
 ```
 
-
-With these functions in place, we now simply need to loop over participants and items to obtain the fit. We do this (as above) using convenient `dplyr` syntax and `dplyr::do`.
+With these functions in place, we now simply need to loop over participants and items to obtain the fit. The simplest way is perhaps to use the combination of `purrr:map` and `dplyr::mutate` as shown here:
 
 
 ```{r, eval = FALSE}
-
-fits_separate <- rr98 %>% 
-  group_by(id, instruction) %>% # we loop across both, id and instruction
-  do(diffusion = ensure_fit(data = ., start_function = get_start, 
+fit_diffusion <- d_nested %>% 
+  mutate(fit = 
+           map(data, 
+               ~ensure_fit(data = ., start_function = get_start, 
                             objective_function = objective_diffusion_separate, 
-                            base_pars = c("a", "t0", "sv", "sz", "z"),)) %>% 
-  ungroup()
+                            base_pars = c("a", "t0", "sv", "sz", "z")))) %>% 
+  unnest(fit)
 ```
 
-The following table gives the parameters and the negative summed log-likelihoods (i.e., where smaller is better) obtained from this fit:
+On Unix-like systems (i.e., Linux and Mac) we can easily use the inbuild multicore functionality using `parallel::mclapply` to distribute fitting of the different parts across different cores:
+
+```{r, eval = FALSE}
+require(parallel)
+
+fit_diffusion <- d_nested
+fit_diffusion$fit <- 
+  mclapply(d_nested$data, function(x) 
+    ensure_fit(data = x, start_function = get_start,
+               objective_function = objective_diffusion_separate, 
+               base_pars = c("a", "t0", "sv", "sz", "z")),  
+    mc.cores = 2)
+fit_diffusion <- unnest(fit_diffusion, fit)
+```
+
+
+The following table gives the parameter values, the negative summed log-likelihoods (i.e., `objective`, where smaller is better), and the convergence code of the optimization algorithm (where 0 indicates no problem) obtained from this fit:
 
 ```{r}
-pars_separate <- fits_separate %>% group_by(id, instruction) %>% 
-  do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% ungroup() %>%
-  as.data.frame()
-pars_separate$ll <- (fits_separate %>% group_by(id, instruction) %>% 
-                       do(ll = .$diffusion[[1]][["objective"]]) %>%  
-                       summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-if (!("st0" %in% colnames(pars_separate))) pars_separate$st0 <- 0
-if (!("z" %in% colnames(pars_separate))) pars_separate$z <- 0.5
-if (!("sz" %in% colnames(pars_separate))) pars_separate$sz <- 0.1
-knitr::kable(pars_separate)
+
+fit_diffusion$data <- NULL
+if (!("st0" %in% colnames(fit_diffusion))) fit_diffusion$st0 <- 0
+if (!("z" %in% colnames(fit_diffusion))) fit_diffusion$z <- 0.5
+if (!("sz" %in% colnames(fit_diffusion))) fit_diffusion$sz <- 0.1
+knitr::kable(fit_diffusion)
 
 ```
 
@@ -306,31 +335,30 @@ We can see from these values that there is a large effect of instruction on $a$.
 
 ```{r obtain_fits_not_run, eval = FALSE, include = FALSE}
 
-fits_separate <- rr98 %>% 
-  group_by(id, instruction) %>% # we loop across both, id and instruction
-  do(diffusion = ensure_fit(data = ., start_function = get_start, 
+require(parallel)
+
+fit_diffusion <- d_nested %>% 
+  mutate(fit = 
+           map(data, 
+               ~ensure_fit(data = ., start_function = get_start, 
                             objective_function = objective_diffusion_separate, 
-                            base_pars = c("a", "t0", "sv", "sz", "z"), 
-                            n_fits = 1)) %>% ungroup()
+                            base_pars = c("a", "t0", "sv", "sz", "z")))) %>% 
+  unnest(fit)
+fit_diffusion$data <- NULL
 
+fit_diffusion2 <- d_nested
+fit_diffusion2$fit <- 
+  mclapply(d_nested$data, function(x) 
+    ensure_fit(data = x, start_function = get_start,
+               objective_function = objective_diffusion_separate, 
+               base_pars = c("a", "t0", "sv", "sz", "z")),  
+    mc.cores = 3)
+fit_diffusion2 <- unnest(fit_diffusion2, fit)
+fit_diffusion2$data <- NULL
 
-fits_separate_b <- rr98 %>% 
-  group_by(id, instruction) %>% # we loop across both, id and instruction
-  do(diffusion = ensure_fit(data = ., start_function = get_start, 
-                            objective_function = objective_diffusion_separate, 
-                            base_pars = c("a", "t0", "sv", "sz", "z"), 
-                            n_fits = 1)) %>% ungroup()
+all.equal(as.data.frame(fit_diffusion), as.data.frame(fit_diffusion2), tolerance = 0.01)
 
-pars_separate_b <- as.data.frame(fits_separate_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$diffusion[[1]][["par"]]))) %>% ungroup())
-pars_separate_b$ll <- (fits_separate_b %>% group_by(id, instruction) %>% do(ll = .$diffusion[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-if (!("st0" %in% colnames(pars_separate_b))) pars_separate_b$st0 <- 0
-if (!("z" %in% colnames(pars_separate_b))) pars_separate_b$z <- 0.5
-if (!("sz" %in% colnames(pars_separate_b))) pars_separate_b$sz <- 0.1
-knitr::kable(pars_separate_b)
-
-all.equal(pars_separate, pars_separate_b, tolerance = 0.001)
-
-save(fits_separate, fits_separate_b, file = "rr98_full-diffusion_fits.rda")
+save(fit_diffusion, fit_diffusion2, file = "rr98_full-diffusion_fits.rda")
 
 
 ```
@@ -346,7 +374,7 @@ To evaluate the fits graphically we first compare the actual response rates for 
 
 
 # get predicted response proportions
-pars_separate_l <- pars_separate %>% gather("strength_bin", "v", starts_with("v"))
+pars_separate_l <- fit_diffusion %>% gather("strength_bin", "v", starts_with("v"))
 pars_separate_l$strength_bin <- factor(substr(pars_separate_l$strength_bin, 3,3), 
                                        levels = as.character(seq_len(length(bins)-1)))
 #pars_separate_l <- inner_join(pars_separate_l, agg_rr98_bin)
@@ -354,7 +382,7 @@ pars_separate_l <- pars_separate_l  %>% group_by(id, instruction, strength_bin) 
   mutate(resp_prop = pdiffusion(rt=Inf, response="lower", 
                                 a=a, v=v, t0=t0, sz = sz, z=a*z, sv=sv, st0=st0))
 
-p1 <- xyplot(prop ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
+p1 <- xyplot(mean ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
                list(lines = TRUE), ylab = "Proportion of 'dark' responses", col = "grey")
 p2 <- segplot(strength_bin ~ upper+lower|id + instruction, agg_rr98_bin, 
               auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
@@ -549,34 +577,44 @@ With this, we simply need to loop across participants and instructions to estima
 
 ```{r, eval=FALSE}
 
-fits_separate_lba <- rr98 %>% 
-  group_by(id, instruction) %>% # we loop across both, id and instruction
-  do(lba = ensure_fit(data = ., start_function = get_start_lba, 
+fit_lba <- d_nested %>% 
+  mutate(fit = 
+           map(data, 
+               ~ensure_fit(data = ., start_function = get_start_lba, 
                       objective_function = objective_lba_separate, 
                       base_pars = c("a_1", "a_2", "t0", "b", "sv"),
                       lower = c(rep(-Inf, 5), rep(0, 5)),
-                      n_drift = 5, n_fits = 10)) %>% ungroup()
+                      n_drift = 5, n_fits = 10))) %>% 
+  unnest(fit)
 
+```
+
+Again, on Unix-like systems (i.e., Linux and Mac) we can use multicore using `parallel::mclapply`:
+
+```{r, eval = FALSE}
+require(parallel)
+
+fit_lba <- d_nested
+fit_lba$fit <- 
+  mclapply(d_nested$data, function(x) 
+    ensure_fit(data = x, start_function = get_start_lba, 
+                      objective_function = objective_lba_separate, 
+                      base_pars = c("a_1", "a_2", "t0", "b", "sv"),
+                      lower = c(rep(-Inf, 5), rep(0, 5)),
+                      n_drift = 5, n_fits = 10),  
+    mc.cores = 2)
+fit_lba <- unnest(fit_lba, fit)
 ```
 
 
 The following table gives the parameters and the negative summed log-likelihoods obtained from the LBA fit (with $b$ already correctly transformed by the maximum $A$):
 
 ```{r}
-lba_pars <- fits_separate_lba %>% group_by(id, instruction) %>% 
-  do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup() %>%
-  as.data.frame()
-lba_pars$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% 
-                       do(ll = .$lba[[1]][["objective"]]) %>%  
-                       summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-lba_pars <- lba_pars %>% group_by(id, instruction) %>%
-  mutate(b = max(a_1, a_2) + b) %>%
-  ungroup()
-knitr::kable(lba_pars)
+knitr::kable(fit_lba)
 
 ```
 
-The log-likelihood shows that the LBA provides a better account for four of the six data sets. The diffusion model only provides a better account for the `kr` and `nh` accuracy conditions. In terms of the parameter estimates we see a pattern similar as the one for the diffusion model:
+The negtaive log-likelihood (column `objective`) shows that the LBA provides a better account for four of the six data sets (because it is the negative log-likelihood, smaller is better). The diffusion model only provides a better account for the `kr` and `nh` accuracy conditions. In terms of the parameter estimates we see a pattern similar as the one for the diffusion model:
 
 - Instruction shows the expected effect on $b$.
 - Instruction also shows an effect on $A$, which is also larger in the accuracy compared to the speed condition.
@@ -585,46 +623,31 @@ The log-likelihood shows that the LBA provides a better account for four of the 
 - Instruction also affected $v$ which seemed to be more extreme in the accuracy compared to the speed condition.
 
 ```{r obtain_fits_lba, eval = FALSE, include = FALSE}
-
-fits_separate_lba <- rr98 %>% 
-  group_by(id, instruction) %>% # we loop across both, id and instruction
-  do(lba = ensure_fit(data = ., start_function = get_start_lba, 
+fit_lba <- d_nested %>% 
+  mutate(fit = 
+           map(data, 
+               ~ensure_fit(data = ., start_function = get_start_lba, 
                       objective_function = objective_lba_separate, 
                       base_pars = c("a_1", "a_2", "t0", "b", "sv"),
                       lower = c(rep(-Inf, 5), rep(0, 5)),
-                      n_drift = 5, n_fits = 5)) %>% ungroup()
+                      n_drift = 5, n_fits = 10))) %>% 
+  unnest(fit)
+fit_lba$data <- NULL
 
-lba_pars_separate <- as.data.frame(fits_separate_lba %>% group_by(id, instruction) %>% do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup())
-lba_pars_separate$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% do(ll = .$lba[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-round(lba_pars_separate[,-c(1:2)], 4)
-
-
-fits_separate_lba_b <- rr98 %>% 
-  group_by(id, instruction) %>% # we loop across both, id and instruction
-  do(lba = ensure_fit(data = ., start_function = get_start_lba, 
+fit_lba2 <- d_nested
+fit_lba2$fit <- 
+  mclapply(d_nested$data, function(x) 
+    ensure_fit(data = x, start_function = get_start_lba, 
                       objective_function = objective_lba_separate, 
                       base_pars = c("a_1", "a_2", "t0", "b", "sv"),
                       lower = c(rep(-Inf, 5), rep(0, 5)),
-                      n_drift = 5, n_fits = 5)) %>% ungroup()
+                      n_drift = 5, n_fits = 10),  
+    mc.cores = 2)
+fit_lba2 <- unnest(fit_lba2, fit)
+fit_lba2$data <- NULL
 
-lba_pars_separate_b <- as.data.frame(fits_separate_lba_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup())
-lba_pars_separate_b$ll <- (fits_separate_lba_b %>% group_by(id, instruction) %>% do(ll = .$lba[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-
-all.equal(lba_pars_separate, lba_pars_separate_b, tolerance = 0.02)
-save(fits_separate_lba, fits_separate_lba_b, file = "rr98_full-lba_fits.rda")
-
-fits_separate_lba_b <- rr98 %>% 
-  group_by(id, instruction) %>% # we loop across both, id and instruction
-  do(lba = ensure_fit(data = ., start_function = get_start_lba, 
-                      objective_function = objective_lba_separate, 
-                      base_pars = c("a_1", "a_2", "t0", "b", "sv"),
-                      lower = c(rep(-Inf, 10), rep(0, 5)),
-                      n_drift = 10)) %>% ungroup()
-
-lba_pars_separate_b <- as.data.frame(fits_separate_lba_b %>% group_by(id, instruction) %>% do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup())
-lba_pars_separate_b$ll <- (fits_separate_lba_b %>% group_by(id, instruction) %>% do(ll = .$lba[[1]][["objective"]]) %>%  summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-
-fits_separate_lba_b[2,"lba"][[1]]
+all.equal(as.data.frame(fit_lba), as.data.frame(fit_lba2), tolerance = 0.03)
+save(fit_lba, fit_lba2, file = "rr98_full-lba_fits.rda")
 
 
 
@@ -678,14 +701,8 @@ The fact that the LBA provides a slightly better fit is also visible in the grap
 We again first consider the predicted response rates (in black) and they are also highly accurate.
 
 ```{r, fig.height=5, fig.width=7, message=FALSE}
-lba_pars_separate <- fits_separate_lba %>% group_by(id, instruction) %>% 
-  do(as.data.frame(t(.$lba[[1]][["par"]]))) %>% ungroup() %>% as.data.frame()
-lba_pars_separate$ll <- (fits_separate_lba %>% group_by(id, instruction) %>% 
-                           do(ll = .$lba[[1]][["objective"]]) %>%  
-                           summarize(ll2 = mean(ll[[1]])) %>% as.data.frame())[[1]]
-
 # get predicted response proportions
-lba_pars_separate_l <- lba_pars_separate %>% gather("strength_bin", "v", starts_with("v"))
+lba_pars_separate_l <- fit_lba %>% gather("strength_bin", "v", starts_with("v"))
 lba_pars_separate_l$strength_bin <- factor(substr(lba_pars_separate_l$strength_bin, 3,3), 
                                        levels = as.character(seq_len(length(bins)-1)))
 #pars_separate_l <- inner_join(pars_separate_l, agg_rr98_bin)
@@ -693,7 +710,7 @@ lba_pars_separate_l <- lba_pars_separate_l  %>% group_by(id, instruction, streng
   mutate(resp_prop = pLBA(rt=Inf, response=1, A=list(a_1, a_2), sd_v=sv,
                           mean_v=c(v, 1-v), t0=t0, b=max(a_1, a_2)+b, silent=TRUE))
 
-p1 <- xyplot(prop ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
+p1 <- xyplot(mean ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
                list(lines = TRUE), ylab = "Proportion of 'dark' responses", col = "grey")
 p2 <- segplot(strength_bin ~ upper+lower|id + instruction, agg_rr98_bin, 
               auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
@@ -833,7 +850,7 @@ key$lines$lty <- c(1, 1, 2)
 key$points$col <- c("grey", "black", "black")
 key$points$pch <- c(1, 0, 4)
 
-p1 <- xyplot(prop ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
+p1 <- xyplot(mean ~ strength_bin|id + instruction, agg_rr98_bin, type = "b", auto.key = 
                list(lines = TRUE), ylab = "Proportion of 'dark' responses", col = "grey")
 p2 <- segplot(strength_bin ~ upper+lower|id + instruction, agg_rr98_bin, 
               auto.key = list(lines = TRUE), ylab = "Proportion of 'dark' responses", 
