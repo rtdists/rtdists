@@ -75,7 +75,7 @@
 #' @importFrom stats optimize uniroot
 # @importFrom pracma integral
 #' @aliases diffusion
-# @importFrom Rcpp evalCpp
+#' @importFrom Rcpp evalCpp
 #' 
 #' @example examples/examples.diffusion.R
 #' 

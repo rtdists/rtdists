@@ -61,7 +61,7 @@ roxy.package(
     )",
     Depends = "R (>= 3.0.0)",
     Suggests = "testthat, glba, knitr, rmarkdown, dplyr, tidyr, purrr, lattice, latticeExtra, binom, RWiener",
-    Imports = "evd, msm, gsl, stats",
+    Imports = "evd, msm, gsl, stats, Rcpp",
     LinkingTo = "Rcpp",
     Description = "Provides response time distributions (density/PDF, distribution function/CDF, quantile function, and random generation): (a) Ratcliff diffusion model (Ratcliff & McKoon, 2008, <doi:10.1162/neco.2008.12-06-420>) based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA; Brown & Heathcote, 2008, <doi:10.1016/j.cogpsych.2007.12.002>) with different distributions underlying the drift rate.",
     URL = "https://github.com/rtdists/rtdists/",
@@ -73,3 +73,10 @@ roxy.package(
   R.libs = R.libs, 
   repo.root = tempdir())
 
+devtools::revdep()
+revdep_check(libpath = "../revdep", check_dir = "../revdep_checks")
+install.packages("xx", lib = "../revdep")
+revdep_check_resume()
+revdep_check_save_summary()
+revdep_check_print_problems()
+revdep_maintainers()
