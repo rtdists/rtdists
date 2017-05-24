@@ -1,7 +1,7 @@
 context("pdiffusion functions: RNG is equivalent to pdiffusion")
 
 #x <- .Random.seed
-#set.seed(3)
+set.seed(3)
 
 tryCatch.W.E <- function(expr)
 {
