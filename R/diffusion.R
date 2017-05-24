@@ -71,11 +71,11 @@
 #' @useDynLib rtdists, .registration = TRUE
 #'
 #' @name Diffusion
-#' @importFrom utils head
+# @importFrom utils head
 #' @importFrom stats optimize uniroot
-#' @importFrom pracma integral
+# @importFrom pracma integral
 #' @aliases diffusion
-#' @importFrom Rcpp evalCpp
+# @importFrom Rcpp evalCpp
 #' 
 #' @example examples/examples.diffusion.R
 #' 

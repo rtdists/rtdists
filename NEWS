@@ -1,11 +1,12 @@
 Changes to Version 0.7-x (released May 2017)
 
   o Performance of diffusion functions and rLBA increased, especially for calls
-    with parameters that differ trialwise.
+    with parameters that differ trialwise. As a consequence single rlba_... 
+    functions now return a matrix and no data.frame.
   
   o All C functions are now accessed via Rcpp.
   
-  o pdiffusion now uses the C++ CDF without numerical integration. 
+  o pdiffusion uses the C++ CDF (no more numerical integration in R). 
   
   o sv can produce slow errors, and sz fast erros (this was the wrong way around
     in the documentation). Thanks to Gabriel Tillman for noticing that.

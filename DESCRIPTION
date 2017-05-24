@@ -4,7 +4,7 @@ Title: Response Time Distributions
 Depends: R (>= 3.0.0)
 Suggests: testthat, glba, knitr, rmarkdown, dplyr, tidyr, purrr, lattice, latticeExtra,
           binom, RWiener
-Imports: evd, msm, gsl, pracma, stats, utils, Rcpp
+Imports: evd, msm, gsl, stats
 LinkingTo: Rcpp
 Description: Provides response time distributions (density/PDF, distribution
           function/CDF, quantile function, and random generation): (a) Ratcliff diffusion
