@@ -66,7 +66,7 @@ check_n1_arguments <- function(arg, nn, n_v, dots = FALSE) {
       arg[[i]] <- rep(arg[[i]], length.out=nn)
     }
   }
-  return(arg)
+  return(unname(arg))
 }
 
 #' @rdname LBA-race
