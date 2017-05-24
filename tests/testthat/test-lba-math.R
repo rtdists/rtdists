@@ -16,7 +16,7 @@ test_that("PDF and CDF", {
     t0 <- runif(1, 0.1, 0.7)
     v1 <- runif(2, 0.5, 1.5)
     v2 <- runif(2, 0.1, 0.5)
-    r_lba1 <- rlba_norm(samples_per_run, A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1:2])
+    r_lba1 <- rLBA(samples_per_run, A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1:2])
     
     expect_equal(
       dlba_norm(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1], sd_v=v2[1]), 
@@ -46,12 +46,12 @@ test_that("small A values for 'norm'", {
     r_lba1 <- rlba_norm(samples_per_run, A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1:2])
     
     expect_equal(
-      dlba_norm(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1], sd_v=v2[1]), 
-      fptpdf(pmax(r_lba1$rt[r_lba1$response==1]-t0[1], 0), x0max=A, chi=b, driftrate=v1[1], sddrift=v2[1])
+      dlba_norm(r_lba1[,"rt"][r_lba1[,"response"]==1], A=A, b=b, t0 = t0, mean_v=v1[1], sd_v=v2[1]), 
+      fptpdf(pmax(r_lba1[,"rt"][r_lba1[,"response"]==1]-t0[1], 0), x0max=A, chi=b, driftrate=v1[1], sddrift=v2[1])
     )
     expect_equal(
-      plba_norm(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1], sd_v=v2[1]), 
-      fptcdf(pmax(r_lba1$rt[r_lba1$response==1]-t0[1], 0), x0max=A, chi=b, driftrate=v1[1], sddrift=v2[1])
+      plba_norm(r_lba1[,"rt"][r_lba1[,"response"]==1], A=A, b=b, t0 = t0, mean_v=v1[1], sd_v=v2[1]), 
+      fptcdf(pmax(r_lba1[,"rt"][r_lba1[,"response"]==1]-t0[1], 0), x0max=A, chi=b, driftrate=v1[1], sddrift=v2[1])
     )
     
   }
@@ -79,8 +79,8 @@ test_that("Random generation", {
     #r_lba2 <- rlba_norm(samples_per_run, A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1:2])
     r_lba2 <- rlba(samples_per_run, A=A, b=b, t0 = t0, vs=v1[1:2], s=v2[1:2])
     
-    expect_equal(r_lba1$rt, r_lba2$rt)
-    expect_equal(r_lba1$resp, r_lba2$resp)
+    expect_equal(r_lba1[,"rt"], r_lba2$rt)
+    expect_equal(r_lba1[,"response"], r_lba2$resp)
   }
 })
 
@@ -104,8 +104,8 @@ test_that("n1CDF", {
     #save(r_lba1, A, b, t0, v1, v2, file = "n1CDF_no_diff_example_5.RData")
     
     expect_equal(
-      n1CDF(r_lba1$rt[r_lba1$response==1], A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1]), 
-      .n1CDF(pmax(r_lba1$rt[r_lba1$response==1]-t0[1], 0), x0max=A, chi=b, drift=v1[1:2], sdI=v2[1])
+      n1CDF(r_lba1[,"rt"][r_lba1[,"response"]==1], A=A, b=b, t0 = t0, mean_v=v1[1:2], sd_v=v2[1]), 
+      .n1CDF(pmax(r_lba1[,"rt"][r_lba1[,"response"]==1]-t0[1], 0), x0max=A, chi=b, drift=v1[1:2], sdI=v2[1])
     )
     
   }

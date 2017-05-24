@@ -359,7 +359,7 @@ rLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "freche
   parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
   parameter_indices <- split(seq_len(nn), f = parameter_factor)
   
-  out <- data.frame(rt = rep(0, n), response = 0)  
+  out <- cbind(rt = rep(0, n), response = rep(0, n))  
   for (i in seq_len(length(parameter_indices))) {
     ok_rows <- parameter_indices[[i]]
     tmp_dots <- lapply(dots, function(x) sapply(x, "[[", i = ok_rows[1]))
@@ -371,5 +371,5 @@ rLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "freche
                                  st0 = list(st0[ok_rows]), 
                                  tmp_dots, args.dist=args.dist))
   }
-  out
+  as.data.frame(out)
 }

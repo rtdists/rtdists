@@ -9,7 +9,7 @@ test_that("n1PDF: List input for A and b", {
   v1 <- runif(4, 0.5, 1.5)
   v2 <- runif(4, 0.1, 0.5)
   st0 <- runif(1, 0.1, 0.5)
-  r_lba <- rlba_norm(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
+  r_lba <- rLBA(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
   
   p1 <- n1PDF(r_lba$rt, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2], silent = TRUE) # PDF
   p2 <- n1PDF(r_lba$rt, A=list(A[1], A[1]), b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2], silent = TRUE) # PDF
@@ -48,7 +48,7 @@ test_that("n1CDF: List input for A and b", {
   v1 <- runif(4, 0.5, 1.5)
   v2 <- runif(4, 0.1, 0.5)
   st0 <- runif(1, 0.1, 0.5)
-  r_lba <- rlba_norm(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
+  r_lba <- rLBA(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
   
   p1 <- n1CDF(r_lba$rt, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2], silent = TRUE) # PDF
   p2 <- n1CDF(r_lba$rt, A=list(A[1], A[1]), b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2], silent = TRUE) # PDF
@@ -83,7 +83,7 @@ test_that("n1CDF: List input for drift rate", {
   v1 <- runif(4, 0.5, 1.5)
   v2 <- runif(4, 0.1, 0.5)
   st0 <- runif(1, 0.1, 0.5)
-  r_lba <- rlba_norm(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
+  r_lba <- rLBA(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
   
   v1 <- n1PDF(r_lba$rt, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
   v2 <- n1PDF(r_lba$rt, A=0.5, b=1, t0 = 0.5, mean_v=list(1.2, 1.0), sd_v=0.2)
@@ -100,7 +100,7 @@ test_that("n1PDF: Trialwise input for t0", {
   v1 <- runif(4, 0.5, 1.5)
   v2 <- runif(4, 0.1, 0.5)
   st0 <- runif(1, 0.1, 0.5)
-  r_lba <- rlba_norm(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
+  r_lba <- rLBA(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
   
   v1_a <- n1PDF(r_lba$rt[seq_len(samples/2)], A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
   v1_b <- n1PDF(r_lba$rt[seq_len(samples/2)+samples/2], A=0.5, b=1, t0 = 0.2, mean_v=c(1.2, 1.0), sd_v=0.2)
@@ -111,7 +111,7 @@ test_that("n1PDF: Trialwise input for t0", {
   v2 <- runif(4, 0.5, 1.5)
   st0 <- runif(1, 0.1, 0.5)
   
-  r_lba <- rlba_gamma(samples, A=A[1], b=b[1], t0 = t0[1], shape_v =v1[1:2], scale_v = v2[1:2])
+  r_lba <- rLBA(samples, A=A[1], b=b[1], t0 = t0[1], shape_v =v1[1:2], scale_v = v2[1:2], distribution = "gamma")
   
   v3_a <- n1PDF(r_lba$rt[seq_len(samples/2)], A=0.5, b=1, t0 = 0.5, shape_v=v1[3:4], scale_v = v2[3:4], distribution = "gamma")
   v3_b <- n1PDF(r_lba$rt[seq_len(samples/2)+samples/2], A=0.5, b=1, t0 = 0.2, shape_v=v1[3:4], scale_v = v2[3:4], distribution = "gamma")
@@ -129,7 +129,7 @@ test_that("n1PDF: Trialwise input for st0", {
   v1 <- runif(4, 0.5, 1.5)
   v2 <- runif(4, 0.1, 0.5)
   st0 <- runif(2, 0.1, 0.2)
-  r_lba <- rlba_norm(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2], st0 = st0[1])
+  r_lba <- rLBA(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2], st0 = st0[1])
   
   v1_a <- n1PDF(r_lba$rt[seq_len(samples/2)], A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2, st0 = st0[1])
   v1_b <- n1PDF(r_lba$rt[seq_len(samples/2)+samples/2], A=0.5, b=1, t0 = 0.2, mean_v=c(1.2, 1.0), sd_v=0.2, st0 = st0[2])
@@ -146,7 +146,7 @@ test_that("n1PDF: Trialwise input for drift rate", {
   v1 <- runif(4, 0.5, 1.5)
   v2 <- runif(4, 0.1, 0.5)
   st0 <- runif(1, 0.1, 0.5)
-  r_lba <- rlba_norm(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
+  r_lba <- rLBA(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
   
   v1_a <- n1PDF(r_lba$rt[seq_len(samples/2)], A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
   v1_b <- n1PDF(r_lba$rt[seq_len(samples/2)+samples/2], A=0.5, b=1, t0 = 0.5, mean_v=c(2.2, 0.5), sd_v=0.5)

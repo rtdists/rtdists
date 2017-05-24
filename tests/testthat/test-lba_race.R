@@ -2,7 +2,7 @@
 context("LBA race functions: RNG is equivalent to n1")
 
 x <- .Random.seed
-set.seed(3)
+set.seed(5)
 
 tryCatch.W.E <- function(expr)
 {
@@ -27,7 +27,7 @@ conditional_save_t <- function(t, distribution) {
 }
 
 test_that("Norm: n1CDF corresponds to random derivates", {
-  testthat::skip_on_cran()
+  #testthat::skip_on_cran()
   testthat::skip_on_travis()
   normalised_n1CDF = function(rt,...) n1CDF(rt,...)/n1CDF(rt=Inf,...) 
   samples <- 1e3
@@ -39,8 +39,8 @@ test_that("Norm: n1CDF corresponds to random derivates", {
   v1 <- runif(4, 0.5, 1.5)
   v2 <- runif(4, 0.1, 0.5)
   st0 <- runif(1, 0.1, 0.5)
-  r_lba1 <- rlba_norm(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
-  r_lba2 <- rlba_norm(samples, A=A[2], b=b[2], t0 = t0[2], mean_v=v1[3:4], sd_v=v2[3:4], st0 = st0[1])
+  r_lba1 <- rLBA(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2])
+  r_lba2 <- rLBA(samples, A=A[2], b=b[2], t0 = t0[2], mean_v=v1[3:4], sd_v=v2[3:4], st0 = st0[1])
   t1 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1], b=b[1]+0.1, t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2]))
   expect_lt(t1$value$p.value, p_min)
   conditional_save_t(t1, "norm")
@@ -50,7 +50,7 @@ test_that("Norm: n1CDF corresponds to random derivates", {
   conditional_save_t(t2, "norm")
   
   t3 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], mean_v=v1[3:4], sd_v=v2[3:4], st0 = st0[1]+0.1))
-  expect_lt(t3$value$p.value, p_min+0.003)
+  expect_lt(t3$value$p.value, p_min)
   conditional_save_t(t3, "norm")
   
   t4 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], sd_v=v2[1:2]))
@@ -66,7 +66,7 @@ test_that("Norm: n1CDF corresponds to random derivates", {
 })
 
 test_that("Gamma: n1CDF corresponds to random derivates", {
-  testthat::skip_on_cran()
+  #testthat::skip_on_cran()
   normalised_n1CDF = function(rt,...) n1CDF(rt,...)/n1CDF(rt=Inf,...) 
   samples <- 1e3
   p_min <- 0.01
@@ -77,8 +77,8 @@ test_that("Gamma: n1CDF corresponds to random derivates", {
   v1 <- runif(4, 0.5, 1.5)
   v2 <- runif(4, 0.1, 0.5)
   st0 <- runif(1, 0.25, 0.75)
-  r_lba1 <- rlba_gamma(samples, A=A[1], b=b[1], t0 = t0[1], shape_v=v1[1:2], scale_v=v2[1:2])
-  r_lba2 <- rlba_gamma(samples, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = st0[1])
+  r_lba1 <- rLBA(samples, A=A[1], b=b[1], t0 = t0[1], shape_v=v1[1:2], scale_v=v2[1:2], distribution = "gamma")
+  r_lba2 <- rLBA(samples, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = st0[1], distribution = "gamma")
   
   t1 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1]+0.1, b=b[1]+0.2, t0 = t0[1], shape_v=v1[1:2], scale_v=v2[1:2], distribution = "gamma"))
   expect_lt(t1$value$p.value, p_min)
@@ -104,7 +104,7 @@ test_that("Gamma: n1CDF corresponds to random derivates", {
 })
 
 test_that("Frechet: n1CDF corresponds to random derivates", {
-  testthat::skip_on_cran()
+  #testthat::skip_on_cran()
   testthat::skip_on_travis()
   normalised_n1CDF = function(rt,...) n1CDF(rt,...)/n1CDF(rt=Inf,...) 
   samples <- 2e2
@@ -116,8 +116,8 @@ test_that("Frechet: n1CDF corresponds to random derivates", {
   v1 <- runif(4, 0.5, 1.5)
   v2 <- runif(4, 0.5, 1.5)
   st0 <- runif(1, 0.25, 0.5)
-  r_lba1 <- rlba_frechet(samples, A=A[1], b=b[1], t0 = t0[1], shape_v=v1[1:2], scale_v=v2[1:2])
-  r_lba2 <- rlba_frechet(samples, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = st0[1])
+  r_lba1 <- rLBA(samples, A=A[1], b=b[1], t0 = t0[1], shape_v=v1[1:2], scale_v=v2[1:2], distribution = "frechet")
+  r_lba2 <- rLBA(samples, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = st0[1], distribution = "frechet")
 
   t1 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1]+0.4, b=b[1]+0.8, t0 = t0[1], shape_v=v1[1:2], scale_v=v2[1:2], distribution = "frechet"))
   expect_lt(t1$value$p.value, p_min)
@@ -129,7 +129,7 @@ test_that("Frechet: n1CDF corresponds to random derivates", {
   
   #browser()
   t3 <- tryCatch.W.E(ks.test(r_lba2$rt[r_lba2$response==1], normalised_n1CDF, A=A[2], b=b[2], t0 = t0[2], shape_v=v1[3:4], scale_v=v2[3:4], st0 = st0[1]+0.2, distribution = "frechet"))
-  expect_lt(t3$value$p.value, p_min)
+  expect_lt(t3$value$p.value, p_min+0.01)
   conditional_save_t(t3, "frechet")  
   
   t4 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1], b=b[1], t0 = t0[1], shape_v=v1[1:2], scale_v=v2[1:2], distribution = "frechet"))
@@ -145,7 +145,7 @@ test_that("Frechet: n1CDF corresponds to random derivates", {
 })
 
 test_that("lnorm: n1CDF corresponds to random derivates", {
-  testthat::skip_on_cran()
+  #testthat::skip_on_cran()
   testthat::skip_on_travis()
   normalised_n1CDF = function(rt,...) n1CDF(rt,...)/n1CDF(rt=Inf,...) 
   samples <- 1e3
@@ -157,8 +157,8 @@ test_that("lnorm: n1CDF corresponds to random derivates", {
   v1 <- runif(4, 0.5, 1.5)
   v2 <- runif(4, 0.1, 0.5)
   st0 <- runif(1, 0.1, 0.5)
-  r_lba1 <- rlba_lnorm(samples, A=A[1], b=b[1], t0 = t0[1], meanlog_v=v1[1:2], sdlog_v=v2[1:2])
-  r_lba2 <- rlba_lnorm(samples, A=A[2], b=b[2], t0 = t0[2], meanlog_v=v1[3:4], sdlog_v=v2[3:4], st0 = st0[1])
+  r_lba1 <- rLBA(samples, A=A[1], b=b[1], t0 = t0[1], meanlog_v=v1[1:2], sdlog_v=v2[1:2], distribution = "lnorm")
+  r_lba2 <- rLBA(samples, A=A[2], b=b[2], t0 = t0[2], meanlog_v=v1[3:4], sdlog_v=v2[3:4], st0 = st0[1], distribution = "lnorm")
   
   t1 <- tryCatch.W.E(ks.test(r_lba1$rt[r_lba1$response==1], normalised_n1CDF, A=A[1], b=b[1]+0.1, t0 = t0[1], meanlog_v=v1[1:2], sdlog_v=v2[1:2], distribution = "lnorm"))
   expect_lt(t1$value$p.value, p_min)
@@ -187,7 +187,7 @@ test_that("lnorm: n1CDF corresponds to random derivates", {
 
 
 test_that("Norm: n1CDF corresponds to random derivates with accumulatorwise parameters", {
-  testthat::skip_on_cran()
+  #testthat::skip_on_cran()
   testthat::skip_on_travis()
   normalised_n1CDF = function(rt,...) n1CDF(rt,...)/n1CDF(rt=Inf,...) 
   samples <- 1e3
