@@ -61,11 +61,11 @@ p11_diff <- nlminb(start, ll_diffusion, lower = 0,
                    rt=p11$rt, response=p11$corr)
 p11_diff[1:3]
 # $par
-#          a          v         t0         sz        st0         sv 
-# 1.46988900 4.41872331 0.31362870 0.00003596 0.19106096 1.63351989 
+#         a         v        t0        sz       st0        sv 
+# 1.3206011 3.2727202 0.3385602 0.4621645 0.2017950 1.0551706 
 # 
 # $objective
-# [1] -211.242
+# [1] -207.5487
 # 
 # $convergence
 # [1] 0
@@ -167,3 +167,25 @@ points(p11_q_e, q*prop.table(table(p11$corr))[1], pch = 2)
 lines(pred_correct_diffusion, q*pred_prop_correct_diffusion, type = "b")
 lines(pred_error_diffusion, q*(1-pred_prop_correct_diffusion), type = "b")
 dev.off()
+
+png("p11_CDF_check.png", width = 600, height = 400, units = "px")
+par(cex=1.5)
+rand_rts <- rdiffusion(1e5, a=p11_diff$par["a"], 
+                            v=p11_diff$par["v"], 
+                            t0=p11_diff$par["t0"], 
+                            sz=p11_diff$par["sz"], 
+                            st0=p11_diff$par["st0"], 
+                            sv=p11_diff$par["sv"])
+plot(ecdf(rand_rts[rand_rts$response == "upper","rt"]), lwd = 2)
+
+normalised_pdiffusion = function(rt,...) pdiffusion(rt,...)/pdiffusion(rt=Inf,...) 
+curve(normalised_pdiffusion(x, response = "upper",
+                            a=p11_diff$par["a"], 
+                            v=p11_diff$par["v"], 
+                            t0=p11_diff$par["t0"], 
+                            sz=p11_diff$par["sz"], 
+                            st0=p11_diff$par["st0"], 
+                            sv=p11_diff$par["sv"]), 
+      add=TRUE, col = "yellow", lty = 2, lwd = 2)
+dev.off()
+
