@@ -210,3 +210,87 @@ test_that("n1PDF works with named lists", {
   expect_is(sum(log(n1PDF(rt1$rt, A=list(r1=0.5,r2=.5), b=1, t0 = 0.5, mean_v=list(b=seq(2.0, 2.4, length.out = 500), c=1.6), sd_v=c(xx=1,hans=1.2)))), "numeric")
   expect_is(sum(log(n1PDF(rt1$rt, A=.5, b=list(r1=0.5,r2=.5), t0 = 0.5, mean_v=list(b=seq(2.0, 2.4, length.out = 500), c=1.6), sd_v=c(xx=1,hans=1.2)))), "numeric")
 })
+
+test_that("lba_lnorm work with A = 0", {
+  A <- 0
+  b <- 1  #Can compare to log-normal if b=1
+  t0 <- 0
+  meanlog_v=0
+  sdlog_v=.5
+  
+  ##########
+  set.seed(1)
+  check<-rlba_lnorm(1000, A=0, b=1, t0 = 0, meanlog_v=0, sdlog_v=.5)
+  rt<-check[,"rt"]
+  
+  expect_equal(
+    sum(log(dlba_lnorm(rt=rt,A=A,b=b,t0=0,meanlog_v = 0,sdlog_v=.5))),
+    sum(log(dlnorm(rt,0,.5)))
+  )
+  
+  set.seed(2)
+  check<-rlba_lnorm(1000, A=0, b=1, t0 = 0, meanlog_v=.5, sdlog_v=.5)
+  rt<-check[,"rt"]
+  
+  expect_equal(
+    sum(log(dlba_lnorm(rt=rt,A=A,b=b,t0=0,meanlog_v = .5,sdlog_v=.5))),
+    sum(log(dlnorm(rt,-.5,.5)))  
+  )
+  
+  #x<-  plba_lnorm(rt=rt,A=A,b=b,t0=0,meanlog_v = .5,sdlog_v=.5)- plnorm(rt,-.5,.5)
+  expect_equal(
+    plba_lnorm(rt=rt,A=A,b=b,t0=0,meanlog_v = .5,sdlog_v=.5),
+    plnorm(rt,-.5,.5)
+    )
+  #CDF is working too
+  
+  
+  #what about b=.5
+  set.seed(3)
+  check2<-rlba_lnorm(1000, A=0, b=.5, t0 = 0, meanlog_v=0, sdlog_v=.5)
+  rt<-check[,"rt"]
+  
+  expect_equal(
+  sum(log(dlba_lnorm(rt=rt,A=A,b=.5,t0=0,meanlog_v = 0,sdlog_v=.5))),
+  # [1] -Inf
+  sum(log(dlnorm(rt/.5,0,.5)/.5))
+  # [1] -261.9191
+  )
+  
+  expect_equal(
+    plba_lnorm(rt=rt,A=A,b=.5,t0=0,meanlog_v = 0,sdlog_v=.5),
+    plnorm(rt/.5,0,.5)
+  )
+  
+})
+
+test_that("lba_gamma works with A=0", {
+  check_gamma <- rlba_gamma(10, A=0.5, b=1, t0 = 0.5, shape_v=c(1.2, 1), scale_v=c(0.2,0.3))
+  rt<-check_gamma[,"rt"]
+  expect_equal(
+    sum(log(dlba_gamma(rt=rt,A=0.00001, b=1, t0 = 0.5, shape_v=1.2, scale_v=0.2))),
+    sum(log(dlba_gamma(rt=rt,A=0, b=1, t0 = 0.5, shape_v=1.2, scale_v=0.2)))  
+  , tolerance = 0.00001)
+  
+  expect_equal(
+    plba_gamma(rt=rt,A=0.00001, b=1, t0 = 0.5, shape_v=1.2, scale_v=0.2),
+    plba_gamma(rt=rt,A=0, b=1, t0 = 0.5, shape_v=1.2, scale_v=0.2)  
+  , tolerance = 0.00001)
+  
+  A <- runif(1, 0.3, 0.9)
+  b <- A+runif(1, 0, 0.5)
+  t0 <- runif(1, 0.1, 0.7)
+  v1 <- runif(2, 0.5, 1.5)
+  v2 <- runif(2, 0.1, 0.5)
+  
+  expect_equal(
+    sum(log(dlba_gamma(rt=rt,A=0.00001, b=b, t0 = t0, shape_v=v1, scale_v=v2))),
+    sum(log(dlba_gamma(rt=rt,A=0, b=b, t0 = t0, shape_v=v1, scale_v=v2)))  
+    , tolerance = 0.00001)
+  
+  expect_equal(
+    sum(log(dlba_gamma(rt=rt,A=0.00001, b=b, t0 = t0, shape_v=v1, scale_v=v2))),
+    sum(log(dlba_gamma(rt=rt,A=0, b=b, t0 = t0, shape_v=v1, scale_v=v2)))  
+  , tolerance = 0.00001)
+  
+})

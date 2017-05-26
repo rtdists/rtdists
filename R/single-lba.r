@@ -248,27 +248,66 @@ dlba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, nn) {
   min <- (b-A)/rt
   max <- b/rt
   
-  Gmax <- pgamma(max, shape_v, rate=rate_v)
-  Gmin <- pgamma(min, shape_v, rate=rate_v)
-  Gmax2 <- pgamma(max, (shape_v+1), rate=rate_v)
-  Gmin2 <- pgamma(min, (shape_v+1), rate=rate_v)
-  zgamma <- ( ((Gmax2-Gmin2)*gamma(shape_v+1))/((Gmax-Gmin)*rate_v*gamma(shape_v)) )
   
-  diffG <- function(rt,point,shape_v, rate_v) {
-    (-point/(rt^2))*dgamma(point/rt,shape_v,rate = rate_v)
-  } #NB:point refers to the constants b OR b-A.
-  u <- (Gmax2-Gmin2)
-  v <- (Gmax-Gmin)
-  udash <- (diffG(rt, b, shape_v+1, rate_v)- diffG(rt, (b-A), shape_v+1, rate_v))
-  vdash <- (diffG(rt, b, shape_v, rate_v)- diffG(rt, (b-A), shape_v, rate_v))
-  const <- gamma(shape_v+1)/(rate_v*gamma(shape_v))
-  diffzgamma <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
-  term1 <- (Gmax - Gmin)*(zgamma + (rt*diffzgamma))
-  term2 <- diffG(rt,b,shape_v,rate_v)*((zgamma*rt)-b)
-  term3 <- diffG(rt,(b-A),shape_v,rate_v)*(b-A-(zgamma*rt))
-  out.value <- ((term1+term2+term3)/A)
-  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
-  return(pmax(0, out.value))
+  if (any(A<1e-10)) {
+    # for A<1e-10 save results in out_A
+    A_small<- A<1e-10
+    
+    out_A<-  pmax(0, (b[A_small]/rt[A_small]^2)*(dgamma(b[A_small]/rt[A_small],shape=shape_v[A_small],rate=rate_v[A_small])), na.rm = TRUE)
+    
+    min <- (b[!A_small]-A[!A_small])/rt[!A_small]
+    max <- b[!A_small]/rt[!A_small]
+    
+    Gmax <- pgamma(max, shape_v[!A_small], rate=rate_v[!A_small])
+    Gmin <- pgamma(min, shape_v[!A_small], rate=rate_v[!A_small])
+    Gmax2 <- pgamma(max, (shape_v[!A_small]+1), rate=rate_v[!A_small])
+    Gmin2 <- pgamma(min, (shape_v[!A_small]+1), rate=rate_v[!A_small])
+    zgamma <- ( ((Gmax2-Gmin2)*gamma(shape_v[!A_small]+1))/((Gmax-Gmin)*rate_v[!A_small]*gamma(shape_v[!A_small])) )
+    
+    diffG <- function(rt,point,shape_v, rate_v) {
+      (-point/(rt^2))*dgamma(point/rt,shape_v[!A_small],rate = rate_v)
+    } #NB:point refers to the constants b OR b-A.
+    u <- (Gmax2-Gmin2)
+    v <- (Gmax-Gmin)
+    udash <- (diffG(rt[!A_small], b[!A_small], shape_v[!A_small]+1, rate_v[!A_small])- diffG(rt[!A_small], (b[!A_small]-A[!A_small]), shape_v[!A_small]+1, rate_v[!A_small]))
+    vdash <- (diffG(rt[!A_small], b[!A_small], shape_v[!A_small], rate_v[!A_small])- diffG(rt[!A_small], (b[!A_small]-A[!A_small]), shape_v[!A_small], rate_v[!A_small]))
+    const <- gamma(shape_v[!A_small]+1)/(rate_v[!A_small]*gamma(shape_v[!A_small]))
+    diffzgamma <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
+    term1 <- (Gmax - Gmin)*(zgamma + (rt*diffzgamma))
+    term2 <- diffG(rt,b,shape_v[!A_small],rate_v[!A_small])*((zgamma*rt)-b)
+    term3 <- diffG(rt,(b-A),shape_v[!A_small],rate_v[!A_small])*(b-A-(zgamma*rt))
+    out_o <- ((term1+term2+term3)/A)
+    out_o[!is.finite(out_o)] <- 0 # Set NaN or -Inf or Inf to pdf=0
+    
+    out<- numeric(nn)
+    out[!A_small] <- out_o
+    out[A_small] <- out_A
+    
+    return(pmax(0, out))
+  } else{
+    
+    Gmax <- pgamma(max, shape_v, rate=rate_v)
+    Gmin <- pgamma(min, shape_v, rate=rate_v)
+    Gmax2 <- pgamma(max, (shape_v+1), rate=rate_v)
+    Gmin2 <- pgamma(min, (shape_v+1), rate=rate_v)
+    zgamma <- ( ((Gmax2-Gmin2)*gamma(shape_v+1))/((Gmax-Gmin)*rate_v*gamma(shape_v)) )
+    
+    diffG <- function(rt,point,shape_v, rate_v) {
+      (-point/(rt^2))*dgamma(point/rt,shape_v,rate = rate_v)
+    } #NB:point refers to the constants b OR b-A.
+    u <- (Gmax2-Gmin2)
+    v <- (Gmax-Gmin)
+    udash <- (diffG(rt, b, shape_v+1, rate_v)- diffG(rt, (b-A), shape_v+1, rate_v))
+    vdash <- (diffG(rt, b, shape_v, rate_v)- diffG(rt, (b-A), shape_v, rate_v))
+    const <- gamma(shape_v+1)/(rate_v*gamma(shape_v))
+    diffzgamma <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
+    term1 <- (Gmax - Gmin)*(zgamma + (rt*diffzgamma))
+    term2 <- diffG(rt,b,shape_v,rate_v)*((zgamma*rt)-b)
+    term3 <- diffG(rt,(b-A),shape_v,rate_v)*(b-A-(zgamma*rt))
+    out.value <- ((term1+term2+term3)/A)
+    out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
+    return(pmax(0, out.value))
+  }
 }
 
 
@@ -294,22 +333,52 @@ plba_gamma <- function(rt,A,b,t0,shape_v, rate_v, scale_v) {
 plba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, nn) {
   
   rt <- rem_t0(rt, t0)
-  min <- (b-A)/rt
-  max <- b/rt
-  Gmax <- pgamma(max, shape_v, rate=rate_v)
-  Gmin <- pgamma(min, shape_v, rate=rate_v)
-  Gmax2 <- pgamma(max, (shape_v+1), rate=rate_v)
-  Gmin2 <- pgamma(min, (shape_v+1), rate=rate_v)
-  zgamma <- ((Gmax2-Gmin2)*gamma(shape_v+1))/((Gmax-Gmin)*rate_v*gamma(shape_v)) 
-  
-  term1 <- ((rt*zgamma) - b)/A
-  term2 <- (b-A-(rt*zgamma))/A
-  pmax <- pgamma(max, shape_v, rate = rate_v)
-  pmin <- pgamma(min, shape_v, rate = rate_v)
-  out.value <- (1 + pmax*term1 + pmin*term2)
-  out.value[rt==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
-  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-  return(pmin(pmax(0, out.value), 1))
+  if (any(A<1e-10)) {
+    # for A<1e-10 save results in out_A
+    A_small<- A<1e-10
+    
+    out_A <- pmin(1, pmax(0, (pgamma(b[A_small]/rt[A_small],shape=shape_v[A_small],rate=rate_v[A_small],lower.tail=FALSE)), na.rm=TRUE))
+    
+    min <- (b[!A_small]-A[!A_small])/rt[!A_small]
+    max <- b[!A_small]/rt[!A_small]
+    Gmax <- pgamma(max, shape_v[!A_small], rate=rate_v[!A_small])
+    Gmin <- pgamma(min, shape_v[!A_small], rate=rate_v[!A_small])
+    Gmax2 <- pgamma(max, (shape_v[!A_small]+1), rate=rate_v[!A_small])
+    Gmin2 <- pgamma(min, (shape_v[!A_small]+1), rate=rate_v[!A_small])
+    zgamma <- ((Gmax2-Gmin2)*gamma(shape_v[!A_small]+1))/((Gmax-Gmin)*rate_v[!A_small]*gamma(shape_v[!A_small]))
+    
+    term1 <- ((rt*zgamma) - b)/A
+    term2 <- (b-A-(rt*zgamma))/A
+    pmax <- pgamma(max, shape_v[!A_small], rate = rate_v[!A_small])
+    pmin <- pgamma(min, shape_v[!A_small], rate = rate_v[!A_small])
+    out_o <- (1 + pmax*term1 + pmin*term2)
+    out_o[rt==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+    out_o[!is.finite(out_o)] <- 0 # Set NaN or -Inf to CDF=0
+    
+    
+    out<- numeric(nn)
+    out[!A_small] <- out_o
+    out[A_small] <- out_A
+    return(pmin(pmax(0, out), 1))
+    
+  } else {
+    min <- (b-A)/rt
+    max <- b/rt
+    Gmax <- pgamma(max, shape_v, rate=rate_v)
+    Gmin <- pgamma(min, shape_v, rate=rate_v)
+    Gmax2 <- pgamma(max, (shape_v+1), rate=rate_v)
+    Gmin2 <- pgamma(min, (shape_v+1), rate=rate_v)
+    zgamma <- ((Gmax2-Gmin2)*gamma(shape_v+1))/((Gmax-Gmin)*rate_v*gamma(shape_v)) 
+    
+    term1 <- ((rt*zgamma) - b)/A
+    term2 <- (b-A-(rt*zgamma))/A
+    pmax <- pgamma(max, shape_v, rate = rate_v)
+    pmin <- pgamma(min, shape_v, rate = rate_v)
+    out.value <- (1 + pmax*term1 + pmin*term2)
+    out.value[rt==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+    out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
+    return(pmin(pmax(0, out.value), 1))
+  }
 }
 
 #' @rdname single-LBA
@@ -478,27 +547,64 @@ dlba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust=FALSE, nn) {
   
   rt <- rem_t0(rt, t0)
   
-  min <- (b-A)/rt
-  max <- b/rt
-  
-  zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnorm1((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnorm1((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnorm1((log(max)-meanlog_v)/sdlog_v)-pnorm1((log(min)-meanlog_v)/sdlog_v))
-  Gmax <- plnorm(max,meanlog=meanlog_v,sdlog=sdlog_v) 
-  Gmin <- plnorm(min,meanlog=meanlog_v,sdlog=sdlog_v)
-  
-  u <- (pnorm1((log(max)-meanlog_v-(sdlog_v)^2)/sdlog_v)-pnorm1((log(min)-meanlog_v-(sdlog_v)^2)/sdlog_v))
-  v <- (pnorm1((log(max)-meanlog_v)/sdlog_v)-pnorm1((log(min)-meanlog_v)/sdlog_v))
-  
-  udash <- (((-1/(sdlog_v*rt))*dnorm1((log(b/rt)-meanlog_v-(sdlog_v)^2)/sdlog_v)) - ((-1/(sdlog_v*rt))*dnorm1((log((b-A)/rt)-meanlog_v-(sdlog_v)^2)/sdlog_v)))
-  vdash <- (((-1/(sdlog_v*rt))*dnorm1((log(b/rt)-meanlog_v)/sdlog_v)) - ((-1/(sdlog_v*rt))*dnorm1((log((b-A)/rt)-meanlog_v)/sdlog_v)))
-  const <- exp(meanlog_v+((sdlog_v)^2)/2)
-  
-  diffzlognorm <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
-  term1 <- (Gmax - Gmin)*(zlognorm + (rt*diffzlognorm))
-  term2 <- ((-b/(rt^2))*dlnorm(b/rt,meanlog=meanlog_v,sdlog=sdlog_v))*((zlognorm*rt)-b)
-  term3 <- (b-A-(zlognorm*rt))*((-(b-A)/(rt^2))*dlnorm((b-A)/rt,meanlog=meanlog_v,sdlog=sdlog_v))
-  out.value <- ((term1+term2+term3)/A)
-  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
-  return(pmax(0, out.value))
+  if (any(A<1e-10)) {
+    # for A<1e-10 save results in out_A
+    A_small<- A<1e-10
+    out_A <- pmax(0, (b[A_small]/rt[A_small]^2)*(dlnorm(b[A_small]/rt[A_small],meanlog_v[A_small],sdlog=sdlog_v[A_small])), na.rm = TRUE)
+    
+    # calculate other results into out_o
+    #Should there also be a check that A_small has at least one FALSE to bother running this code? -Angus; Probably not necessary, Henrik.
+    min <- (b-A)/rt
+    max <- b/rt
+    
+    zlognorm <- (exp(meanlog_v[!A_small]+(sdlog_v[!A_small]^2)/2)*(pnorm1((log(max)-meanlog_v[!A_small]-(sdlog_v[!A_small]^2))/sdlog_v[!A_small])-pnorm1((log(max)-meanlog_v[!A_small]-(sdlog_v[!A_small]^2))/sdlog_v[!A_small]))) / (pnorm1((log(max)-meanlog_v[!A_small])/sdlog_v[!A_small])-pnorm1((log(max)-meanlog_v[!A_small])/sdlog_v[!A_small]))
+    Gmax <- plnorm(max,meanlog=meanlog_v[!A_small],sdlog=sdlog_v[!A_small])
+    Gmin <- plnorm(max,meanlog=meanlog_v[!A_small],sdlog=sdlog_v[!A_small])
+    
+    u <- (pnorm1((log(max)-meanlog_v[!A_small]-(sdlog_v[!A_small])^2)/sdlog_v[!A_small])-pnorm1((log(max)-meanlog_v[!A_small]-(sdlog_v[!A_small])^2)/sdlog_v[!A_small]))
+    v <- (pnorm1((log(max)-meanlog_v[!A_small])/sdlog_v[!A_small])-pnorm1((log(max)-meanlog_v[!A_small])/sdlog_v[!A_small]))
+    
+    udash <- (((-1/(sdlog_v[!A_small]*rt[!A_small]))*dnorm1((log(b[!A_small]/rt[!A_small])-meanlog_v[!A_small]-(sdlog_v[!A_small])^2)/sdlog_v[!A_small])) - ((-1/(sdlog_v[!A_small]*rt[!A_small]))*dnorm1((log((b[!A_small]-A[!A_small])/rt[!A_small])-meanlog_v[!A_small]-(sdlog_v[!A_small])^2)/sdlog_v[!A_small])))
+    vdash <- (((-1/(sdlog_v[!A_small]*rt[!A_small]))*dnorm1((log(b[!A_small]/rt[!A_small])-meanlog_v[!A_small])/sdlog_v[!A_small])) - ((-1/(sdlog_v[!A_small]*rt[!A_small]))*dnorm1((log((b[!A_small]-A[!A_small])/rt[!A_small])-meanlog_v[!A_small])/sdlog_v[!A_small])))
+    const <- exp(meanlog_v[!A_small]+((sdlog_v[!A_small])^2)/2)
+    
+    diffzlognorm <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
+    term1 <- (Gmax - Gmin)*(zlognorm + (rt[!A_small]*diffzlognorm))
+    term2 <- ((-b[!A_small]/(rt[!A_small]^2))*dlnorm(b[!A_small]/rt[!A_small],meanlog=meanlog_v[!A_small],sdlog=sdlog_v[!A_small]))*((zlognorm*rt[!A_small])-b[!A_small])
+    term3 <- (b[!A_small]-A[!A_small]-(zlognorm*rt[!A_small]))*((-(b[!A_small]-A[!A_small])/(rt[!A_small]^2))*dlnorm((b[!A_small]-A[!A_small])/rt[!A_small],meanlog=meanlog_v[!A_small],sdlog=sdlog_v[!A_small]))
+    out_o<- ((term1+term2+term3)/A[!A_small])
+    out_o[!is.finite(out_o)] <- 0 # Set NaN or -Inf or Inf to pdf=0
+    
+    out<- numeric(nn)
+    out[!A_small] <- out_o
+    out[A_small] <- out_A
+    
+    return(pmax(0, out))
+    
+  } else{
+    
+    min <- (b-A)/rt
+    max <- b/rt
+    
+    zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnorm1((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnorm1((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnorm1((log(max)-meanlog_v)/sdlog_v)-pnorm1((log(min)-meanlog_v)/sdlog_v))
+    Gmax <- plnorm(max,meanlog=meanlog_v,sdlog=sdlog_v) 
+    Gmin <- plnorm(min,meanlog=meanlog_v,sdlog=sdlog_v)
+    
+    u <- (pnorm1((log(max)-meanlog_v-(sdlog_v)^2)/sdlog_v)-pnorm1((log(min)-meanlog_v-(sdlog_v)^2)/sdlog_v))
+    v <- (pnorm1((log(max)-meanlog_v)/sdlog_v)-pnorm1((log(min)-meanlog_v)/sdlog_v))
+    
+    udash <- (((-1/(sdlog_v*rt))*dnorm1((log(b/rt)-meanlog_v-(sdlog_v)^2)/sdlog_v)) - ((-1/(sdlog_v*rt))*dnorm1((log((b-A)/rt)-meanlog_v-(sdlog_v)^2)/sdlog_v)))
+    vdash <- (((-1/(sdlog_v*rt))*dnorm1((log(b/rt)-meanlog_v)/sdlog_v)) - ((-1/(sdlog_v*rt))*dnorm1((log((b-A)/rt)-meanlog_v)/sdlog_v)))
+    const <- exp(meanlog_v+((sdlog_v)^2)/2)
+    
+    diffzlognorm <- ((udash*v - vdash*u)/(v^2))*const #quotient rule
+    term1 <- (Gmax - Gmin)*(zlognorm + (rt*diffzlognorm))
+    term2 <- ((-b/(rt^2))*dlnorm(b/rt,meanlog=meanlog_v,sdlog=sdlog_v))*((zlognorm*rt)-b)
+    term3 <- (b-A-(zlognorm*rt))*((-(b-A)/(rt^2))*dlnorm((b-A)/rt,meanlog=meanlog_v,sdlog=sdlog_v))
+    out.value <- ((term1+term2+term3)/A)
+    out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
+    return(pmax(0, out.value))
+  }
 }
 
 #' @rdname single-LBA
@@ -509,8 +615,8 @@ plba_lnorm <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
   A <- rep(A, length.out = nn)
   b <- rep(b, length.out = nn)
   t0 <- rep(t0, length.out = nn)
-  mean_v <- rep(meanlog_v, length.out = nn)
-  sd_v <- rep(sdlog_v, length.out = nn)
+  meanlog_v <- rep(meanlog_v, length.out = nn)
+  sdlog_v <- rep(sdlog_v, length.out = nn)
   if (any(b < A)) stop(error_message_b_smaller_A)
   
   plba_lnorm_core(rt=rt,A=A,b=b,t0=t0,meanlog_v=meanlog_v, sdlog_v=sdlog_v, robust=robust, nn=nn)
@@ -523,18 +629,50 @@ plba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE, nn) {
     pnorm1 <- pnorm 
   }
   
-  rt <- rem_t0(rt, t0)
-  min <- (b-A)/rt
-  max <- b/rt
-  zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnorm1((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnorm1((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnorm1((log(max)-meanlog_v)/sdlog_v)-pnorm1((log(min)-meanlog_v)/sdlog_v))
-  term1 <- ((rt*zlognorm) - b)/A
-  term2 <- (b-A-(rt*zlognorm))/A 
-  pmax <- plnorm(max, meanlog=meanlog_v, sdlog=sdlog_v) 
-  pmin <- plnorm(min, meanlog=meanlog_v, sdlog=sdlog_v)
-  out.value <- (1 + pmax*term1 + pmin*term2)
-  out.value[rt==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
-  out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-  return(pmin(pmax(0, out.value), 1))
+  if (any(A<1e-10)) {
+    # for A<1e-10 save results in out_A
+    A_small<- A<1e-10
+
+    #Pretty sure it is log(b[A_small]/rt[A_small]), not b[A_small]/log(rt[A_small])- Angus
+    #Should this be lower.tail=TRUE?
+    out_A <- pmin(1, pmax(0, (plnorm(b[A_small]/rt[A_small],meanlog=meanlog_v[A_small],sdlog=sdlog_v[A_small],lower.tail=FALSE)), na.rm=TRUE))
+    
+    pmin(1, pmax(0, (plnorm(b[A_small]/rt[A_small],meanlog=meanlog_v[A_small],sdlog=sdlog_v[A_small],lower.tail=FALSE)), na.rm=TRUE))
+
+    min <- (b[!A_small]-A[!A_small])/rt[!A_small]
+    max <- b[!A_small]/rt[!A_small]
+    zlognorm <- (exp(meanlog_v[!A_small]+(sdlog_v[!A_small]^2)/2)*(pnorm1((log(max)-meanlog_v[!A_small]-(sdlog_v[!A_small]^2))/sdlog_v[!A_small])-pnorm1((log(max)-meanlog_v[!A_small]-(sdlog_v[!A_small]^2))/sdlog_v[!A_small]))) / (pnorm1((log(max)-meanlog_v[!A_small])/sdlog_v[!A_small])-pnorm1((log(max)-meanlog_v[!A_small])/sdlog_v[!A_small]))
+    term1 <- ((rt[!A_small]*zlognorm) - b[!A_small])/A[!A_small]
+    term2 <- (b[!A_small]-A[!A_small]-(rt[!A_small]*zlognorm))/A [!A_small]
+    pmax <- plnorm(max, meanlog=meanlog_v[!A_small], sdlog=sdlog_v[!A_small])
+    pmin <- plnorm(max, meanlog=meanlog_v[!A_small], sdlog=sdlog_v[!A_small])
+    out_o <- (1 + pmax*term1 + pmin*term2)
+
+    #not sure about this next line-Angus
+    out_o[rt[!A_small]==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+    out_o[!is.finite(out_o)] <- 0 # Set NaN or -Inf to CDF=0
+
+    out<- numeric(nn)
+    out[!A_small] <- out_o
+    out[A_small] <- out_A
+    return(pmin(pmax(0, out), 1))
+
+  }else{
+    
+    
+    rt <- rem_t0(rt, t0)
+    min <- (b-A)/rt
+    max <- b/rt
+    zlognorm <- (exp(meanlog_v+(sdlog_v^2)/2)*(pnorm1((log(max)-meanlog_v-(sdlog_v^2))/sdlog_v)-pnorm1((log(min)-meanlog_v-(sdlog_v^2))/sdlog_v))) / (pnorm1((log(max)-meanlog_v)/sdlog_v)-pnorm1((log(min)-meanlog_v)/sdlog_v))
+    term1 <- ((rt*zlognorm) - b)/A
+    term2 <- (b-A-(rt*zlognorm))/A 
+    pmax <- plnorm(max, meanlog=meanlog_v, sdlog=sdlog_v) 
+    pmin <- plnorm(min, meanlog=meanlog_v, sdlog=sdlog_v)
+    out.value <- (1 + pmax*term1 + pmin*term2)
+    out.value[rt==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
+    out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
+    return(pmin(pmax(0, out.value), 1))
+  }
 }
 
 #' @rdname single-LBA
