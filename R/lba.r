@@ -161,7 +161,14 @@ dLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "
   out <- vector("numeric", nn)
   for (i in unique(response)) {
     sel <- response == i
-    out[sel] <- do.call(n1PDF, args = c(rt=list(rt[sel]), A = list(A[c(i, seq_len(n_v)[-i])]), b = list(b[c(i, seq_len(n_v)[-i])]), t0 = list(t0[c(i, seq_len(n_v)[-i])]), lapply(dots, function(x) x[c(i, seq_len(n_v)[-i])]), distribution=distribution, args.dist=args.dist, silent=TRUE, st0 = list(st0)))
+    out[sel] <- do.call(n1PDF, 
+                        args = c(rt=list(rt[sel]), 
+                                 A = list(A[c(i, seq_len(n_v)[-i])]), 
+                                 b = list(b[c(i, seq_len(n_v)[-i])]), 
+                                 t0 = list(t0[c(i, seq_len(n_v)[-i])]), 
+                                 lapply(dots, function(x) x[c(i, seq_len(n_v)[-i])]), 
+                                 distribution=distribution, 
+                                 args.dist=args.dist, silent=TRUE, st0 = list(st0)))
   }
   return(out)
 }
@@ -229,8 +236,16 @@ pLBA <-  function(rt, response, A, b, t0, ..., st0=0, distribution = c("norm", "
   out <- vector("numeric", nn)
   for (i in unique(response)) {
     sel <- response == i
-    if(!all(rt[sel] == sort(rt[sel])))  stop("rt needs to be sorted (per response)")
-    out[sel] <- do.call(n1CDF, args = c(rt=list(rt[sel]), A = list(A[c(i, seq_len(n_v)[-i])]), b = list(b[c(i, seq_len(n_v)[-i])]), t0 = list(t0[c(i, seq_len(n_v)[-i])]), lapply(dots, function(x) x[c(i, seq_len(n_v)[-i])]), distribution=distribution, args.dist=args.dist, silent=TRUE, st0 = list(st0)))
+    #if(!all(rt[sel] == sort(rt[sel])))  stop("rt needs to be sorted (per response)")
+    out[sel] <- do.call(n1CDF, 
+                        args = c(rt=list(rt[sel]), 
+                                 A = list(A[c(i, seq_len(n_v)[-i])]), 
+                                 b = list(b[c(i, seq_len(n_v)[-i])]), 
+                                 t0 = list(t0[c(i, seq_len(n_v)[-i])]), 
+                                 lapply(dots, function(x) x[c(i, seq_len(n_v)[-i])]), 
+                                 distribution=distribution, 
+                                 args.dist=args.dist, 
+                                 silent=TRUE, st0 = list(st0)))
   }
   return(out)
 }

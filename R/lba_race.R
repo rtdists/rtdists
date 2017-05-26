@@ -275,18 +275,26 @@ n1CDF <- function(rt,A,b, t0, ..., st0=0, distribution = c("norm", "gamma", "fre
     st0[st0<1e-6] <- 0
   } # 
   outs <- numeric(length(rt))
-  bounds <- c(0,rt)
+  #bounds <- c(0,rt)
   #browser()
   for (i in 1:length(rt)) {
-    if (bounds[i]>=bounds[i+1]) {
-      outs[i]=0
-      next
-    }
-    tmp_obj <- do.call(integrate, args=c(f=n1PDF_core,lower=bounds[i],upper=bounds[i+1],subdivisions=1000, A=ret_arg(A, i), b=ret_arg(b, i), t0 = ret_arg(t0, i), st0 = list(st0[i]), sapply(dots, function(z, i) sapply(z, "[[", i = i, simplify=FALSE), i=i, simplify=FALSE), pdf = pdf, cdf = cdf, stop.on.error = FALSE, args.dist = list(args.dist)))
+    tmp_obj <- 
+      do.call(integrate, 
+              args=c(f=n1PDF_core,
+                     lower=0,upper=rt[i],
+                     subdivisions=1000, 
+                     A=ret_arg(A, i), 
+                     b=ret_arg(b, i), 
+                     t0 = ret_arg(t0, i), 
+                     st0 = list(st0[i]), 
+                     sapply(dots, function(z, i) sapply(z, "[[", i = i, simplify=FALSE), i=i, simplify=FALSE), 
+                     pdf = pdf, 
+                     cdf = cdf, 
+                     stop.on.error = FALSE, args.dist = list(args.dist)))
     if (tmp_obj$message != "OK") {
       warning(tmp_obj$message)
     }
     outs[i] <- tmp_obj$value
   }
-  cumsum(outs)
+  outs
 }

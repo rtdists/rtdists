@@ -91,6 +91,39 @@ test_that("n1CDF: List input for drift rate", {
   
 })
 
+test_that("n1CDF: Trialwise input for drift rate", {
+  samples <- 100
+  A <- runif(2, 0.3, 0.9)
+  b <- A+runif(2, 0, 0.5)
+  t0 <- runif(2, 0.1, 0.7)
+  v1 <- runif(4, 0.5, 1.5)
+  v2 <- runif(4, 0.1, 0.5)
+  st0 <- runif(1, 0.1, 0.5)
+  
+  rts <- sample(seq(0.5, 2, length.out = samples))
+  
+  v1_a <- n1CDF(rts[seq_len(samples/2)], A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2)
+  v1_b <- n1CDF(rts[seq_len(samples/2)+samples/2], A=0.5, b=1, t0 = 0.5, mean_v=c(2.2, 0.5), sd_v=0.5)
+  v2 <- n1CDF(rts, A=0.5, b=1, t0 = 0.5, mean_v=list(rep(c(1.2, 2.2), each = 50), rep(c(1.0, 0.5), each = 50)), sd_v=list(rep(c(0.2, 0.5), each = 50)))
+  expect_identical(c(v1_a, v1_b), v2)
+  
+  v3_a <- n1CDF(rts[seq_len(samples/2)], A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0, 0.6), sd_v=0.2)
+  v3_b <- n1CDF(rts[seq_len(samples/2)+samples/2], A=0.5, b=1, t0 = 0.5, mean_v=c(2.2, 0.5, 1.2), sd_v=0.5)
+  v4 <- n1CDF(rts, A=0.5, b=1, t0 = 0.5, mean_v=list(rep(c(1.2, 2.2), each = 50), rep(c(1.0, 0.5), each = 50), rep(c(0.6, 1.2), each = 50)), sd_v=list(rep(c(0.2, 0.5), each = 50)))
+  expect_identical(c(v3_a, v3_b), v4)
+  
+  v5_a <- n1CDF(rts[seq_len(samples/2)], A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0), sd_v=0.2, st0 = 0.2)
+  v5_b <- n1CDF(rts[seq_len(samples/2)+samples/2], A=0.5, b=1, t0 = 0.5, mean_v=c(2.2, 0.5), sd_v=0.5, st0 = 0.2)
+  v6 <- n1CDF(rts, A=0.5, b=1, t0 = 0.5, mean_v=list(rep(c(1.2, 2.2), each = 50), rep(c(1.0, 0.5), each = 50)), sd_v=list(rep(c(0.2, 0.5), each = 50)), st0 = 0.2)
+  expect_identical(c(v5_a, v5_b), v6)
+  
+  v7_a <- n1CDF(rts[seq_len(samples/2)], A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1.0, 0.6), sd_v=0.2, st0 = 0.2)
+  v7_b <- n1CDF(rts[seq_len(samples/2)+samples/2], A=0.5, b=1, t0 = 0.5, mean_v=c(2.2, 0.5, 1.2), sd_v=0.5, st0 = 0.2)
+  v8 <- n1CDF(rts, A=0.5, b=1, t0 = 0.5, mean_v=list(rep(c(1.2, 2.2), each = 50), rep(c(1.0, 0.5), each = 50), rep(c(0.6, 1.2), each = 50)), sd_v=list(rep(c(0.2, 0.5), each = 50)), st0 = 0.2)
+  expect_identical(c(v7_a, v7_b), v8)
+  
+})
+
 
 test_that("n1PDF: Trialwise input for t0", {
   samples <- 100

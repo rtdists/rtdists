@@ -150,3 +150,19 @@ test_that("scale_p works as expected", {
                     qLBA(qs, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2), scale_p=TRUE))
   
 })
+
+test_that("pLBA and dLBA work with vectorized accumulators", {
+  v1 <- seq(2, 4, length.out = 6)
+  v2 <- seq(0, 2, length.out = 6)
+  
+  res1p <- vector("numeric", 6)
+  res1d <- vector("numeric", 6)
+  for (i in 1:6) {
+    res1p[i]  <- pLBA(1, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(v1[i], v2[i]), sd_v=1, silent=TRUE)
+    res1d[i]  <- dLBA(1, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(v1[i], v2[i]), sd_v=1, silent=TRUE)
+  }
+  res2p <- pLBA(rep(1, 6), response = 1, A=0.5, b=1, t0 = 0.5, mean_v=list(v1, v2), sd_v=1, silent=TRUE)
+  res2d <- dLBA(rep(1, 6), response = 1, A=0.5, b=1, t0 = 0.5, mean_v=list(v1, v2), sd_v=1, silent=TRUE)
+  expect_identical(res1p, res2p)
+  expect_identical(res1d, res2d)
+})
