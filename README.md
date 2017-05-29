@@ -1,7 +1,7 @@
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/rtdists)](http://cran.r-project.org/package=rtdists)
 ![](http://cranlogs.r-pkg.org/badges/rtdists)
-[![total downloads](http://cranlogs.r-pkg.org/badges/grand-total/afex)](http://cranlogs.r-pkg.org/badges/grand-total/rtdists)
-[![Research software impact](http://depsy.org/api/package/cran/afex/badge.svg)](http://depsy.org/package/r/rtdists)
+[![total downloads](http://cranlogs.r-pkg.org/badges/grand-total/rtdists)](http://cranlogs.r-pkg.org/badges/grand-total/rtdists)
+[![Research software impact](http://depsy.org/api/package/cran/rtdists/badge.svg)](http://depsy.org/package/r/rtdists)
 [![Travis-CI Build Status](https://travis-ci.org/rtdists/rtdists.svg?branch=master)](https://travis-ci.org/rtdists/rtdists)
 
 rtdists: Response time distributions in R
