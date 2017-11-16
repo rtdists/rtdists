@@ -294,3 +294,23 @@ test_that("lba_gamma works with A=0", {
   , tolerance = 0.00001)
   
 })
+
+test_that("args.dist is passed through correctly for dLBA, pLBA, qLBA", {
+  # see: https://github.com/rtdists/rtdists/issues/7
+  d1 <- dLBA(100,1, 10, 100, 0,  mean_v=c(3,1), sd_v=c(1,1),args.dist = list(posdrift = FALSE))  
+  d2 <- dlba_norm(100, 10, 100, 0, 3, 1, posdrift = F, robust = FALSE) * (1-plba_norm(100, 10, 100, 0, 1, 1, posdrift = F, robust = FALSE))
+  d3 <- n1PDF(100, 10, 100, 0,  mean_v=c(3,1), sd_v=c(1,1), args.dist = list(posdrift = FALSE))
+  
+  expect_identical(d1, d2)
+  expect_identical(d1, d3)
+  
+  p1 <- pLBA(100,1, 10, 100, 0,  mean_v=c(3,1), sd_v=c(1,1),args.dist = list(posdrift = FALSE))
+  p2 <- n1CDF(100, 10, 100, 0,  mean_v=c(3,1), sd_v=c(1,1),args.dist = list(posdrift = FALSE))  
+  
+  expect_identical(p1, p2)
+  
+  q1 <- qLBA(0.5, 1, 10, 100, 0,  mean_v=c(3,1), sd_v=c(1,1), scale_p = TRUE, interval = c(0, 100))
+  q2 <- qLBA(0.5, 1, 10, 100, 0,  mean_v=c(3,1), sd_v=c(1,1), scale_p = TRUE, interval = c(0, 100), args.dist = list(posdrift = FALSE))
+  expect_true(q1 != q2)
+  
+})

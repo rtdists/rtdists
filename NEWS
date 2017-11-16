@@ -1,3 +1,10 @@
+Changes to Version 0.8-x (released XXX 2017)
+
+  o Removed bug preventing args.list (e.g., posdrift) to be passed correctly in 
+    dLBA, pLBA, qLBA, and rLBA. Thanks to Bruno Nicenboim for reporting this. 
+    See: https://github.com/rtdists/rtdists/issues/7
+
+
 Changes to Version 0.7-x (released May 2017)
 
   o Performance of diffusion functions and rLBA increased, especially for calls
