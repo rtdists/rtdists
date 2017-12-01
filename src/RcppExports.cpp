@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // d_fastdm
 NumericVector d_fastdm(NumericVector rts, NumericVector params, double precision, int boundary, bool stop_on_error);
-RcppExport SEXP rtdists_d_fastdm(SEXP rtsSEXP, SEXP paramsSEXP, SEXP precisionSEXP, SEXP boundarySEXP, SEXP stop_on_errorSEXP) {
+RcppExport SEXP _rtdists_d_fastdm(SEXP rtsSEXP, SEXP paramsSEXP, SEXP precisionSEXP, SEXP boundarySEXP, SEXP stop_on_errorSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -22,7 +22,7 @@ END_RCPP
 }
 // p_fastdm
 NumericVector p_fastdm(NumericVector rts, NumericVector params, double precision, int boundary, bool stop_on_error);
-RcppExport SEXP rtdists_p_fastdm(SEXP rtsSEXP, SEXP paramsSEXP, SEXP precisionSEXP, SEXP boundarySEXP, SEXP stop_on_errorSEXP) {
+RcppExport SEXP _rtdists_p_fastdm(SEXP rtsSEXP, SEXP paramsSEXP, SEXP precisionSEXP, SEXP boundarySEXP, SEXP stop_on_errorSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -37,7 +37,7 @@ END_RCPP
 }
 // p_precise_fastdm
 NumericVector p_precise_fastdm(NumericVector rts, NumericVector params, double precision, int boundary, bool stop_on_error);
-RcppExport SEXP rtdists_p_precise_fastdm(SEXP rtsSEXP, SEXP paramsSEXP, SEXP precisionSEXP, SEXP boundarySEXP, SEXP stop_on_errorSEXP) {
+RcppExport SEXP _rtdists_p_precise_fastdm(SEXP rtsSEXP, SEXP paramsSEXP, SEXP precisionSEXP, SEXP boundarySEXP, SEXP stop_on_errorSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -52,7 +52,7 @@ END_RCPP
 }
 // r_fastdm
 List r_fastdm(int num_values, NumericVector params, double precision, bool stop_on_error);
-RcppExport SEXP rtdists_r_fastdm(SEXP num_valuesSEXP, SEXP paramsSEXP, SEXP precisionSEXP, SEXP stop_on_errorSEXP) {
+RcppExport SEXP _rtdists_r_fastdm(SEXP num_valuesSEXP, SEXP paramsSEXP, SEXP precisionSEXP, SEXP stop_on_errorSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
