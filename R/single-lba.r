@@ -109,7 +109,8 @@ dlba_norm <- function(rt,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE) {
 }
 
 ## this functions expects all arguments to have the samel length (which is nn)
-dlba_norm_core <- function(rt,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE, nn) {
+dlba_norm_core <- function(rt,A,b, t0, mean_v, sd_v, posdrift=TRUE, 
+                           robust = FALSE, complement=FALSE, nn) {
   if (robust) { # robust == TRUE uses robust versions of the normal distributions
     pnorm1 <- pnormP
     dnorm1 <- dnormP
@@ -160,7 +161,8 @@ plba_norm <- function(rt,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE) {
   plba_norm_core(rt = rt, A = A, b = b, t0 = t0, mean_v = mean_v, sd_v = sd_v, posdrift = posdrift, robust = robust, nn = nn)
 }
 
-plba_norm_core <- function(rt,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE, nn) {
+plba_norm_core <- function(rt,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE, 
+                           complement=FALSE, nn) {
   if (robust) { # robust == TRUE uses robust versions of the normal distributions
     pnorm1 <- pnormP
     dnorm1 <- dnormP
@@ -192,7 +194,9 @@ plba_norm_core <- function(rt,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE,
     out <- numeric(nn)
     out[!A_small] <- out_o
     out[A_small] <- out_A
-    return(out)
+    if (complement) 
+      return((1-out)/denom) 
+    else return(out/denom)
   } else {
     zs <- rt*sd_v
     zu <- rt*mean_v
@@ -202,7 +206,10 @@ plba_norm_core <- function(rt,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE,
     chizumax <- xx/zs
     tmp1 <- zs*(dnorm1(chizumax)-dnorm1(chizu))
     tmp2 <- xx*pnorm1(chizumax)-chiminuszu*pnorm1(chizu)
-    return(pmin(pmax(0,(1+(tmp1+tmp2)/A)/denom, na.rm=TRUE), 1))
+    if (complement) 
+      return(pmin(pmax(0, (1-(1 + (tmp1 + tmp2)/A))/denom, na.rm = TRUE),1))
+    else 
+      return(pmin(pmax(0, (1 + (tmp1 + tmp2)/A)/denom, na.rm = TRUE),1))
   }
 }
 
