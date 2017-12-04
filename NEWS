@@ -1,8 +1,19 @@
-Changes to Version 0.8-x (released XXX 2017)
+Changes to Version 0.8-x (released December 2017)
 
   o Removed bug preventing args.list (e.g., posdrift) to be passed correctly in 
     dLBA, pLBA, qLBA, and rLBA. Thanks to Bruno Nicenboim for reporting this. 
     See: https://github.com/rtdists/rtdists/issues/7
+    
+  o Removed bug that prevented correct calculation of n1PDF and dLBA with 
+    distribution = "norm" and posdrift = TRUE (i.e., the default). In general 
+    the distribution function (i.e., n1PDF) is calculated as f*(1-F), where "f" 
+    is the pdf (dlba_...) for the winning accumulator and "F" is the cdf 
+    (pLBA_...) for the losing accumulator. 
+    However, for the case of the truncated normal distribution, we need to 
+    normalize "f" and "F" with "pf" and "pF", which are the corresponding 
+    probabilities of the drift rates for those accumulators being positive. 
+    So far we had calculated the distribution function incorrectly as 
+    (f/pf)*(1-(F/pF)), now we use the correct formula (f/pf)*((1-F)/pF).
 
 
 Changes to Version 0.7-x (released May 2017)
