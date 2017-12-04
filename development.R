@@ -51,7 +51,7 @@ roxy.package(
     Type = "Package",
     Title = "Response Time Distributions",
     AuthorsR = "c(
-        person(given=\"Henrik\", family=\"Singmann\", email=\"singmann+rtdists@gmail.com\", role=c(\"aut\", \"cre\")),
+        person(given=\"Henrik\", family=\"Singmann\", email=\"singmann+rtdists@gmail.com\", role=c(\"aut\", \"cre\"),  comment=c(ORCID=\"0000-0002-4842-3657\")),
         person(given=\"Scott\", family=\"Brown\", role=c(\"aut\")),
         person(given=\"Matthew\", family=\"Gretton\", role=c(\"aut\")),
         person(given=\"Andrew\", family=\"Heathcote\", role=c(\"aut\")),
