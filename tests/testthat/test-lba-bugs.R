@@ -314,23 +314,3 @@ test_that("args.dist is passed through correctly for dLBA, pLBA, qLBA", {
   expect_true(q1 != q2)
   
 })
-
-test_that("dLBA with norm and posdrift=TRUE works as expected", {
-  rt <- 2
-  vs <- c(0.8, 0.4)
-  sd <- 0.2
-  
-  f <- dlba_norm(rt, A=0.5, b=1, t0 = 0.5, mean_v=vs[1], sd_v=sd, posdrift = FALSE)
-  pf <- pnorm(vs[1]/sd)
-  
-  F <- plba_norm(rt, A=0.5, b=1, t0 = 0.5, mean_v=vs[2], sd_v=sd, posdrift = FALSE)
-  pF <- pnorm(vs[2]/sd)
-  
-  correct1 <- 0.186600974489586
-  
-  correct2 <- (f/pf)*( (1-F)/pF)
-  
-  expect_equivalent(correct1, correct2)
-  expect_equivalent(n1PDF(rt, A=0.5, b=1, t0 = 0.5, mean_v=vs, sd_v=sd), correct2)
-  expect_equivalent(dLBA(rt, 1, A=0.5, b=1, t0 = 0.5, mean_v=vs, sd_v=sd), correct2)
-})
