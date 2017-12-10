@@ -29,6 +29,7 @@ NULL
 ## note, this functions does not check parameters, it is only called internally (i.e., passed correctly).
 n1PDFfixedt0 <- function(rt,A,b, t0, ..., pdf, cdf, args.dist = list()) {
   # Generates defective PDF for responses on node #1.
+  args.dist$complement=TRUE
   dots <- list(...)
   nn <- length(rt)
   #if (length(A) != nn) browser()
@@ -36,10 +37,10 @@ n1PDFfixedt0 <- function(rt,A,b, t0, ..., pdf, cdf, args.dist = list()) {
   n_v <- max(vapply(dots, length, 0))  # Number of responses
   if (n_v>2) {
     tmp=array(dim=c(length(rt),n_v-1))
-    for (i in 2:n_v) tmp[,i-1] <- do.call(cdf, args = c(rt=list(rt), A=if(is.list(A)) A[i] else list(A), b=if(is.list(b)) b[i] else list(b), t0 = if(is.list(t0)) t0[i] else list(t0), sapply(dots, "[[", i = i, simplify = FALSE), args.dist = args.dist, complement = TRUE, nn=nn))
+    for (i in 2:n_v) tmp[,i-1] <- do.call(cdf, args = c(rt=list(rt), A=if(is.list(A)) A[i] else list(A), b=if(is.list(b)) b[i] else list(b), t0 = if(is.list(t0)) t0[i] else list(t0), sapply(dots, "[[", i = i, simplify = FALSE), args.dist = args.dist, nn=nn))
     G <- apply(tmp,1,prod)
   } else {
-    G <- do.call(cdf, args = c(rt=list(rt), A=if(is.list(A)) A[2] else list(A), b=if(is.list(b)) b[2] else list(b), t0 = if(is.list(t0)) t0[2] else list(t0), sapply(dots, "[[", i = 2, simplify = FALSE), args.dist, complement = TRUE, nn=nn))
+    G <- do.call(cdf, args = c(rt=list(rt), A=if(is.list(A)) A[2] else list(A), b=if(is.list(b)) b[2] else list(b), t0 = if(is.list(t0)) t0[2] else list(t0), sapply(dots, "[[", i = 2, simplify = FALSE), args.dist, nn=nn))
   }
   G*do.call(pdf, args = c(rt=list(rt), A=if(is.list(A)) A[1] else list(A), b=if(is.list(b)) b[1] else list(b), t0 = if(is.list(t0)) t0[1] else list(t0), sapply(dots, "[[", i = 1, simplify = FALSE), args.dist, nn=nn))
 }

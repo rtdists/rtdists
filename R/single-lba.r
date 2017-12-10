@@ -111,7 +111,6 @@ dlba_norm <- function(rt,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FALSE) {
 ## this functions expects all arguments to have the samel length (which is nn)
 dlba_norm_core <- function(rt,A,b, t0, mean_v, sd_v, posdrift=TRUE, 
                            robust = FALSE, complement=FALSE, nn) {
-  if (complement) stop("complement=TRUE is not implemented")
   if (robust) { # robust == TRUE uses robust versions of the normal distributions
     pnorm1 <- pnormP
     dnorm1 <- dnormP
