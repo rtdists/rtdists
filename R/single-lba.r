@@ -172,16 +172,12 @@ plba_norm_core <- function(rt,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE,
   }
 
   rt <- rem_t0(rt, t0)
-  if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) 
-  else denom <- 1
+  if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- 1
   
   if (any(A<1e-10)) {
     # for A<1e-10 save results in out_A
     A_small <- A<1e-10
-    out_A <- pmin(1, pmax(0, (pnorm1(b[A_small]/rt[A_small],
-            mean = mean_v[A_small], sd = sd_v[A_small], lower.tail = FALSE)),
-            na.rm = TRUE))
-    #out_A <- pmin(1, pmax(0, (pnorm1(b[A_small]/rt[A_small],mean=mean_v[A_small],sd=sd_v[A_small],lower.tail=FALSE))/denom[A_small], na.rm=TRUE))
+    out_A <- pmin(1, pmax(0, (pnorm1(b[A_small]/rt[A_small],mean=mean_v[A_small],sd=sd_v[A_small],lower.tail=FALSE))/denom[A_small], na.rm=TRUE))
 
     # calculate other results into out_o
     zs <- rt[!A_small]*sd_v[!A_small]
@@ -192,7 +188,7 @@ plba_norm_core <- function(rt,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE,
     chizumax <- xx/zs
     tmp1 <- zs*(dnorm1(chizumax)-dnorm1(chizu))
     tmp2 <- xx*pnorm1(chizumax)-chiminuszu*pnorm1(chizu)
-    out_o <- pmin(pmax(0, (1 + (tmp1 + tmp2)/A[!A_small])), 1)
+    out_o <- pmin(pmax(0,(1+(tmp1+tmp2)/A[!A_small])/denom[!A_small]), 1)
     
     # combine out_A and out_o
     out <- numeric(nn)
