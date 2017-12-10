@@ -66,15 +66,11 @@ test_that("pLBA norm is identical to n1CDF", {
 })
 
 test_that("qLBA is equivalent to manual calculation",{
-  
-  testthat::skip("manual calculation of qLBA needs to be redone after removing bug in n1PDF for posdrift=TRUE")
   p11_norm <- structure(list(par = structure(c(0.11829564514883, -2.74097628458775, 
   1.04498350371894, 0.451351158199909, 0.124346087574482, 0.260994169758609
   ), .Names = c("A", "v1", "v2", "b", "t0", "sv"))))
   q <- c(0.1, 0.3, 0.5, 0.7, 0.9)
   pred_prop_correct <- pLBA(Inf, 2, A = p11_norm$par["A"], b = p11_norm$par["A"]+p11_norm$par["b"], t0 = p11_norm$par["t0"], mean_v = c(p11_norm$par["v1"], p11_norm$par["v2"]), sd_v = c(1, p11_norm$par["sv"]), silent = TRUE)
-  
-  ## manual calculation:
 
   expect_equal(qLBA(pred_prop_correct*q, 2, A = p11_norm$par["A"], b = p11_norm$par["A"]+p11_norm$par["b"], t0 = p11_norm$par["t0"], mean_v = c(p11_norm$par["v1"], p11_norm$par["v2"]), sd_v = c(1, p11_norm$par["sv"]), silent = TRUE),c(0.487170939752454, 0.551026400837336, 0.608185370581083, 0.680979476696082, 0.830128589908231))
   
