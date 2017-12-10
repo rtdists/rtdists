@@ -250,8 +250,7 @@ dlba_gamma <- function(rt,A,b,t0,shape_v,rate_v, scale_v) {
 }
 
 
-dlba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, complement=FALSE,
-                            nn) {
+dlba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, nn) {
   rt <- rem_t0(rt, t0)
   min <- (b-A)/rt
   max <- b/rt
@@ -290,9 +289,8 @@ dlba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, complement=FALSE,
     out<- numeric(nn)
     out[!A_small] <- out_o
     out[A_small] <- out_A
-    if (complement)
-      return(1 - pmax(0, out))
-    else return(pmax(0, out))
+    
+    return(pmax(0, out))
   } else{
     
     Gmax <- pgamma(max, shape_v, rate=rate_v)
@@ -315,9 +313,7 @@ dlba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, complement=FALSE,
     term3 <- diffG(rt,(b-A),shape_v,rate_v)*(b-A-(zgamma*rt))
     out.value <- ((term1+term2+term3)/A)
     out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
-    if (complement) 
-      return(1 - pmax(0, out.value))
-    else return(pmax(0, out.value))
+    return(pmax(0, out.value))
   }
 }
 
@@ -341,7 +337,7 @@ plba_gamma <- function(rt,A,b,t0,shape_v, rate_v, scale_v) {
   plba_gamma_core(rt=rt,A=A,b=b,t0=t0,shape_v=shape_v, rate_v=rate_v, nn=nn)
 }
 
-plba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, complement=FALSE, nn) {
+plba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, nn) {
   
   rt <- rem_t0(rt, t0)
   if (any(A<1e-10)) {
@@ -370,9 +366,7 @@ plba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, complement=FALSE, nn) {
     out<- numeric(nn)
     out[!A_small] <- out_o
     out[A_small] <- out_A
-    if (complement) 
-      return(1 - pmin(pmax(0, out), 1))
-    else return(pmin(pmax(0, out), 1))
+    return(pmin(pmax(0, out), 1))
     
   } else {
     min <- (b-A)/rt
@@ -390,9 +384,7 @@ plba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, complement=FALSE, nn) {
     out.value <- (1 + pmax*term1 + pmin*term2)
     out.value[rt==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
     out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-    if (complement)
-      return(1 - pmin(pmax(0, out.value), 1))
-    else return(pmin(pmax(0, out.value), 1))
+    return(pmin(pmax(0, out.value), 1))
   }
 }
 
@@ -427,7 +419,7 @@ dlba_frechet <- function(rt,A,b,t0,shape_v, scale_v) {
   dlba_frechet_core(rt=rt,A=A,b=b,t0=t0,shape_v=shape_v, scale_v=scale_v, nn=nn)
 }
 
-dlba_frechet_core <- function(rt,A,b,t0,shape_v, scale_v, complement=FALSE, nn) {
+dlba_frechet_core <- function(rt,A,b,t0,shape_v, scale_v, nn) {
   
   rt <- rem_t0(rt, t0)
   
@@ -466,8 +458,7 @@ dlba_frechet_core <- function(rt,A,b,t0,shape_v, scale_v, complement=FALSE, nn) 
     out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
     out[!ps_below_zero] <- out.value
   }
-  if (complement) return(1 - pmax(0, out))
-  else return(pmax(0, out))
+  return(pmax(0, out))
 }
 
 #' @rdname single-LBA
@@ -485,7 +476,7 @@ plba_frechet <- function(rt,A,b,t0,shape_v, scale_v) {
   plba_frechet_core(rt=rt,A=A,b=b,t0=t0,shape_v=shape_v, scale_v=scale_v, nn=nn)
 }
 
-plba_frechet_core <- function(rt,A,b,t0,shape_v, scale_v, complement=FALSE, nn) {  
+plba_frechet_core <- function(rt,A,b,t0,shape_v, scale_v, nn) {  
   rt <- rem_t0(rt, t0)
   
   ps <- cbind(b, b-A, scale_v,shape_v)
@@ -518,9 +509,8 @@ plba_frechet_core <- function(rt,A,b,t0,shape_v, scale_v, complement=FALSE, nn) 
     out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
     out[!ps_below_zero] <- out.value
   }
-  if (complement)
-    return(1 - pmin(pmax(0, out), 1))
-  else return(pmin(pmax(0, out), 1))
+  
+  return(pmin(pmax(0, out), 1))
 }
 
 
@@ -553,8 +543,7 @@ dlba_lnorm <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
   dlba_lnorm_core(rt=rt,A=A,b=b,t0=t0,meanlog_v=meanlog_v, sdlog_v=sdlog_v, robust = robust, nn=nn)
 }
 
-dlba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust=FALSE, 
-                            complement=FALSE, nn) {
+dlba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust=FALSE, nn) {
   if (robust) { # robust == TRUE uses robust versions of the normal distributions
     pnorm1 <- pnormP
     dnorm1 <- dnormP
@@ -596,9 +585,8 @@ dlba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust=FALSE,
     out<- numeric(nn)
     out[!A_small] <- out_o
     out[A_small] <- out_A
-    if (complement)
-      return(1 - pmax(0, out))
-    else return(pmax(0, out))
+    
+    return(pmax(0, out))
     
   } else{
     
@@ -622,9 +610,7 @@ dlba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust=FALSE,
     term3 <- (b-A-(zlognorm*rt))*((-(b-A)/(rt^2))*dlnorm((b-A)/rt,meanlog=meanlog_v,sdlog=sdlog_v))
     out.value <- ((term1+term2+term3)/A)
     out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf or Inf to pdf=0
-    if (complement)
-      return(1 - pmax(0, out.value))
-    else return(pmax(0, out.value))
+    return(pmax(0, out.value))
   }
 }
 
@@ -643,8 +629,7 @@ plba_lnorm <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE) {
   plba_lnorm_core(rt=rt,A=A,b=b,t0=t0,meanlog_v=meanlog_v, sdlog_v=sdlog_v, robust=robust, nn=nn)
 }
 
-plba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE, 
-                            complement=FALSE, nn) {
+plba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE, nn) {
   if (robust) { # robust == TRUE uses robust versions of the normal distributions
     pnorm1 <- pnormP
   } else {
@@ -677,9 +662,7 @@ plba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE,
     out<- numeric(nn)
     out[!A_small] <- out_o
     out[A_small] <- out_A
-    if (complement)
-      return(1 - pmin(pmax(0, out), 1))
-    else return(pmin(pmax(0, out), 1))
+    return(pmin(pmax(0, out), 1))
 
   }else{
     
@@ -695,9 +678,7 @@ plba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE,
     out.value <- (1 + pmax*term1 + pmin*term2)
     out.value[rt==Inf] <- 1 # term1=Inf and term2=-Inf cancel in this case
     out.value[!is.finite(out.value)] <- 0 # Set NaN or -Inf to CDF=0
-    if (complement)
-      return(1 - pmin(pmax(0, out.value), 1))
-    else return(pmin(pmax(0, out.value), 1))
+    return(pmin(pmax(0, out.value), 1))
   }
 }
 
