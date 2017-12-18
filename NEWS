@@ -1,4 +1,4 @@
-Changes to Version 0.8-x (released XXX 2017)
+Changes to Version 0.8-x (released December 2017)
 
   o Removed bug preventing args.list (e.g., posdrift) to be passed correctly in 
     dLBA, pLBA, qLBA, and rLBA. Thanks to Bruno Nicenboim for reporting this. 
