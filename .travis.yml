@@ -7,7 +7,6 @@ sudo: required
 addons:
   apt:
     packages:
-      - libgsl0-dev
       - libgsl2
 r_binary_packages:
  - testthat
