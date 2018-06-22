@@ -3,8 +3,8 @@
 #' \tabular{ll}{
 #' Package: \tab rtdists\cr
 #' Type: \tab Package\cr
-#' Version: \tab 0.8-1\cr
-#' Date: \tab 2017-12-19\cr
+#' Version: \tab 0.8-2\cr
+#' Date: \tab 2018-06-22\cr
 #' Depends: \tab R (>= 3.0.0)\cr
 #' License: \tab GPL (>=3)\cr
 #' URL: \tab https://github.com/rtdists/rtdists/\cr

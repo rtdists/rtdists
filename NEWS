@@ -3,7 +3,9 @@ Changes to Version 0.8-x (released December 2017)
   o Removed bug preventing args.list (e.g., posdrift) to be passed correctly in 
     dLBA, pLBA, qLBA, and rLBA. Thanks to Bruno Nicenboim for reporting this. 
     See: https://github.com/rtdists/rtdists/issues/7
-
+    
+  o Removed an non-used "devtools::" call in tests that caused a false positive
+    CRAN warning (June 2018).
 
 Changes to Version 0.7-x (released May 2017)
 

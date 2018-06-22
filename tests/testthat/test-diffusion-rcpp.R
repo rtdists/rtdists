@@ -1,7 +1,9 @@
 #require(testthat)
 context("Diffusion pdiffusion and ddiffusion functions (new rcpp versions).")
 
-is_testing <- TRUE  # Set to TRUE for release package (FALSE only works with extra non-supplied R and C files)
+is_testing <- TRUE  # Set to TRUE for release package 
+## FALSE only works with extra non-supplied R and C files and after uncommenting 
+# the two devtools lines (67 & 68)
 
 pset1 <- list(a     = 0.8,  
               zr    = 0.3, 
@@ -62,8 +64,9 @@ if (!is_testing) {
   #### That C code is not included in the release package.
   
   # UNLOAD EXISTING RTDISTS, LOAD IN OLD VERSION FOR COMPARISON TESTING
-  require (devtools)
-  devtools::unload(rtdists)
+  ## UNCOMMENT NEXT TWO LINES
+  # require (devtools)
+  # devtools::unload(rtdists)
   #install.packages ("rtdists", lib="tests\\temp_testing\\old_rtdists_0.6-6\\")
   require (rtdists, lib.loc="tests\\temp_testing\\old_rtdists_0.6-6")
 

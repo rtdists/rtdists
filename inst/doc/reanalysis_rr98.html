@@ -12,7 +12,7 @@
 
 <meta name="author" content="Henrik Singmann" />
 
-<meta name="date" content="2017-12-19" />
+<meta name="date" content="2018-06-22" />
 
 <title>Reanalysis of Ratcliff and Rouder (1998) with Diffusion Model and LBA</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Reanalysis of Ratcliff and Rouder (1998) with Diffusion Model and LBA</h1>
 <h4 class="author"><em>Henrik Singmann</em></h4>
-<h4 class="date"><em>2017-12-19</em></h4>
+<h4 class="date"><em>2018-06-22</em></h4>
 
 
 <div id="TOC">
@@ -363,14 +363,14 @@ p1 +<span class="st"> </span><span class="kw">as.layer</span>(p2)</code></pre></
 <span class="st">  </span><span class="kw">nest</span>()
 d_nested</code></pre></div>
 <pre><code>## # A tibble: 6 x 3
-##       id instruction                  data
-##   &lt;fctr&gt;      &lt;fctr&gt;                &lt;list&gt;
-## 1     jf    accuracy &lt;tibble [3,826 x 11]&gt;
-## 2     jf       speed &lt;tibble [3,909 x 11]&gt;
-## 3     kr    accuracy &lt;tibble [3,785 x 11]&gt;
-## 4     kr       speed &lt;tibble [3,796 x 11]&gt;
-## 5     nh       speed &lt;tibble [4,345 x 11]&gt;
-## 6     nh    accuracy &lt;tibble [4,187 x 11]&gt;</code></pre>
+##   id    instruction data                 
+##   &lt;fct&gt; &lt;fct&gt;       &lt;list&gt;               
+## 1 jf    accuracy    &lt;tibble [3,826 × 11]&gt;
+## 2 jf    speed       &lt;tibble [3,909 × 11]&gt;
+## 3 kr    accuracy    &lt;tibble [3,785 × 11]&gt;
+## 4 kr    speed       &lt;tibble [3,796 × 11]&gt;
+## 5 nh    speed       &lt;tibble [4,345 × 11]&gt;
+## 6 nh    accuracy    &lt;tibble [4,187 × 11]&gt;</code></pre>
 <p>Like Ratcliff and Rouder we will fit the data to the strength bins instead of the full strength manipulation. We fit basically the full diffusion model (with the exception of <span class="math inline">\(s_{t0}\)</span>) to each instruction condition which results in 10 parameters per participant and instruction condition:</p>
 <ul>
 <li>5 drift rates <span class="math inline">\(v\)</span> (i.e., one per strength bin)</li>
