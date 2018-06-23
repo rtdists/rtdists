@@ -6,6 +6,8 @@ Changes to Version 0.8-x (released December 2017)
     
   o Removed an non-used "devtools::" call in tests that caused a false positive
     CRAN warning (June 2018).
+    
+  o Deactivated a few more tests in CRAN for faster checking (June 2018).
 
 Changes to Version 0.7-x (released May 2017)
 

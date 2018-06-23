@@ -63,7 +63,7 @@ test_that("PDFs and CDFs do not return NaN for A = 0", {
 
 
 test_that("LBA-norm: PDF and CDF work with various parameter values", {
-  
+  testthat::skip_on_cran()
   rts <- c(0, 0.0000001, 0.5, 1.5, 2)
   seq_parameters <- seq(0, 1, length.out = 5)
   
@@ -90,7 +90,7 @@ test_that("LBA-norm: PDF and CDF work with various parameter values", {
 })
 
 test_that("LBA-gamma: PDF and CDF work with various parameter values", {
-  
+  testthat::skip_on_cran()
   rts <- c(0, 0.0000001, 0.5, 1.5, 2)
   seq_parameters <- seq(0, 1, length.out = 5)
   
@@ -111,7 +111,7 @@ test_that("LBA-gamma: PDF and CDF work with various parameter values", {
 })
 
 test_that("LBA-frechet: PDF and CDF work with various parameter values", {
-  
+  testthat::skip_on_cran()
   rts <- c(0, 0.0000001, 0.5, 1.5, 2)
   seq_parameters <- seq(0, 1, length.out = 5)
   
@@ -132,7 +132,7 @@ test_that("LBA-frechet: PDF and CDF work with various parameter values", {
 })
 
 test_that("LBA-lnorm: PDF and CDF work with various parameter values", {
-  
+  testthat::skip_on_cran()
   rts <- c(0, 0.0000001, 0.5, 1.5, 2)
   seq_parameters <- seq(0, 1, length.out = 5)
   
