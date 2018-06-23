@@ -21,6 +21,7 @@ test_that("ddiffusion is equal to dwiener", {
 })
 
 test_that("pdiffusion is equal to pwiener", {
+  testthat::skip_on_cran()
   if (require(RWiener)) {
     for (a in seq(0.5, 2.0, length.out = 10)) {
       for (v in seq(0.5, 2.0, length.out = 10)) {
