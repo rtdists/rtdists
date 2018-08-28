@@ -54,6 +54,42 @@ test_that("n1PDF: List input for A and b", {
   expect_equal(p10x, p9x)
 })
 
+test_that("n1PDF: List and trialwise input for A and b", {
+  samples <- 2
+  A <- runif(4, 0.3, 0.9)
+  b <- A+runif(4, 0, 0.5)
+  t0 <- runif(2, 0.1, 0.7)
+  v1 <- runif(4, 0.5, 1.5)
+  v2 <- runif(4, 0.1, 0.5)
+  st0 <- runif(1, 0.1, 0.5)
+  r_lba <- rLBA(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], 
+                sd_v=v2[1:2])
+  
+  p1 <- n1PDF(r_lba$rt, A=list(A[1:2],A[3:4]), 
+              b=b[1], t0 = t0[1], mean_v=v1[1:2], 
+              sd_v=v2[1:2], silent = TRUE)
+  p2 <- n1PDF(r_lba$rt[1], A=list(A[1],A[3]), 
+              b=b[1], t0 = t0[1], mean_v=v1[1:2], 
+              sd_v=v2[1:2], silent = TRUE)
+  p3 <- n1PDF(r_lba$rt[2], A=list(A[2],A[4]), 
+              b=b[1], t0 = t0[1], mean_v=v1[1:2], 
+              sd_v=v2[1:2], silent = TRUE)
+  expect_equal(p1, c(p2, p3))
+  
+  pb1 <- n1PDF(r_lba$rt, A=A[1:2], 
+              b=list(b[1:2],b[3:4]), 
+              t0 = t0[1], mean_v=v1[1:2], 
+              sd_v=v2[1:2], silent = TRUE)
+  pb2 <- n1PDF(r_lba$rt[1], A=A[1], 
+              b=list(b[1],b[3]), 
+              t0 = t0[1], mean_v=v1[1:2], 
+              sd_v=v2[1:2], silent = TRUE)
+  pb3 <- n1PDF(r_lba$rt[2], A=A[2], 
+              b = list(b[2],b[4]), 
+              t0 = t0[1], mean_v=v1[1:2], 
+              sd_v=v2[1:2], silent = TRUE)
+  expect_equal(pb1, c(pb2, pb3))
+})
 
 test_that("n1CDF: List input for A and b", {
   samples <- 100
