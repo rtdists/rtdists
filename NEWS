@@ -1,4 +1,19 @@
-Changes to Version 0.8-x (released December 2017)
+Changes to Version 0.9-x (released August 2018)
+
+  o Removed bug in dLBA and pLBA that prevented correct usage of trial-wise 
+    parameters. This bug always appeared when data with more than one response 
+    was present together with trial-wise parameters. In the following example 
+    the first call should be identical to the second and third call:
+    x1 <- dLBA(rt=c(1,1), response=c(1,2), A=1,b=list(c(1,3),c(2,4)),
+            t0=0.1, mean_v=c(3,3), sd_v=c(1,1),distribution="norm")
+    x2a <- dLBA(rt=c(1), response=c(1), A=1,b=list(c(1),c(2)),
+            t0=0.1,mean_v=c(3,3),sd_v=c(1,1),distribution="norm")
+    x2b <- dLBA(rt=c(1), response=c(2), A=1,b=list(c(3),c(4)),
+            t0=0.1,mean_v=c(3,3),sd_v=c(1,1),distribution="norm")
+    all(x1 == c(x2a, x2b)) ## should be TRUE
+    
+
+Changes to Version 0.8-x (released December 2017 & updated June 2018)
 
   o Removed bug preventing args.list (e.g., posdrift) to be passed correctly in 
     dLBA, pLBA, qLBA, and rLBA. Thanks to Bruno Nicenboim for reporting this. 
