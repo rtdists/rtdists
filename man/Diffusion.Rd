@@ -12,19 +12,21 @@
 \usage{
 recalc_t0(t0, st0)
 
-ddiffusion(rt, response = "upper", a, v, t0, z = 0.5 * a, d = 0, sz = 0,
-  sv = 0, st0 = 0, s = 1, precision = 3, stop_on_error = FALSE)
+ddiffusion(rt, response = "upper", a, v, t0, z = 0.5 * a, d = 0,
+  sz = 0, sv = 0, st0 = 0, s = 1, precision = 3,
+  stop_on_error = FALSE)
 
-pdiffusion(rt, response = "upper", a, v, t0, z = 0.5 * a, d = 0, sz = 0,
-  sv = 0, st0 = 0, s = 1, precision = 3, maxt = 20,
+pdiffusion(rt, response = "upper", a, v, t0, z = 0.5 * a, d = 0,
+  sz = 0, sv = 0, st0 = 0, s = 1, precision = 3, maxt = 20,
   stop_on_error = FALSE, use_precise = TRUE)
 
-qdiffusion(p, response = "upper", a, v, t0, z = 0.5 * a, d = 0, sz = 0,
-  sv = 0, st0 = 0, s = 1, precision = 3, maxt = 20, interval = c(0,
-  10), scale_p = FALSE, scale_max = Inf, stop_on_error = FALSE)
+qdiffusion(p, response = "upper", a, v, t0, z = 0.5 * a, d = 0,
+  sz = 0, sv = 0, st0 = 0, s = 1, precision = 3, maxt = 20,
+  interval = c(0, 10), scale_p = FALSE, scale_max = Inf,
+  stop_on_error = FALSE)
 
-rdiffusion(n, a, v, t0, z = 0.5 * a, d = 0, sz = 0, sv = 0, st0 = 0,
-  s = 1, precision = 3, stop_on_error = TRUE)
+rdiffusion(n, a, v, t0, z = 0.5 * a, d = 0, sz = 0, sv = 0,
+  st0 = 0, s = 1, precision = 3, stop_on_error = TRUE)
 }
 \arguments{
 \item{t0}{non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution). Typical range: 0.1 < \code{t0} < 0.5}

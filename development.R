@@ -8,6 +8,8 @@ options(error = NULL)
 
 build_vignettes()
 
+document()
+
 Rcpp::compileAttributes()
 
 test()
@@ -38,41 +40,7 @@ n1CDF(r_lba1$rt[ r_lba1$response==1 ] - t0, A = A, b = b, t0 = 0, mean_v = v1, s
 
 
 
-## Complete documentation including DESCRPTION file is written using roxygen2 and wrapper roxyPackage:
-require(roxyPackage)  # install.packages("roxyPackage", repo="http://R.reaktanz.de")
-
-R.libs <- "."
-
-roxy.package(
-  pck.source.dir = ".",
-  pck.version = "0.8-3",
-  pck.description = data.frame(
-    Package = "rtdists",
-    Type = "Package",
-    Title = "Response Time Distributions",
-    AuthorsR = "c(
-        person(given=\"Henrik\", family=\"Singmann\", email=\"singmann+rtdists@gmail.com\", role=c(\"aut\", \"cre\"),  comment=c(ORCID=\"0000-0002-4842-3657\")),
-        person(given=\"Scott\", family=\"Brown\", role=c(\"aut\")),
-        person(given=\"Matthew\", family=\"Gretton\", role=c(\"aut\")),
-        person(given=\"Andrew\", family=\"Heathcote\", role=c(\"aut\")),
-        person(given=\"Andreas\", family=\"Voss\", role=c(\"ctb\")),
-        person(given=\"Jochen\", family=\"Voss\", role=c(\"ctb\")),
-        person(given=\"Andrew\", family=\"Terry\", role=c(\"ctb\"))
-    )",
-    Depends = "R (>= 3.0.0)",
-    Suggests = "testthat, glba, knitr, rmarkdown, dplyr, tidyr, purrr, lattice, latticeExtra, binom, RWiener",
-    Imports = "evd, msm, gsl, stats, Rcpp",
-    LinkingTo = "Rcpp",
-    Description = "Provides response time distributions (density/PDF, distribution function/CDF, quantile function, and random generation): (a) Ratcliff diffusion model (Ratcliff & McKoon, 2008, <doi:10.1162/neco.2008.12-06-420>) based on C code by Andreas and Jochen Voss and (b) linear ballistic accumulator (LBA; Brown & Heathcote, 2008, <doi:10.1016/j.cogpsych.2007.12.002>) with different distributions underlying the drift rate.",
-    URL = "https://github.com/rtdists/rtdists/",
-    License = "GPL (>=3)",
-    BugReports = "https://github.com/rtdists/rtdists/issues",
-    VignetteBuilder = "knitr",
-    stringsAsFactors = FALSE),
-  actions = c("roxy"),
-  R.libs = R.libs, 
-  repo.root = tempdir())
-
+## reverse dependency checks
 devtools::revdep()
 revdep_check(libpath = "../revdep", check_dir = "../revdep_checks")
 install.packages("xx", lib = "../revdep")

@@ -8,95 +8,189 @@
 \alias{rLBA}
 \title{The Linear Ballistic Accumulator (LBA)}
 \usage{
-dLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
+dLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm",
+  "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE)
+
+pLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm",
+  "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE)
+
+qLBA(p, response, A, b, t0, ..., st0 = 0, distribution = c("norm",
+  "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE,
+  interval = c(0, 10), scale_p = FALSE, scale_max = Inf)
+
+rLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
   "frechet", "lnorm"), args.dist = list(), silent = FALSE)
-
-pLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
-  "frechet", "lnorm"), args.dist = list(), silent = FALSE)
-
-qLBA(p, response, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
-  "frechet", "lnorm"), args.dist = list(), silent = FALSE, interval = c(0,
-  10), scale_p = FALSE, scale_max = Inf)
-
-rLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma", "frechet",
-  "lnorm"), args.dist = list(), silent = FALSE)
 }
 \arguments{
-\item{rt}{vector of RTs. Or for convenience also a \code{data.frame} with columns \code{rt} and \code{response} (such as returned from \code{rLBA} or \code{\link{rdiffusion}}). See examples.}
+\item{rt}{vector of RTs. Or for convenience also a \code{data.frame} with
+columns \code{rt} and \code{response} (such as returned from \code{rLBA} or
+\code{\link{rdiffusion}}). See examples.}
 
-\item{response}{integer vector of winning accumulators/responses corresponding to the vector of RTs/p (i.e., used for specifying the response for a given RT/probability). Will be recycled if necessary. Cannot contain values larger than the number of accumulators. First response/accumulator must receive value 1, second 2, and so forth. For conmvenience, \code{response} is converted via \code{as.numeric} thereby allowing factors to be passed as well (such as returned from \code{\link{rdiffusion}}). Ignored if \code{rt} or \code{p} is a \code{data.frame}.}
+\item{response}{integer vector of winning accumulators/responses
+corresponding to the vector of RTs/p (i.e., used for specifying the
+response for a given RT/probability). Will be recycled if necessary. Cannot
+contain values larger than the number of accumulators. First
+response/accumulator must receive value 1, second 2, and so forth. For
+conmvenience, \code{response} is converted via \code{as.numeric} thereby
+allowing factors to be passed as well (such as returned from
+\code{\link{rdiffusion}}). Ignored if \code{rt} or \code{p} is a
+\code{data.frame}.}
 
-\item{A}{start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.}
+\item{A}{start point interval or evidence in accumulator before beginning of
+decision process. Start point varies from trial to trial in the interval
+[0, \code{A}] (uniform distribution). Average amount of evidence before
+evidence accumulation across trials is \code{A}/2.}
 
-\item{b}{response threshold. (\code{b} - \code{A}/2) is a measure of "response caution".}
+\item{b}{response threshold. (\code{b} - \code{A}/2) is a measure of
+"response caution".}
 
-\item{t0}{non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution).}
+\item{t0}{non-decision time or response time constant (in seconds). Lower
+bound for the duration of all non-decisional processes (encoding and
+response execution).}
 
-\item{...}{two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See details.}
+\item{...}{two \emph{named} drift rate parameters depending on
+\code{distribution} (e.g., \code{mean_v} and \code{sd_v} for
+\code{distribution=="norm"}). The parameters can either be given as a
+numeric vector or a list. If a numeric vector is passed each element of the
+vector corresponds to one accumulator. If a list is passed each list
+element corresponds to one accumulator allowing again trialwise driftrates.
+The shorter parameter will be recycled as necessary (and also the elements
+of the list to match the length of \code{rt}). See details.}
 
-\item{st0}{variability of non-decision time, such that \code{t0} is uniformly distributed between \code{t0} and \code{t0} + \code{st0}. Default is 0. Can be trialwise, and will be recycled to length of \code{rt}.}
+\item{st0}{variability of non-decision time, such that \code{t0} is uniformly
+distributed between \code{t0} and \code{t0} + \code{st0}. Default is 0. Can
+be trialwise, and will be recycled to length of \code{rt}.}
 
-\item{distribution}{character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.}
+\item{distribution}{character specifying the distribution of the drift rate.
+Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default
+is \code{"norm"}.}
 
-\item{args.dist}{list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}, see \code{\link{single-LBA}}).}
+\item{args.dist}{list of optional further arguments to the distribution
+functions (i.e., \code{posdrift} or \code{robust} for
+\code{distribution=="norm"}, see \code{\link{single-LBA}}).}
 
-\item{silent}{logical. Should the number of accumulators used be suppressed? Default is \code{FALSE} which prints the number of accumulators.}
+\item{silent}{logical. Should the number of accumulators used be suppressed?
+Default is \code{FALSE} which prints the number of accumulators.}
 
-\item{p}{vector of probabilities. Or for convenience also a \code{data.frame} with columns \code{p} and \code{response}. See examples.}
+\item{p}{vector of probabilities. Or for convenience also a \code{data.frame}
+with columns \code{p} and \code{response}. See examples.}
 
-\item{interval}{a vector containing the end-points of the interval to be searched for the desired quantiles (i.e., RTs) in \code{qLBA}. Default is \code{c(0, 10)}.}
+\item{interval}{a vector containing the end-points of the interval to be
+searched for the desired quantiles (i.e., RTs) in \code{qLBA}. Default is
+\code{c(0, 10)}.}
 
-\item{scale_p}{logical. Should entered probabilities automatically be scaled by maximally predicted probability? Default is \code{FALSE}. Convenience argument for obtaining predicted quantiles. Can be slow as the maximally predicted probability is calculated individually for each \code{p}.}
+\item{scale_p}{logical. Should entered probabilities automatically be scaled
+by maximally predicted probability? Default is \code{FALSE}. Convenience
+argument for obtaining predicted quantiles. Can be slow as the maximally
+predicted probability is calculated individually for each \code{p}.}
 
-\item{scale_max}{numerical scalar. Value at which maximally predicted RT should be calculated if \code{scale_p} is \code{TRUE}.}
+\item{scale_max}{numerical scalar. Value at which maximally predicted RT
+should be calculated if \code{scale_p} is \code{TRUE}.}
 
 \item{n}{desired number of observations (scalar integer).}
 }
 \value{
-\code{dLBA} returns the density (PDF), \code{pLBA} returns the distribution function (CDF), \code{qLBA} returns the quantile/RT, \code{rLBA} return random response times and responses (in a \code{data.frame}).
-
-The length of the result is determined by \code{n} for \code{rLBA}, equal to the length of \code{rt} for \code{dLBA} and \code{pLBA}, and equal to the length of \code{p} for \code{qLBA}.
-
-The distribution parameters (as well as \code{response}) are recycled to the length of the result. In other words, the functions are completely vectorized for all parameters and even the response.
+\code{dLBA} returns the density (PDF), \code{pLBA} returns the
+  distribution function (CDF), \code{qLBA} returns the quantile/RT,
+  \code{rLBA} return random response times and responses (in a
+  \code{data.frame}).
+  
+  The length of the result is determined by \code{n} for \code{rLBA}, equal
+  to the length of \code{rt} for \code{dLBA} and \code{pLBA}, and equal to
+  the length of \code{p} for \code{qLBA}.
+  
+  The distribution parameters (as well as \code{response}) are recycled to
+  the length of the result. In other words, the functions are completely
+  vectorized for all parameters and even the response.
 }
 \description{
-Density, distribution function, quantile function, and random generation for the LBA model with the following parameters: \code{A} (upper value of starting point), \code{b} (response threshold), \code{t0} (non-decision time), and driftrate (\code{v}). All functions are available with different distributions underlying the drift rate: Normal (\code{norm}), Gamma (\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The functions return their values conditional on the accumulator given in the response argument winning.
+Density, distribution function, quantile function, and random generation for
+the LBA model with the following parameters: \code{A} (upper value of
+starting point), \code{b} (response threshold), \code{t0} (non-decision
+time), and driftrate (\code{v}). All functions are available with different
+distributions underlying the drift rate: Normal (\code{norm}), Gamma
+(\code{gamma}), Frechet (\code{frechet}), and log normal (\code{lnorm}). The
+functions return their values conditional on the accumulator given in the
+response argument winning.
 }
 \details{
-For convenience, all functions (with the exception of \code{rdiffusion}) allow that the first argument is a \code{data.frame} containing the information of the first and second argument in two columns (i.e., \code{rt}/\code{p} and \code{response}). Other columns will be ignored. This allows, for example, to pass the \code{data.frame} generated by \code{rLBA} directly to \code{pLBA}. See examples.
+For convenience, all functions (with the exception of \code{rdiffusion})
+allow that the first argument is a \code{data.frame} containing the
+information of the first and second argument in two columns (i.e.,
+\code{rt}/\code{p} and \code{response}). Other columns will be ignored. This
+allows, for example, to pass the \code{data.frame} generated by \code{rLBA}
+directly to \code{pLBA}. See examples.
 
-\subsection{Parameters}{
-The following arguments are allowed as \code{...} drift rate parameters:
-\itemize{
-\item \code{mean_v,sd_v} mean and standard deviation of normal distribution for drift rate (\code{norm}). See \code{\link{Normal}}
-\item \code{shape_v,rate_v,scale_v} shape, rate, and scale of gamma (\code{gamma}) and scale and shape of Frechet (\code{frechet}) distributions for drift rate. See \code{\link{GammaDist}} or \code{\link[evd]{frechet}}. For Gamma, scale = 1/shape and shape = 1/scale.
-\item \code{meanlog_v,sdlog_v} mean and standard deviation of lognormal distribution on the log scale for drift rate (\code{lnorm}). See \code{\link{Lognormal}}.
-}
+\subsection{Parameters}{ The following arguments are allowed as \code{...}
+drift rate parameters: \itemize{ \item \code{mean_v,sd_v} mean and standard
+deviation of normal distribution for drift rate (\code{norm}). See
+\code{\link{Normal}} \item \code{shape_v,rate_v,scale_v} shape, rate, and
+scale of gamma (\code{gamma}) and scale and shape of Frechet (\code{frechet})
+distributions for drift rate. See \code{\link{GammaDist}} or
+\code{\link[evd]{frechet}}. For Gamma, scale = 1/shape and shape = 1/scale. 
+\item \code{meanlog_v,sdlog_v} mean and standard deviation of lognormal
+distribution on the log scale for drift rate (\code{lnorm}). See
+\code{\link{Lognormal}}. }
 
-As described above, the accumulator parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}).
+As described above, the accumulator parameters can either be given as a
+numeric vector or a list. If a numeric vector is passed each element of the
+vector corresponds to one accumulator. If a list is passed each list element
+corresponds to one accumulator allowing trialwise driftrates. The shorter
+parameter will be recycled as necessary (and also the elements of the list to
+match the length of \code{rt}).
 
-The other LBA parameters (i.e., \code{A}, \code{b}, and \code{t0}, with the exception of \code{st0}) can either be a single numeric vector (which will be recycled to reach \code{length(rt)} or \code{length(n)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.
+The other LBA parameters (i.e., \code{A}, \code{b}, and \code{t0}, with the
+exception of \code{st0}) can either be a single numeric vector (which will be
+recycled to reach \code{length(rt)} or \code{length(n)} for trialwise
+parameters) \emph{or} a \code{list} of such vectors in which each list
+element corresponds to the parameters for this accumulator (i.e., the list
+needs to be of the same length as there are accumulators). Each list will
+also be recycled to reach \code{length(rt)} for trialwise parameters per
+accumulator.
 
-To make the difference between both paragraphs clear: Whereas for the accumulators both a single vector or a list corresponds to different accumulators, only the latter is true for the other parameters. For those (i.e., \code{A}, \code{b}, and \code{t0}) a single vector always corresponds to trialwise values and a list must be used for accumulator wise values.
+To make the difference between both paragraphs clear: Whereas for the
+accumulators both a single vector or a list corresponds to different
+accumulators, only the latter is true for the other parameters. For those
+(i.e., \code{A}, \code{b}, and \code{t0}) a single vector always corresponds
+to trialwise values and a list must be used for accumulator wise values.
 
-\code{st0} can only vary trialwise (via a vector). And it should be noted that \code{st0} not equal to zero will considerably slow done everything.
-}
+\code{st0} can only vary trialwise (via a vector). And it should be noted
+that \code{st0} not equal to zero will considerably slow done everything. }
 
-\subsection{Quantile Function}{
-Due to the bivariate nature of the LBA, single accumulators only return defective CDFs that do not reach 1. Only the sum of all accumulators reaches 1. Therefore, \code{qLBA} can only return quantiles/RTs for any accumulator up to the maximal probability of that accumulator's CDF. This can be obtained by evaluating the CDF at \code{Inf}. 
+\subsection{Quantile Function}{ Due to the bivariate nature of the LBA,
+single accumulators only return defective CDFs that do not reach 1. Only the
+sum of all accumulators reaches 1. Therefore, \code{qLBA} can only return
+quantiles/RTs for any accumulator up to the maximal probability of that
+accumulator's CDF. This can be obtained by evaluating the CDF at \code{Inf}.
 
-As a conveniece for the user, if \code{scale_p = TRUE} in the call to \code{qLBA} the desired probabilities are automatically scaled by the maximal probability for the corresponding response. Note that this can be slow as the maximal probability is calculated separately for each desired probability. See examples.
+As a conveniece for the user, if \code{scale_p = TRUE} in the call to
+\code{qLBA} the desired probabilities are automatically scaled by the maximal
+probability for the corresponding response. Note that this can be slow as the
+maximal probability is calculated separately for each desired probability.
+See examples.
 
-Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probability and the value returned from \code{pLBA} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
-}
+Also note that quantiles (i.e., predicted RTs) are obtained by numerically
+minimizing the absolute difference between desired probability and the value
+returned from \code{pLBA} using \code{\link{optimize}}. If the difference
+between the desired probability and probability corresponding to the returned
+quantile is above a certain threshold (currently 0.0001) no quantile is
+returned but \code{NA}. This can be either because the desired quantile is
+above the maximal probability for this accumulator or because the limits for
+the numerical integration are too small (default is \code{c(0, 10)}). }
 
-\subsection{RNG}{
-For random number generation at least one of the distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v}, \code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should be of length > 1 to receive RTs from multiple responses. Shorter vectors are recycled as necessary.\cr
-Note that for random number generation from a normal distribution for the driftrate the number of returned samples may be less than the number of requested samples if \code{posdrifts==FALSE}.
-}
+\subsection{RNG}{ For random number generation at least one of the
+distribution parameters (i.e., \code{mean_v}, \code{sd_v}, \code{shape_v},
+\code{scale_v}, \code{rate_v}, \code{meanlog_v}, and \code{sdlog_v}) should
+be of length > 1 to receive RTs from multiple responses. Shorter vectors are
+recycled as necessary.\cr Note that for random number generation from a
+normal distribution for the driftrate the number of returned samples may be
+less than the number of requested samples if \code{posdrifts==FALSE}. }
 }
 \note{
-These are the top-level functions intended for end-users. To obtain the density and cumulative density the race functions are called for each response time with the corresponding winning accumulator as first accumulator (see \code{\link{LBA-race}}).
+These are the top-level functions intended for end-users. To obtain the
+  density and cumulative density the race functions are called for each
+  response time with the corresponding winning accumulator as first
+  accumulator (see \code{\link{LBA-race}}).
 }
 \examples{
 
@@ -205,9 +299,16 @@ sum(log(ddiffusion(rt1, a=1, v=2, t0=0.5)))
 sum(log(ddiffusion(rt2, a=1, v=2, t0=0.5)))
 }
 \references{
-Brown, S. D., & Heathcote, A. (2008). The simplest complete model of choice response time: Linear ballistic accumulation. \emph{Cognitive Psychology}, 57(3), 153-178. doi:10.1016/j.cogpsych.2007.12.002
+Brown, S. D., & Heathcote, A. (2008). The simplest complete model of choice
+response time: Linear ballistic accumulation. \emph{Cognitive Psychology},
+57(3), 153-178. doi:10.1016/j.cogpsych.2007.12.002
 
-Donkin, C., Averell, L., Brown, S., & Heathcote, A. (2009). Getting more from accuracy and response time data: Methods for fitting the linear ballistic accumulator. \emph{Behavior Research Methods}, 41(4), 1095-1110. doi:10.3758/BRM.41.4.1095
+Donkin, C., Averell, L., Brown, S., & Heathcote, A. (2009). Getting more from
+accuracy and response time data: Methods for fitting the linear ballistic
+accumulator. \emph{Behavior Research Methods}, 41(4), 1095-1110.
+doi:10.3758/BRM.41.4.1095
 
-Heathcote, A., & Love, J. (2012). Linear deterministic accumulator models of simple choice. \emph{Frontiers in Psychology}, 3, 292. doi:10.3389/fpsyg.2012.00292
+Heathcote, A., & Love, J. (2012). Linear deterministic accumulator models of
+simple choice. \emph{Frontiers in Psychology}, 3, 292.
+doi:10.3389/fpsyg.2012.00292
 }

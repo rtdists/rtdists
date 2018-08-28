@@ -15,27 +15,56 @@ n1CDF(rt, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
 \arguments{
 \item{rt}{a vector of RTs.}
 
-\item{A, b, t0}{LBA parameters, see \code{\link{LBA}}. Can either be a single numeric vector (which will be recycled to reach \code{length(rt)} for trialwise parameters) \emph{or} a \code{list} of such vectors in which each list element corresponds to the parameters for this accumulator (i.e., the list needs to be of the same length as there are accumulators). Each list will also be recycled to reach \code{length(rt)} for trialwise parameters per accumulator.}
+\item{A, b, t0}{LBA parameters, see \code{\link{LBA}}. Can either be a single
+numeric vector (which will be recycled to reach \code{length(rt)} for
+trialwise parameters) \emph{or} a \code{list} of such vectors in which each
+list element corresponds to the parameters for this accumulator (i.e., the
+list needs to be of the same length as there are accumulators). Each list
+will also be recycled to reach \code{length(rt)} for trialwise parameters
+per accumulator.}
 
-\item{...}{two \emph{named} drift rate parameters depending on \code{distribution} (e.g., \code{mean_v} and \code{sd_v} for \code{distribution=="norm"}). The parameters can either be given as a numeric vector or a list. If a numeric vector is passed each element of the vector corresponds to one accumulator. If a list is passed each list element corresponds to one accumulator allowing again trialwise driftrates. The shorter parameter will be recycled as necessary (and also the elements of the list to match the length of \code{rt}). See examples.}
+\item{...}{two \emph{named} drift rate parameters depending on
+\code{distribution} (e.g., \code{mean_v} and \code{sd_v} for
+\code{distribution=="norm"}). The parameters can either be given as a
+numeric vector or a list. If a numeric vector is passed each element of the
+vector corresponds to one accumulator. If a list is passed each list
+element corresponds to one accumulator allowing again trialwise driftrates.
+The shorter parameter will be recycled as necessary (and also the elements
+of the list to match the length of \code{rt}). See examples.}
 
-\item{st0}{parameter specifying the variability of \code{t0} (which varies uniformly from \code{t0} to \code{t0} + \code{st0}). Can be trialwise, and will be recycled to length of \code{rt}.}
+\item{st0}{parameter specifying the variability of \code{t0} (which varies
+uniformly from \code{t0} to \code{t0} + \code{st0}). Can be trialwise, and
+will be recycled to length of \code{rt}.}
 
-\item{distribution}{character specifying the distribution of the drift rate. Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default is \code{"norm"}.}
+\item{distribution}{character specifying the distribution of the drift rate.
+Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default
+is \code{"norm"}.}
 
-\item{args.dist}{list of optional further arguments to the distribution functions (i.e., \code{posdrift} or \code{robust} for \code{distribution=="norm"}).}
+\item{args.dist}{list of optional further arguments to the distribution
+functions (i.e., \code{posdrift} or \code{robust} for
+\code{distribution=="norm"}).}
 
-\item{silent}{logical. Should the number of accumulators used be suppressed? Default is \code{FALSE} which prints the number of accumulators.}
+\item{silent}{logical. Should the number of accumulators used be suppressed?
+Default is \code{FALSE} which prints the number of accumulators.}
 }
 \description{
-n1PDF and n1CDF take RTs, the distribution functions of the \link{LBA}, and corresponding parameter values and put them throughout the race equations and return the likelihood for the first accumulator winning (hence n1) in a set of accumulators.
+n1PDF and n1CDF take RTs, the distribution functions of the \link{LBA}, and
+corresponding parameter values and put them throughout the race equations and
+return the likelihood for the first accumulator winning (hence n1) in a set
+of accumulators.
 }
 \details{
-For a set of \eqn{N} independent accumulators \eqn{i = 1...N}, the race likelihood for a given accumulator \eqn{i} is given by
-\deqn{L(\mbox{unit }i \mbox{ wins}) = f_i(t) \times \prod_{j<>i} [ S_j(t) ]}{L(unit i wins) = f_i(t) * prod_j<>i [ S_j(t) ]}
-where \eqn{f(t)} is the PDF (\code{dlba_...}) and \eqn{S_j(t) = 1 - F_j(t)} is the survivor function, that is the complement of the CDF \eqn{F(t)} (\code{plba_...}) at time \eqn{t}.
-
-In other words, this is just the PDF/CDF for the winning accumulator at time \eqn{t} times the probability that no other accumulators have finished at time \eqn{t}.
+For a set of \eqn{N} independent accumulators \eqn{i = 1...N}, the
+  race likelihood for a given accumulator \eqn{i} is given by 
+  \deqn{L(\mbox{unit }i \mbox{ wins}) = f_i(t) \times \prod_{j<>i} [ S_j(t)
+  ]}{L(unit i wins) = f_i(t) * prod_j<>i [ S_j(t) ]} where \eqn{f(t)} is the
+  PDF (\code{dlba_...}) and \eqn{S_j(t) = 1 - F_j(t)} is the survivor
+  function, that is the complement of the CDF \eqn{F(t)} (\code{plba_...}) at
+  time \eqn{t}.
+  
+  In other words, this is just the PDF/CDF for the winning accumulator at
+  time \eqn{t} times the probability that no other accumulators have finished
+  at time \eqn{t}.
 }
 \examples{
 
@@ -125,5 +154,6 @@ n1PDF(xx$rt, A=0.5, b=1, t0 = list(c(0.4, 0.5), c(0.5, 0.6)), mean_v=c(1.2, 1.0)
 }
 }
 \seealso{
-For more user-friendly functions that return the PDF or CDF for the corresponding (and not first) accumulator winning see /code{/link{LBA}}.
+For more user-friendly functions that return the PDF or CDF for the
+  corresponding (and not first) accumulator winning see /code{/link{LBA}}.
 }
