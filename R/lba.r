@@ -281,10 +281,11 @@ dLBA <-  function(rt, response, A, b, t0, ..., st0=0,
     sel <- response == i
     out[sel] <- do.call(n1PDF, 
                         args = c(rt=list(rt[sel]), 
-                                 A = list(A[c(i, seq_len(n_v)[-i])]), 
-                                 b = list(b[c(i, seq_len(n_v)[-i])]), 
-                                 t0 = list(t0[c(i, seq_len(n_v)[-i])]), 
-                                 lapply(dots, function(x) x[c(i, seq_len(n_v)[-i])]), 
+                                 A = list(lapply(A, "[", i = sel)[c(i, seq_len(n_v)[-i])]), 
+                                 b = list(lapply(b, "[", i = sel)[c(i, seq_len(n_v)[-i])]),
+                                 t0 = list(lapply(t0, "[", i = sel)[c(i, seq_len(n_v)[-i])]),
+                                 lapply(dots, function(x) 
+                                   lapply(x, "[", i = sel)[c(i, seq_len(n_v)[-i])]), 
                                  distribution=distribution, 
                                  args.dist=list(args.dist), 
                                  silent=TRUE, st0 = list(st0)))
@@ -368,10 +369,11 @@ pLBA <-  function(rt, response, A, b, t0, ..., st0=0,
     #if(!all(rt[sel] == sort(rt[sel])))  stop("rt needs to be sorted (per response)")
     out[sel] <- do.call(n1CDF, 
                         args = c(rt=list(rt[sel]), 
-                                 A = list(A[c(i, seq_len(n_v)[-i])]), 
-                                 b = list(b[c(i, seq_len(n_v)[-i])]), 
-                                 t0 = list(t0[c(i, seq_len(n_v)[-i])]), 
-                                 lapply(dots, function(x) x[c(i, seq_len(n_v)[-i])]), 
+                                 A = list(lapply(A, "[", i = sel)[c(i, seq_len(n_v)[-i])]), 
+                                 b = list(lapply(b, "[", i = sel)[c(i, seq_len(n_v)[-i])]),
+                                 t0 = list(lapply(t0, "[", i = sel)[c(i, seq_len(n_v)[-i])]),
+                                 lapply(dots, function(x) 
+                                   lapply(x, "[", i = sel)[c(i, seq_len(n_v)[-i])]), 
                                  distribution=distribution, 
                                  args.dist=list(args.dist), 
                                  silent=TRUE, st0 = list(st0)))

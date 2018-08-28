@@ -1,4 +1,73 @@
 
+context("dLBA: Known Bugs")
+
+test_that("dLBA: List and trialwise input for A and b", {
+  samples <- 2
+  A <- runif(4, 0.3, 0.9)
+  b <- A+runif(4, 0, 0.5)
+  t0 <- runif(2, 0.1, 0.7)
+  v1 <- runif(4, 0.5, 1.5)
+  v2 <- runif(4, 0.1, 0.5)
+  st0 <- runif(1, 0.1, 0.5)
+  r_lba <- rLBA(samples, A=A[1], b=b[1], t0 = t0[1], mean_v=v1[1:2], 
+                sd_v=v2[1:2])
+  
+  p1 <- dLBA(rt = r_lba$rt, response = c(1, 2), 
+             A=list(A[1:2],A[3:4]), 
+             b=b[1], t0 = t0[1], mean_v=v1[1:2], 
+             sd_v=v2[1:2], silent = TRUE)
+  p2 <- dLBA(rt = r_lba$rt[1], response = 1, 
+             A=list(A[1],A[3]), 
+             b=b[1], t0 = t0[1], mean_v=v1[1:2], 
+             sd_v=v2[1:2], silent = TRUE)
+  p3 <- dLBA(rt = r_lba$rt[2], response = 2, 
+             A=list(A[2],A[4]), 
+             b=b[1], t0 = t0[1], mean_v=v1[1:2], 
+             sd_v=v2[1:2], silent = TRUE)
+  expect_identical(p1, c(p2, p3))
+  
+  p2n1 <- n1PDF(rt = r_lba$rt[1], 
+             A=list(A[1],A[3]), 
+             b=b[1], t0 = t0[1], mean_v=v1[1:2], 
+             sd_v=v2[1:2], silent = TRUE)
+  expect_identical(p2, p2n1)
+  
+  p3n1 <- n1PDF(rt = r_lba$rt[2], 
+             A=list(A[4],A[2]), 
+             b=b[1], t0 = t0[1], mean_v=v1[2:1], 
+             sd_v=v2[2:1], silent = TRUE)
+  expect_identical(p3, p3n1)
+  
+  pb1 <- dLBA(r_lba$rt, c(1, 2), 
+              A=A[1:2], 
+              b=list(b[1:2],b[3:4]), 
+              t0 = t0[1], mean_v=v1[1:2], 
+              sd_v=v2[1:2], silent = TRUE)
+  pb2 <- dLBA(r_lba$rt[1], 1, A=A[1], 
+              b=list(b[1],b[3]), 
+              t0 = t0[1], mean_v=v1[1:2], 
+              sd_v=v2[1:2], silent = TRUE)
+  pb3 <- dLBA(r_lba$rt[2], 2, A=A[2], 
+              b = list(b[2],b[4]), 
+              t0 = t0[1], 1, mean_v=v1[1:2], 
+              sd_v=v2[1:2], silent = TRUE)
+  expect_identical(pb1, c(pb2, pb3))
+  
+  pb2n1 <- n1PDF(rt = r_lba$rt[1], 
+                A=A[1], 
+                b=list(b[1],b[3]),
+                t0 = t0[1], mean_v=v1[1:2], 
+                sd_v=v2[1:2], silent = TRUE)
+  expect_identical(pb2, pb2n1)
+  
+  pb3n1 <- n1PDF(rt = r_lba$rt[2], 
+                A=A[2], 
+                b=list(b[4],b[2]),
+                t0 = t0[1], mean_v=v1[2:1], 
+                sd_v=v2[2:1], silent = TRUE)
+  expect_identical(pb3, pb3n1)
+})
+
 context("n1PDF: Known Bugs")
 
 test_that("n1PDF and n1CDF pass arguments correctly", {

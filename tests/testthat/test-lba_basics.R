@@ -42,13 +42,13 @@ test_that("dLBA norm is identical to n1PDF", {
   
   ex3_n1pdf <- vector("numeric", n)
   ex3_n1pdf[x$response == 1] <- n1PDF(x$rt[x$response == 1], 
-                                      A=c(0.5, 0.6), 
+                                      A=rep(c(0.5, 0.6), n/2)[x$response == 1], 
                                       b=1, t0 = 0.5, 
                                       mean_v=c(1.2, 1), 
                                       sd_v=c(0.2,0.3), 
                                       distribution = "norm", silent = TRUE)
   ex3_n1pdf[x$response == 2] <- n1PDF(x$rt[x$response == 2], 
-                                      A=c(0.5, 0.6), 
+                                      A=rep(c(0.5, 0.6), n/2)[x$response == 2], 
                                       b=1, t0 = 0.5, 
                                       mean_v=c(1, 1.2), 
                                       sd_v=c(0.3,0.2), 
@@ -60,13 +60,19 @@ test_that("dLBA norm is identical to n1PDF", {
   
   ex4_n1pdf <- vector("numeric", n)
   ex4_n1pdf[x$response == 1] <- n1PDF(x$rt[x$response == 1], 
-                                      A=list(c(0.5, 0.6), c(0.6, 0.5)), 
+                                      A=list(
+                                        rep(c(0.5, 0.6), n/2)[x$response == 1], 
+                                        rep(c(0.6, 0.5), n/2)[x$response == 1]
+                                      ), 
                                       b=1, t0 = 0.5, 
                                       mean_v=c(1.2, 1), 
                                       sd_v=c(0.2,0.3), 
                                       distribution = "norm", silent = TRUE)
   ex4_n1pdf[x$response == 2] <- n1PDF(x$rt[x$response == 2], 
-                                      A=list(c(0.6, 0.5), c(0.5, 0.6)), 
+                                      A=list(
+                                        rep(c(0.6, 0.5), n/2)[x$response == 2], 
+                                        rep(c(0.5, 0.6), n/2)[x$response == 2]
+                                      ),  
                                       b=1, t0 = 0.5, 
                                       mean_v=c(1, 1.2), 
                                       sd_v=c(0.3,0.2), 
@@ -79,14 +85,22 @@ test_that("dLBA norm is identical to n1PDF", {
   
   ex5_n1pdf <- vector("numeric", n)
   ex5_n1pdf[x$response == 1] <- n1PDF(x$rt[x$response == 1], 
-                                      A=list(c(0.5, 0.6), c(0.6, 0.5)), 
-                                      b=1, t0 = list(0.5, 0.3), 
+                                      A=list(
+                                        rep(c(0.5, 0.6), n/2)[x$response == 1], 
+                                        rep(c(0.6, 0.5), n/2)[x$response == 1]
+                                      ),
+                                      b=1, 
+                                      t0 = list(0.5, 0.3), 
                                       mean_v=c(1.2, 1), 
                                       sd_v=c(0.2,0.3), 
                                       distribution = "norm", silent = TRUE)
   ex5_n1pdf[x$response == 2] <- n1PDF(x$rt[x$response == 2], 
-                                      A=list(c(0.6, 0.5), c(0.5, 0.6)), 
-                                      b=1, t0 = list(0.3, 0.5), 
+                                      A=list(
+                                        rep(c(0.6, 0.5), n/2)[x$response == 2], 
+                                        rep(c(0.5, 0.6), n/2)[x$response == 2]
+                                      ), 
+                                      b=1, 
+                                      t0 = list(0.3, 0.5), 
                                       mean_v=c(1, 1.2), 
                                       sd_v=c(0.3,0.2), 
                                       distribution = "norm", silent = TRUE)
@@ -100,14 +114,20 @@ test_that("dLBA norm is identical to n1PDF", {
   
   ex6_n1pdf <- vector("numeric", n)
   ex6_n1pdf[x$response == 1] <- n1PDF(x$rt[x$response == 1], 
-                                      A=list(c(0.5, 0.6), c(0.6, 0.5)), 
+                                      A=list(
+                                        rep(c(0.5, 0.6), n/2)[x$response == 1], 
+                                        rep(c(0.6, 0.5), n/2)[x$response == 1]
+                                      ), 
                                       b=1, t0 = list(0.5, 0.3), 
                                       mean_v=c(1.2, 1), 
                                       sd_v=c(0.2,0.3), 
                                       distribution = "norm", 
                                       silent = TRUE, st0 = 0.2)
   ex6_n1pdf[x$response == 2] <- n1PDF(x$rt[x$response == 2], 
-                                      A=list(c(0.6, 0.5), c(0.5, 0.6)), 
+                                      A=list(
+                                        rep(c(0.6, 0.5), n/2)[x$response == 2], 
+                                        rep(c(0.5, 0.6), n/2)[x$response == 2]
+                                      ), 
                                       b=1, t0 = list(0.3, 0.5), 
                                       mean_v=c(1, 1.2), 
                                       sd_v=c(0.3,0.2), 
@@ -120,6 +140,299 @@ test_that("dLBA norm is identical to n1PDF", {
                    sd_v=c(0.2,0.3), 
                    distribution = "norm", st0 = 0.2)
   expect_identical(ex6_n1pdf, ex6_dLBA)
+  
+  
+  drifts1 <- rnorm(n/2, 1, 0.1)
+  drifts2 <- rnorm(n/2, 1.5, 0.2)
+  
+  sddrift1 <- runif(n/5, 0.1, 0.3)
+  sddrift2 <- runif(n/5, 0.2, 0.4)
+    
+  ex7_n1pdf <- vector("numeric", n)
+  ex7_n1pdf[x$response == 1] <- n1PDF(x$rt[x$response == 1], 
+                                      A=list(
+                                        rep(c(0.5, 0.6), n/2)[x$response == 1], 
+                                        rep(c(0.6, 0.5), n/2)[x$response == 1]
+                                      ), 
+                                      b = list(
+                                        rep(c(1, 1.1, 1.2, 1.3, 1.4), n/5)[x$response == 1], 
+                                        rep(c(1, 1.1, 1.2, 1.3, 1.4) - 0.2, n/5)[x$response == 1]
+                                      ),
+                                      t0 = list(
+                                        seq(0.1, 0.5, length.out = n)[x$response == 1], 
+                                        seq(0.3, 0.8, length.out = n)[x$response == 1]), 
+                                      mean_v = list(
+                                        rep(drifts1, 2)[x$response == 1], 
+                                        rep(drifts2, 2)[x$response == 1]
+                                      ), 
+                                      sd_v = list(
+                                        rep(sddrift1, 5)[x$response == 1], 
+                                        rep(sddrift2, 5)[x$response == 1]
+                                      ), 
+                                      distribution = "norm", 
+                                      silent = TRUE, st0 = 0.2)
+  ex7_n1pdf[x$response == 2] <- n1PDF(x$rt[x$response == 2], 
+                                      A=list(
+                                        rep(c(0.6, 0.5), n/2)[x$response == 2], 
+                                        rep(c(0.5, 0.6), n/2)[x$response == 2]
+                                      ), 
+                                      b = list(
+                                        rep(c(1, 1.1, 1.2, 1.3, 1.4) - 0.2, n/5)[x$response == 2],
+                                        rep(c(1, 1.1, 1.2, 1.3, 1.4), n/5)[x$response == 2]
+                                      ),
+                                      t0 = list(
+                                        seq(0.3, 0.8, length.out = n)[x$response == 2],
+                                        seq(0.1, 0.5, length.out = n)[x$response == 2]
+                                      ), 
+                                      mean_v = list(
+                                        rep(drifts2, 2)[x$response == 2], 
+                                        rep(drifts1, 2)[x$response == 2]
+                                      ), 
+                                      sd_v = list(
+                                        rep(sddrift2, 5)[x$response == 2], 
+                                        rep(sddrift1, 5)[x$response == 2]
+                                      ), 
+                                      distribution = "norm", silent = TRUE, 
+                                      st0 = 0.2)
+  ex7_dLBA <- dLBA(x$rt, x$response, 
+                   A = list(
+                     c(0.5, 0.6), 
+                     c(0.6, 0.5)
+                   ),
+                   b = list(
+                     c(1, 1.1, 1.2, 1.3, 1.4), 
+                     c(1, 1.1, 1.2, 1.3, 1.4) - 0.2
+                   ),
+                   t0 = list(
+                     seq(0.1, 0.5, length.out = n), 
+                     seq(0.3, 0.8, length.out = n)), 
+                   mean_v = list(
+                     drifts1, 
+                     drifts2
+                   ), 
+                   sd_v = list(
+                     sddrift1, 
+                     sddrift2
+                   ), 
+                   distribution = "norm", st0 = 0.2)
+  expect_identical(ex7_n1pdf, ex7_dLBA)
+  
+})
+
+test_that("pLBA norm is identical to n1CDF", {
+  n <- 100
+  x <- rLBA(n, A=0.5, b=1, t0 = 0.5, mean_v=c(1.2, 1), sd_v=c(0.2,0.3))
+  
+  ex1_n1cdf <- vector("numeric", n)
+  ex1_n1cdf[x$response == 1] <- n1CDF(x$rt[x$response == 1], A=0.5, b=1, 
+                                      t0 = 0.5, 
+                                      mean_v=c(1.2, 1), 
+                                      sd_v=c(0.2,0.3), 
+                                      distribution = "norm", silent = TRUE)
+  ex1_n1cdf[x$response == 2] <- n1CDF(x$rt[x$response == 2], 
+                                      A=0.5, b=1, t0 = 0.5, 
+                                      mean_v=c(1, 1.2), 
+                                      sd_v=c(0.3,0.2), 
+                                      distribution = "norm", silent = TRUE)
+  ex1_pLBA <- pLBA(x$rt, x$response, A=0.5, b=1, t0 = 0.5, 
+                   mean_v=c(1.2, 1), sd_v=c(0.2,0.3), distribution = "norm")
+  expect_identical(ex1_n1cdf, ex1_pLBA)
+  
+  ex2_n1cdf <- vector("numeric", n)
+  ex2_n1cdf[x$response == 1] <- n1CDF(x$rt[x$response == 1], 
+                                      A=list(0.5, 0.6), 
+                                      b=1, t0 = 0.5, 
+                                      mean_v=c(1.2, 1), 
+                                      sd_v=c(0.2,0.3), 
+                                      distribution = "norm", silent = TRUE)
+  ex2_n1cdf[x$response == 2] <- n1CDF(x$rt[x$response == 2], 
+                                      A=list(0.6, 0.5), 
+                                      b=1, t0 = 0.5, 
+                                      mean_v=c(1, 1.2), 
+                                      sd_v=c(0.3,0.2), 
+                                      distribution = "norm", silent = TRUE)
+  ex2_pLBA <- pLBA(x$rt, x$response, 
+                   A=list(0.5, 0.6), b=1, t0 = 0.5, 
+                   mean_v=c(1.2, 1), sd_v=c(0.2,0.3), 
+                   distribution = "norm")
+  expect_identical(ex2_n1cdf, ex2_pLBA)
+  
+  ex3_n1cdf <- vector("numeric", n)
+  ex3_n1cdf[x$response == 1] <- n1CDF(x$rt[x$response == 1], 
+                                      A=rep(c(0.5, 0.6), n/2)[x$response == 1], 
+                                      b=1, t0 = 0.5, 
+                                      mean_v=c(1.2, 1), 
+                                      sd_v=c(0.2,0.3), 
+                                      distribution = "norm", silent = TRUE)
+  ex3_n1cdf[x$response == 2] <- n1CDF(x$rt[x$response == 2], 
+                                      A=rep(c(0.5, 0.6), n/2)[x$response == 2], 
+                                      b=1, t0 = 0.5, 
+                                      mean_v=c(1, 1.2), 
+                                      sd_v=c(0.3,0.2), 
+                                      distribution = "norm", silent = TRUE)
+  ex3_pLBA <- pLBA(x$rt, x$response, A=c(0.5, 0.6), b=1, t0 = 0.5, 
+                   mean_v=c(1.2, 1), sd_v=c(0.2,0.3), 
+                   distribution = "norm")
+  expect_identical(ex3_n1cdf, ex3_pLBA)
+  
+  ex4_n1cdf <- vector("numeric", n)
+  ex4_n1cdf[x$response == 1] <- n1CDF(x$rt[x$response == 1], 
+                                      A=list(
+                                        rep(c(0.5, 0.6), n/2)[x$response == 1], 
+                                        rep(c(0.6, 0.5), n/2)[x$response == 1]
+                                      ), 
+                                      b=1, t0 = 0.5, 
+                                      mean_v=c(1.2, 1), 
+                                      sd_v=c(0.2,0.3), 
+                                      distribution = "norm", silent = TRUE)
+  ex4_n1cdf[x$response == 2] <- n1CDF(x$rt[x$response == 2], 
+                                      A=list(
+                                        rep(c(0.6, 0.5), n/2)[x$response == 2], 
+                                        rep(c(0.5, 0.6), n/2)[x$response == 2]
+                                      ),  
+                                      b=1, t0 = 0.5, 
+                                      mean_v=c(1, 1.2), 
+                                      sd_v=c(0.3,0.2), 
+                                      distribution = "norm", silent = TRUE)
+  ex4_pLBA <- pLBA(x$rt, x$response, 
+                   A=list(c(0.5, 0.6), c(0.6, 0.5)), b=1, t0 = 0.5, 
+                   mean_v=c(1.2, 1), sd_v=c(0.2,0.3), 
+                   distribution = "norm")
+  expect_identical(ex4_n1cdf, ex4_pLBA)
+  
+  ex5_n1cdf <- vector("numeric", n)
+  ex5_n1cdf[x$response == 1] <- n1CDF(x$rt[x$response == 1], 
+                                      A=list(
+                                        rep(c(0.5, 0.6), n/2)[x$response == 1], 
+                                        rep(c(0.6, 0.5), n/2)[x$response == 1]
+                                      ),
+                                      b=1, 
+                                      t0 = list(0.5, 0.3), 
+                                      mean_v=c(1.2, 1), 
+                                      sd_v=c(0.2,0.3), 
+                                      distribution = "norm", silent = TRUE)
+  ex5_n1cdf[x$response == 2] <- n1CDF(x$rt[x$response == 2], 
+                                      A=list(
+                                        rep(c(0.6, 0.5), n/2)[x$response == 2], 
+                                        rep(c(0.5, 0.6), n/2)[x$response == 2]
+                                      ), 
+                                      b=1, 
+                                      t0 = list(0.3, 0.5), 
+                                      mean_v=c(1, 1.2), 
+                                      sd_v=c(0.3,0.2), 
+                                      distribution = "norm", silent = TRUE)
+  ex5_pLBA <- pLBA(x$rt, x$response, 
+                   A=list(c(0.5, 0.6), c(0.6, 0.5)), 
+                   b=1, t0 = list(0.5, 0.3), 
+                   mean_v=c(1.2, 1), 
+                   sd_v=c(0.2,0.3), 
+                   distribution = "norm")
+  expect_identical(ex5_n1cdf, ex5_pLBA)
+  
+  ex6_n1cdf <- vector("numeric", n)
+  ex6_n1cdf[x$response == 1] <- n1CDF(x$rt[x$response == 1], 
+                                      A=list(
+                                        rep(c(0.5, 0.6), n/2)[x$response == 1], 
+                                        rep(c(0.6, 0.5), n/2)[x$response == 1]
+                                      ), 
+                                      b=1, t0 = list(0.5, 0.3), 
+                                      mean_v=c(1.2, 1), 
+                                      sd_v=c(0.2,0.3), 
+                                      distribution = "norm", 
+                                      silent = TRUE, st0 = 0.2)
+  ex6_n1cdf[x$response == 2] <- n1CDF(x$rt[x$response == 2], 
+                                      A=list(
+                                        rep(c(0.6, 0.5), n/2)[x$response == 2], 
+                                        rep(c(0.5, 0.6), n/2)[x$response == 2]
+                                      ), 
+                                      b=1, t0 = list(0.3, 0.5), 
+                                      mean_v=c(1, 1.2), 
+                                      sd_v=c(0.3,0.2), 
+                                      distribution = "norm", silent = TRUE, 
+                                      st0 = 0.2)
+  ex6_pLBA <- pLBA(x$rt, x$response, 
+                   A=list(c(0.5, 0.6), c(0.6, 0.5)), 
+                   b=1, t0 = list(0.5, 0.3), 
+                   mean_v=c(1.2, 1), 
+                   sd_v=c(0.2,0.3), 
+                   distribution = "norm", st0 = 0.2)
+  expect_identical(ex6_n1cdf, ex6_pLBA)
+  
+  
+  drifts1 <- rnorm(n/2, 1, 0.1)
+  drifts2 <- rnorm(n/2, 1.5, 0.2)
+  
+  sddrift1 <- runif(n/5, 0.1, 0.3)
+  sddrift2 <- runif(n/5, 0.2, 0.4)
+    
+  ex7_n1cdf <- vector("numeric", n)
+  ex7_n1cdf[x$response == 1] <- n1CDF(x$rt[x$response == 1], 
+                                      A=list(
+                                        rep(c(0.5, 0.6), n/2)[x$response == 1], 
+                                        rep(c(0.6, 0.5), n/2)[x$response == 1]
+                                      ), 
+                                      b = list(
+                                        rep(c(1, 1.1, 1.2, 1.3, 1.4), n/5)[x$response == 1], 
+                                        rep(c(1, 1.1, 1.2, 1.3, 1.4) - 0.2, n/5)[x$response == 1]
+                                      ),
+                                      t0 = list(
+                                        seq(0.1, 0.5, length.out = n)[x$response == 1], 
+                                        seq(0.3, 0.8, length.out = n)[x$response == 1]), 
+                                      mean_v = list(
+                                        rep(drifts1, 2)[x$response == 1], 
+                                        rep(drifts2, 2)[x$response == 1]
+                                      ), 
+                                      sd_v = list(
+                                        rep(sddrift1, 5)[x$response == 1], 
+                                        rep(sddrift2, 5)[x$response == 1]
+                                      ), 
+                                      distribution = "norm", 
+                                      silent = TRUE, st0 = 0.2)
+  ex7_n1cdf[x$response == 2] <- n1CDF(x$rt[x$response == 2], 
+                                      A=list(
+                                        rep(c(0.6, 0.5), n/2)[x$response == 2], 
+                                        rep(c(0.5, 0.6), n/2)[x$response == 2]
+                                      ), 
+                                      b = list(
+                                        rep(c(1, 1.1, 1.2, 1.3, 1.4) - 0.2, n/5)[x$response == 2],
+                                        rep(c(1, 1.1, 1.2, 1.3, 1.4), n/5)[x$response == 2]
+                                      ),
+                                      t0 = list(
+                                        seq(0.3, 0.8, length.out = n)[x$response == 2],
+                                        seq(0.1, 0.5, length.out = n)[x$response == 2]
+                                      ), 
+                                      mean_v = list(
+                                        rep(drifts2, 2)[x$response == 2], 
+                                        rep(drifts1, 2)[x$response == 2]
+                                      ), 
+                                      sd_v = list(
+                                        rep(sddrift2, 5)[x$response == 2], 
+                                        rep(sddrift1, 5)[x$response == 2]
+                                      ), 
+                                      distribution = "norm", silent = TRUE, 
+                                      st0 = 0.2)
+  ex7_pLBA <- pLBA(x$rt, x$response, 
+                   A = list(
+                     c(0.5, 0.6), 
+                     c(0.6, 0.5)
+                   ),
+                   b = list(
+                     c(1, 1.1, 1.2, 1.3, 1.4), 
+                     c(1, 1.1, 1.2, 1.3, 1.4) - 0.2
+                   ),
+                   t0 = list(
+                     seq(0.1, 0.5, length.out = n), 
+                     seq(0.3, 0.8, length.out = n)), 
+                   mean_v = list(
+                     drifts1, 
+                     drifts2
+                   ), 
+                   sd_v = list(
+                     sddrift1, 
+                     sddrift2
+                   ), 
+                   distribution = "norm", st0 = 0.2)
+  expect_identical(ex7_n1cdf, ex7_pLBA)
   
 })
 
