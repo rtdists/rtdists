@@ -120,7 +120,7 @@ dlba_norm_core <- function(rt,A,b, t0, mean_v, sd_v, posdrift=TRUE, robust = FAL
   rt <- rem_t0(rt, t0) # rmove t0 from rt
   if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- rep(1, nn)
   
-  if (any(A<1e-10)) {
+  if (any(A<1e-10, na.rm = TRUE)) {
     # for A<1e-10 save results in out_A
     A_small <- A<1e-10
     out_A <- pmax(0, ((b[A_small]/rt[A_small]^2)*dnorm1(b[A_small]/rt[A_small],mean_v[A_small],sd=sd_v[A_small]))/denom[A_small], na.rm = TRUE) 
@@ -172,7 +172,7 @@ plba_norm_core <- function(rt,A,b,t0,mean_v, sd_v,posdrift=TRUE, robust = FALSE,
   rt <- rem_t0(rt, t0)
   if (posdrift) denom <- pmax(pnorm1(mean_v/sd_v),1e-10) else denom <- 1
   
-  if (any(A<1e-10)) {
+  if (any(A<1e-10, na.rm = TRUE)) {
     # for A<1e-10 save results in out_A
     A_small <- A<1e-10
     out_A <- pmin(1, pmax(0, (pnorm1(b[A_small]/rt[A_small],mean=mean_v[A_small],sd=sd_v[A_small],lower.tail=FALSE))/denom[A_small], na.rm=TRUE))
@@ -249,7 +249,7 @@ dlba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, nn) {
   max <- b/rt
   
   
-  if (any(A<1e-10)) {
+  if (any(A<1e-10, na.rm = TRUE)) {
     # for A<1e-10 save results in out_A
     A_small<- A<1e-10
     
@@ -333,7 +333,7 @@ plba_gamma <- function(rt,A,b,t0,shape_v, rate_v, scale_v) {
 plba_gamma_core <- function(rt,A,b,t0,shape_v, rate_v, nn) {
   
   rt <- rem_t0(rt, t0)
-  if (any(A<1e-10)) {
+  if (any(A<1e-10, na.rm = TRUE)) {
     # for A<1e-10 save results in out_A
     A_small<- A<1e-10
     
@@ -547,7 +547,7 @@ dlba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust=FALSE, nn) {
   
   rt <- rem_t0(rt, t0)
   
-  if (any(A<1e-10)) {
+  if (any(A<1e-10, na.rm = TRUE)) {
     # for A<1e-10 save results in out_A
     A_small<- A<1e-10
     out_A <- pmax(0, (b[A_small]/rt[A_small]^2)*(dlnorm(b[A_small]/rt[A_small],meanlog_v[A_small],sdlog=sdlog_v[A_small])), na.rm = TRUE)
@@ -629,7 +629,7 @@ plba_lnorm_core <- function(rt,A,b,t0,meanlog_v, sdlog_v, robust = FALSE, nn) {
     pnorm1 <- pnorm 
   }
   
-  if (any(A<1e-10)) {
+  if (any(A<1e-10, na.rm = TRUE)) {
     # for A<1e-10 save results in out_A
     A_small<- A<1e-10
 

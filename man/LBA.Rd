@@ -228,8 +228,11 @@ objective_fun(c(A=0.5, b=1, t0=0.5, mean_v1=2.4, mean_v2=1.6, sd_v2=1.2),
               rt=rt1$rt, response=rt1$response)
 
 \dontrun{
-# can we recover the parameters?
+# can we recover the parameters? 
+# should be run several times with different random values of init_par
 init_par <- runif(6)
+init_par[2] <- sum(init_par[1:2]) # ensures b is larger than A
+init_par[3] <- runif(1, 0, min(rt1$rt)) #ensures t0 is mot too large
 names(init_par) <- c("A", "b", "t0", "mean_v1", "mean_v2",  "sd_v2")
 nlminb(objective_fun, start = init_par, rt=rt1$rt, response=rt1$response, lower = 0)
 }
@@ -280,10 +283,10 @@ t <- data.frame(p = rep(c(0.05, 0.1, 0.66), 2), response = rep(1:2, each = 3))
 #      p response
 # 1 0.05        1
 # 2 0.10        1
-# 3 0.87        1
+# 3 0.66        1
 # 4 0.05        2
 # 5 0.10        2
-# 6 0.87        2
+# 6 0.66        2
 qLBA(t, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
 
 
@@ -297,6 +300,15 @@ sum(log(dLBA(rt2, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))))
 
 sum(log(ddiffusion(rt1, a=1, v=2, t0=0.5)))
 sum(log(ddiffusion(rt2, a=1, v=2, t0=0.5)))
+
+### trial wise parameters work as expected (only since package version 0.9):
+x1 <- dLBA(rt=c(1,1), response=c(1,2), A=1,b=list(c(1,3),c(2,4)),
+           t0=0.1, mean_v=c(3,3), sd_v=c(1,1),distribution="norm")
+x2a <- dLBA(rt=c(1), response=c(1), A=1,b=list(c(1),c(2)),
+            t0=0.1,mean_v=c(3,3),sd_v=c(1,1),distribution="norm")
+x2b <- dLBA(rt=c(1), response=c(2), A=1,b=list(c(3),c(4)),
+            t0=0.1,mean_v=c(3,3),sd_v=c(1,1),distribution="norm")
+all(x1 == c(x2a, x2b)) ## should be TRUE
 }
 \references{
 Brown, S. D., & Heathcote, A. (2008). The simplest complete model of choice
