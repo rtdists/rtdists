@@ -39,12 +39,6 @@ n1CDF(r_lba1$rt[ r_lba1$response==1 ], A = A, b = b, t0 = t0, mean_v = v1, sd_v 
 n1CDF(r_lba1$rt[ r_lba1$response==1 ] - t0, A = A, b = b, t0 = 0, mean_v = v1, sd_v = v2)
 
 
-
 ## reverse dependency checks
-devtools::revdep()
-revdep_check(libpath = "../revdep", check_dir = "../revdep_checks")
-install.packages("xx", lib = "../revdep")
-revdep_check_resume()
-revdep_check_save_summary()
-revdep_check_print_problems()
-revdep_maintainers()
+revdepcheck::revdep_check(num_workers = 2) ## run in a new terminal
+revdepcheck::revdep_summary()
