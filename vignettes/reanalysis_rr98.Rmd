@@ -607,7 +607,7 @@ fit_lba <- unnest(fit_lba, fit)
 ```
 
 
-The following table gives the parameters and the negative summed log-likelihoods obtained from the LBA fit (with $b$ already correctly transformed by the maximum $A$):
+The following table gives the parameters and the negative summed log-likelihoods obtained from the LBA fit (with $b$ already correctly transformed by the maximum $A$). Note that some of the parameters might differ slightly for for id = `kr` and instruction = `accuracy` although the value of the objective function is identical to the reported one. This suggests that the likelihood surface is either quite shallow near the MLE or there are at least two peaks in the likelihood surface with a similar maximum. The fact that the convergence code for this data set is 1 instead of 0 also suggests some problems in finding the gloval optimum. In any case, running the optimization multiple times and comparing the results should reveal such problems. 
 
 ```{r}
 knitr::kable(fit_lba)
