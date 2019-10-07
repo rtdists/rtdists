@@ -17,23 +17,22 @@ sum(log(ddiffusion(rt2$rt, rt2$response, a=1, v=2, t0=0.5)))
 # can we recover the parameters?
 ll_diffusion <- function(pars, rt, response) 
 {
-  densities <- tryCatch(
-    ddiffusion(rt, response=response, 
+  densities <- ddiffusion(rt, response=response, 
                a=pars[1], v=pars[2], t0=pars[3], 
                sz=pars[4], 
-               st0=pars[5], sv=pars[6]), 
-    error = function(e) 0)
+               st0=pars[5], sv=pars[6])
   if (any(densities == 0)) return(1e6)
   return(-sum(log(densities)))
 }
 
-\dontrun{
+\dontrun{)
 start <- c(runif(2, 0.5, 3), 0.1, runif(3, 0, 0.5))
 names(start) <- c("a", "v", "t0", "sz", "st0", "sv")
 recov <- nlminb(start, ll_diffusion, lower = 0, rt=rt1$rt, response=rt1$response)
 round(recov$par, 3)
-#    a     v    t0    sz   st0    sv 
-#0.954 1.764 0.503 0.000 0.000 0.000 
+#     a     v    t0    sz   st0    sv 
+# 1.019 1.879 0.496 0.000 0.000 0.389 
+## results of course depend on random seed for rdiffusion and runif
 }
 
 
@@ -120,7 +119,7 @@ t3 <- data.frame(p = rep(c(0.05, 0.1, 0.87), 2), response = rep(c("upper", "lowe
 # 4 0.05    lower
 # 5 0.10    lower
 # 6 0.87    lower
-qdiffusion(t3, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5)
+qdiffusion(t3, a=1, v=2, t0=0.5, st0=0.2, sz = 0.1, sv = 0.5, scale_p = TRUE)
 }
 
 ## LBA and diffusion can be used interchangeably:
