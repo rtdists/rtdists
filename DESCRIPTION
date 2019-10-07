@@ -27,5 +27,6 @@ Authors@R: c( person(given="Henrik", family="Singmann",
        person(given="Andreas", family="Voss", role=c("ctb")),
        person(given="Jochen", family="Voss", role=c("ctb")),
        person(given="Andrew", family="Terry", role=c("ctb")) )
+LazyData: true
 Version: 0.10-0
 RoxygenNote: 6.1.1

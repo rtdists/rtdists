@@ -6,6 +6,8 @@ load_all()
 options(error = recover)
 options(error = NULL)
 
+build()
+
 build_vignettes()
 
 document()
