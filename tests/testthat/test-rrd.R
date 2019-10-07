@@ -31,7 +31,7 @@ test_that("rdiffusion works", {
   rrds1 <- rdiffusion(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0)
   rrds2 <- rdiffusion(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0)
   expect_that(rrds1, is_a("data.frame"))
-  expect_that(isTRUE(all.equal(rrds1, rrds2)), is_false())
+  expect_false(isTRUE(all.equal(rrds1, rrds2)))
   
   set.seed(1)
   rrds1 <- rdiffusion(10, a=1, z=0.5, v=2, t0=0.5, d=0, sz = 0, sv = 0, st0 = 0)
