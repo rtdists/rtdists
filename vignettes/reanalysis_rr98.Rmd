@@ -90,11 +90,11 @@ levels(rr98$strength_bin) <- as.character(1:7)
 # aggregate data for response probability plot:
 agg_rr98_bin <- rr98 %>% 
   group_by(id, instruction, strength_bin) %>%
-  summarise(n = n(), 
+  summarise(n1 = n(), 
             dark = sum(response == "dark"),
             light = sum(response == "light")) %>%
   ungroup() %>%
-  mutate(prop = map2(dark, n, ~ binom.confint(.x, .y, methods = "agresti-coull"))) %>% 
+  mutate(prop = map2(dark, n1, ~ binom.confint(.x, .y, methods = "agresti-coull"))) %>% 
   unnest(prop)
   
 
