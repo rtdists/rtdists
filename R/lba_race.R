@@ -74,7 +74,7 @@ n1PDFfixedt0 <- function(rt,A,b, t0, ..., pdf, cdf, args.dist = list()) {
                              b=if(is.list(b)) b[i] else list(b), 
                              t0 = if(is.list(t0)) t0[i] else list(t0), 
                              sapply(dots, "[[", i = i, simplify = FALSE), 
-                             args.dist = args.dist, nn=nn))
+                             args.dist, nn=nn))
     G <- apply(1-tmp,1,prod)
   } else {
     G <- 1-do.call(cdf, 

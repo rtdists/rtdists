@@ -657,3 +657,24 @@ test_that("args.dist is passed through correctly for dLBA, pLBA, qLBA", {
   expect_true(q1 != q2)
   
 })
+
+test_that("another args.dist bug (Glen Livingston Jr, 19/11/2018)", {
+  N_choices = 3
+  N_data = 1000
+  
+  # Simulated Data--------------------------------------------------------------
+  A_actual = 1
+  b_actual = 1.4
+  t0_actual = 0.3
+  v_actual = c(3, 1, 1)
+  s_actual = c(1, 0.7, 0.65)
+  
+  rt1 <- rLBA(N_data, A=A_actual, b=b_actual, t0 = t0_actual, mean_v=v_actual, 
+              sd_v=s_actual, posdrift=FALSE)
+  
+  # Density function------------------------------------------------------------
+  
+  expect_is(dLBA(rt1$rt,rt1$response, A=A_actual, b=b_actual, t0 = t0_actual, 
+                 mean_v=v_actual, sd_v=s_actual,
+       args.dist = list(posdrift=FALSE), silent = TRUE), class = "numeric")
+})

@@ -1,3 +1,9 @@
+Changes to Version 0.10-x (released October 2019)
+
+  o Removed another argument passing bug that occured when using args.dist and 
+    more than two drift rates. Reported by Glen Livingston Jr.
+  o Removed issue in vignette due to breaking change in a tidyverse package.
+
 Changes to Version 0.9-x (released August 2018)
 
   o Removed bug in dLBA and pLBA that prevented correct usage of trial-wise 
