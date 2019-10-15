@@ -3,10 +3,10 @@ context("Diffusion Model: Compare with RWiener")
 
 test_that("ddiffusion is equal to dwiener", {
   if (require(RWiener)) {
-    for (a in seq(0.5, 2.0, length.out = 10)) {
-      for (v in seq(0.5, 2.0, length.out = 10)) {
-        for (t0 in seq(0.05, 0.5, length.out = 10)) {
-          for (z in seq(0.4, 0.6, length.out = 7)) {
+    for (a in seq(0.5, 2.0, length.out = 6)) {
+      for (v in seq(0.5, 2.0, length.out = 6)) {
+        for (t0 in seq(0.05, 0.5, length.out = 6)) {
+          for (z in seq(0.4, 0.6, length.out = 6)) {
             expect_equivalent(
               ddiffusion(seq(0, 3, length.out = 15), a=a, v=v, t0=t0, z = z*a)
               ,
