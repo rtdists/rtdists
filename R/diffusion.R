@@ -266,13 +266,20 @@ pdiffusion <- function (rt, response = "upper",
     parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
     parameter_indices <- split(seq_len(nn), f = parameter_factor)
   } else {
-    parameter_indices <- list(
-      seq_len(nn)[numeric_bounds == 2L], 
-      seq_len(nn)[numeric_bounds == 1L]
-    )
-    parameter_indices <- parameter_indices[
-      vapply(parameter_indices, length, NA_integer_) != 0
-      ]
+    if (all(numeric_bounds == 2L) | all(numeric_bounds == 1L)) {
+      parameter_indices <- list(
+        seq_len(nn)
+      )
+    } else {
+      parameter_indices <- list(
+        seq_len(nn)[numeric_bounds == 2L], 
+        seq_len(nn)[numeric_bounds == 1L]
+      )  
+    }
+    
+    # parameter_indices <- parameter_indices[
+    #   vapply(parameter_indices, length, NA_integer_) != 0
+    #   ]
   }
   
   pvalues <- vector("numeric",length=nn)  
