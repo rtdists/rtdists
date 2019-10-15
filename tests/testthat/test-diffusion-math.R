@@ -12,6 +12,11 @@ test_that("ddiffusion is equal to dwiener", {
               ,
               dwiener(seq(0, 3, length.out = 15), resp = rep("upper", 15), alpha=a, delta=v, tau = t0, beta = z)
             )
+            expect_equivalent(
+              ddiffusion(seq(0, 3, length.out = 16), c("upper", "lower"), a=a, v=v, t0=t0, z = z*a)
+              ,
+              dwiener(seq(0, 3, length.out = 16), resp = rep(c("upper", "lower"), 8), alpha=a, delta=v, tau = t0, beta = z)
+            )
           }
         }
       }
