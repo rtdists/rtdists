@@ -26,7 +26,8 @@ qdiffusion(p, response = "upper", a, v, t0, z = 0.5 * a, d = 0,
   stop_on_error = FALSE)
 
 rdiffusion(n, a, v, t0, z = 0.5 * a, d = 0, sz = 0, sv = 0,
-  st0 = 0, s = 1, precision = 3, stop_on_error = TRUE)
+  st0 = 0, s = 1, precision = 3, stop_on_error = TRUE, maxt = 20,
+  interval = c(0, 10), method = c("fastdm", "qdiffusion"))
 }
 \arguments{
 \item{t0}{non-decision time or response time constant (in seconds). Lower bound for the duration of all non-decisional processes (encoding and response execution). Typical range: 0.1 < \code{t0} < 0.5}
@@ -68,6 +69,8 @@ rdiffusion(n, a, v, t0, z = 0.5 * a, d = 0, sz = 0, sv = 0,
 \item{scale_max}{numerical scalar. Value at which maximally predicted RT should be calculated if \code{scale_p} is \code{TRUE}.}
 
 \item{n}{is a desired number of observations.}
+
+\item{method}{character. Experimentally implementation of an alternative way of generating random variates via the quantile function (\code{qdiffusion}) and random uniform value. For simple calls, the default method \code{"fastdm"} is dramatically faster.}
 }
 \value{
 \code{ddiffusion} gives the density, \code{pdiffusion} gives the distribution function, \code{qdiffusion} gives the quantile function (i.e., predicted RTs), and \code{rdiffusion} generates random response times and decisions (returning a \code{data.frame} with columns \code{rt} (numeric) and \code{response} (factor)).

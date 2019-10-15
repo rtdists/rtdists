@@ -24,6 +24,7 @@
 #' @param scale_max numerical scalar. Value at which maximally predicted RT should be calculated if \code{scale_p} is \code{TRUE}. 
 #' @param stop_on_error Should the diffusion functions return 0 if the parameters values are outside the allowed range (= \code{FALSE}) or produce an error in this case (= \code{TRUE}).
 #' @param use_precise boolean. Should \code{pdiffusion} use the precise version for calculating the CDF? The default is \code{TRUE} which is highly recommended. Using \code{FALSE} (i.e., the imprecise version) is hardly any faster and produces clearly wrong results for most parameter settings.
+#' @param method character. Experimentally implementation of an alternative way of generating random variates via the quantile function (\code{qdiffusion}) and random uniform value. For simple calls, the default method \code{"fastdm"} is dramatically faster.
 #'
 #' @return \code{ddiffusion} gives the density, \code{pdiffusion} gives the distribution function, \code{qdiffusion} gives the quantile function (i.e., predicted RTs), and \code{rdiffusion} generates random response times and decisions (returning a \code{data.frame} with columns \code{rt} (numeric) and \code{response} (factor)).
 #' 
@@ -70,7 +71,7 @@
 #'
 #' @name Diffusion
 # @importFrom utils head
-#' @importFrom stats optimize uniroot
+#' @importFrom stats optimize uniroot runif
 # @importFrom pracma integral
 #' @aliases diffusion
 #' @importFrom Rcpp evalCpp
@@ -420,44 +421,48 @@ qdiffusion <- function (p, response = "upper",
 ## When given vectorised parameters, n is the number of replicates for each parameter set
 #' @rdname Diffusion
 #' @export
-rdiffusion2 <- function (n, 
+rdiffusion <- function (n, 
                  a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
-                 precision = 3, stop_on_error = TRUE)
+                 precision = 3, stop_on_error = TRUE, 
+                 maxt = 20, interval = c(0, 10), 
+                 method = c("fastdm", "qdiffusion"))
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
+  method <- match.arg(method)
   
-  s <- rep(s, length.out = n)
-  a <- rep(a, length.out = n)
-  v <- rep(v, length.out = n)
-  t0 <- rep(t0, length.out = n)
-  z <- rep(z, length.out = n)
-  z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
-  d <- rep(d, length.out = n)
-  sz <- rep(sz, length.out = n)
-  sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
-  sv <- rep(sv, length.out = n)
-  st0 <- rep(st0, length.out = n)
-  t0 <- recalc_t0 (t0, st0) 
-  
-  # Build parameter matrix (and divide a, v, and sv, by s)
-  params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z)
-  
-  # Check for illegal parameter values
-  if(ncol(params)<8) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
-  if(!is.numeric(params)) stop("Parameters need to be numeric.")
-  if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
-  
-  randRTs    <- vector("numeric",length=n)
-  randBounds <- vector("numeric",length=n)
-
-  #uniques <- unique(params)
-  parameter_char <- apply(params, 1, paste0, collapse = "\t")
-  parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
-  parameter_indices <- split(seq_len(n), f = parameter_factor)
-  
-  for (i in seq_len(length(parameter_indices))) {
-      ok_rows <- parameter_indices[[i]]
+  if (method == "fastdm") {
+    s <- rep(s, length.out = n)
+    a <- rep(a, length.out = n)
+    v <- rep(v, length.out = n)
+    t0 <- rep(t0, length.out = n)
+    z <- rep(z, length.out = n)
+    z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
+    d <- rep(d, length.out = n)
+    sz <- rep(sz, length.out = n)
+    sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
+    sv <- rep(sv, length.out = n)
+    st0 <- rep(st0, length.out = n)
+    t0 <- recalc_t0 (t0, st0) 
     
+    # Build parameter matrix (and divide a, v, and sv, by s)
+    params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z)
+    
+    # Check for illegal parameter values
+    if(ncol(params)<8) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
+    if(!is.numeric(params)) stop("Parameters need to be numeric.")
+    if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
+    
+    randRTs    <- vector("numeric",length=n)
+    randBounds <- vector("numeric",length=n)
+    
+    #uniques <- unique(params)
+    parameter_char <- apply(params, 1, paste0, collapse = "\t")
+    parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
+    parameter_indices <- split(seq_len(n), f = parameter_factor)
+    
+    for (i in seq_len(length(parameter_indices))) {
+      ok_rows <- parameter_indices[[i]]
+      
       # Calculate n for this row
       current_n <- length(ok_rows)
       
@@ -465,55 +470,46 @@ rdiffusion2 <- function (n,
                        params[ok_rows[1],1:8], 
                        precision, 
                        stop_on_error=stop_on_error)
-        #current_n, uniques[i,1:8], precision, stop_on_error=stop_on_error)
+      #current_n, uniques[i,1:8], precision, stop_on_error=stop_on_error)
       
       randRTs[ok_rows]    <- out$rt       
       randBounds[ok_rows] <- out$boundary 
-  }
-  response <- factor(randBounds, levels = 0:1, labels = c("lower", "upper"))
-  data.frame(rt = randRTs, response)
-}
-
-
-#' @export
-rdiffusion <- function (n, 
-                 a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
-                 precision = 3, stop_on_error = TRUE, maxt = 20, interval = c(0, 10))
-{
-  if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
-  
-  s <- rep(s, length.out = n)
-  a <- rep(a, length.out = n)
-  v <- rep(v, length.out = n)
-  t0 <- rep(t0, length.out = n)
-  z <- rep(z, length.out = n)
-  #z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
-  d <- rep(d, length.out = n)
-  sz <- rep(sz, length.out = n)
-  #sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
-  sv <- rep(sv, length.out = n)
-  st0 <- rep(st0, length.out = n)
-  t0 <- recalc_t0 (t0, st0) 
-  
-  # Build parameter matrix (and divide a, v, and sv, by s)
-  params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z)
-  
-  # Check for illegal parameter values
-  if(ncol(params)<8) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
-  if(!is.numeric(params)) stop("Parameters need to be numeric.")
-  if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
-  
-  randRTs    <- vector("numeric",length=n)
-  randBounds <- vector("numeric",length=n)
-
-  #uniques <- unique(params)
-  parameter_char <- apply(params, 1, paste0, collapse = "\t")
-  parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
-  parameter_indices <- split(seq_len(n), f = parameter_factor)
-  
-  for (i in seq_len(length(parameter_indices))) {
-      ok_rows <- parameter_indices[[i]]
+    }
+    response <- factor(randBounds, levels = 0:1, labels = c("lower", "upper"))
+    return(data.frame(rt = randRTs, response))
+  } else if (method == "qdiffusion") {
+    s <- rep(s, length.out = n)
+    a <- rep(a, length.out = n)
+    v <- rep(v, length.out = n)
+    t0 <- rep(t0, length.out = n)
+    z <- rep(z, length.out = n)
+    #z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
+    d <- rep(d, length.out = n)
+    sz <- rep(sz, length.out = n)
+    #sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
+    sv <- rep(sv, length.out = n)
+    st0 <- rep(st0, length.out = n)
+    t0 <- recalc_t0 (t0, st0) 
     
+    # Build parameter matrix (and divide a, v, and sv, by s)
+    params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z)
+    
+    # Check for illegal parameter values
+    if(ncol(params)<8) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
+    if(!is.numeric(params)) stop("Parameters need to be numeric.")
+    if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
+    
+    randRTs    <- vector("numeric",length=n)
+    randBounds <- vector("numeric",length=n)
+    
+    #uniques <- unique(params)
+    parameter_char <- apply(params, 1, paste0, collapse = "\t")
+    parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
+    parameter_indices <- split(seq_len(n), f = parameter_factor)
+    
+    for (i in seq_len(length(parameter_indices))) {
+      ok_rows <- parameter_indices[[i]]
+      
       # Calculate n for this row
       current_n <- length(ok_rows)
       
@@ -535,11 +531,11 @@ rdiffusion <- function (n,
       
       qdiffusion(p = unif_variates_u, response = "upper", 
                  a = a[ok_rows[1]], v = v[ok_rows[1]], 
-                       t0 = t0[ok_rows[1]], z = z[ok_rows[1]], 
-                       d = d[ok_rows[1]], sz = sz[ok_rows[1]], 
-                       sv = sv[ok_rows[1]], st0 = st0[ok_rows[1]], 
-                       s = s[ok_rows[1]], precision = precision, 
-                       maxt = maxt, interval = interval, 
+                 t0 = t0[ok_rows[1]], z = z[ok_rows[1]], 
+                 d = d[ok_rows[1]], sz = sz[ok_rows[1]], 
+                 sv = sv[ok_rows[1]], st0 = st0[ok_rows[1]], 
+                 s = s[ok_rows[1]], precision = precision, 
+                 maxt = maxt, interval = interval, 
                  scale_p = FALSE)
       
       randRTs[ok_rows[sel_u]] <- 
@@ -561,8 +557,8 @@ rdiffusion <- function (n,
                    maxt = maxt, interval = interval, 
                    scale_p = FALSE)
       randBounds[ok_rows] <- ifelse(sel_u, 1, 0)
+    }
+    response <- factor(randBounds, levels = 0:1, labels = c("lower", "upper"))
+    return(data.frame(rt = randRTs, response))
   }
-  response <- factor(randBounds, levels = 0:1, labels = c("lower", "upper"))
-  data.frame(rt = randRTs, response)
 }
-
