@@ -277,26 +277,78 @@ qdiffusion <- function (p, response = "upper",
   st0 <- rep(unname(st0), length.out = nn)
   p <- unname(p)
   
+  op <- order(p)
+  
+  max_interval <- interval[2] - interval[1]
+  steps <- max_interval/nn * 4
+  
   out <- vector("numeric", nn)
   for (i in seq_len(nn)) {
-    if (scale_p) max_p <- pdiffusion(scale_max, response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], s=s[i], precision=precision, maxt=maxt, stop_on_error=stop_on_error)
+    if (scale_p) max_p <- pdiffusion(scale_max, response=response[op[i]], 
+                                     a=a[op[i]], v=v[op[i]], t0=t0[op[i]], z=z[op[i]], 
+                                     d=d[op[i]], sz=sz[op[i]], sv=sv[op[i]], st0=st0[op[i]], 
+                                     s=s[op[i]], 
+                                     precision=precision, maxt=maxt, 
+                                     stop_on_error=stop_on_error)
     else max_p <- 1
-    tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], s=s[i], precision=precision, maxt=maxt, stop_on_error=stop_on_error, value =p[i]*max_p, tol = .Machine$double.eps^0.5))
+    if (i == 1) {
+      interval_use <- c(max(interval[1], t0), interval[2])
+    } else {
+      interval_use <- c(out[op[i-1]], interval[2])
+    }
+    tmp <- do.call(optimize, args = 
+                     c(f = inv_cdf_diffusion, 
+                       interval = list(c(interval_use[1], interval_use[1]+steps)), 
+                       response=response[op[i]], 
+                       a=a[op[i]], v=v[op[i]], t0=t0[op[i]], z=z[op[i]], d=d[op[i]], sz=sz[op[i]], 
+                       sv=sv[op[i]], st0=st0[op[i]], s=s[op[i]], 
+                       precision=precision, maxt=maxt, 
+                       stop_on_error=stop_on_error, 
+                       value =p[op[i]]*max_p, tol = .Machine$double.eps^0.5))
     if (tmp$objective > 0.0001) {
-      tmp <- do.call(optimize, args = c(f=inv_cdf_diffusion, interval = list(c(min(interval),max(interval)/2)), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], s=s[i], precision=precision, maxt=maxt, stop_on_error=stop_on_error, value =p[i]*max_p, tol = .Machine$double.eps^0.5))
+      tmp <- do.call(optimize, args = 
+                       c(f = inv_cdf_diffusion, 
+                         interval = list(interval_use), 
+                         response=response[op[i]], 
+                         a=a[op[i]], v=v[op[i]], t0=t0[op[i]], z=z[op[i]], d=d[op[i]], sz=sz[op[i]], 
+                         sv=sv[op[i]], st0=st0[op[i]], s=s[op[i]], 
+                         precision=precision, maxt=maxt, 
+                         stop_on_error=stop_on_error, 
+                         value =p[op[i]]*max_p, tol = .Machine$double.eps^0.5))
+    }
+    if (tmp$objective > 0.0001) {
+      tmp <- do.call(optimize, args = 
+                       c(f=inv_cdf_diffusion, 
+                         interval = list(c(min(interval_use),max(interval_use)/2)), 
+                         response=response[op[i]], a=a[op[i]], v=v[op[i]], t0=t0[op[i]], 
+                         z=z[op[i]], d=d[op[i]], sz=sz[op[i]], sv=sv[op[i]], 
+                         st0=st0[op[i]], s=s[op[i]], precision=precision, 
+                         maxt=maxt, stop_on_error=stop_on_error, 
+                         value =p[op[i]]*max_p, tol = .Machine$double.eps^0.5))
     }
     if (tmp$objective > 0.0001) {
       try({
-        uni_tmp <- do.call(uniroot, args = c(f=inv_cdf_diffusion, interval = list(interval), response=response[i], a=a[i], v=v[i], t0=t0[i], z=z[i], d=d[i], sz=sz[i], sv=sv[i], st0=st0[i], precision=precision, s=s[i], maxt=maxt, stop_on_error=stop_on_error, value =p[i]*max_p, tol = .Machine$double.eps^0.5, abs = FALSE))
+        uni_tmp <- do.call(uniroot, args = 
+                             c(f=inv_cdf_diffusion, 
+                               interval = list(interval_use), 
+                               response=response[op[i]], 
+                               a=a[op[i]], v=v[op[i]], t0=t0[op[i]], z=z[op[i]], d=d[op[i]], 
+                               sz=sz[op[i]], sv=sv[op[i]], st0=st0[op[i]], 
+                               precision=precision, s=s[op[i]], maxt=maxt, 
+                               stop_on_error=stop_on_error, 
+                               value =p[op[i]]*max_p, 
+                               tol = .Machine$double.eps^0.5, abs = FALSE))
       tmp$objective <- uni_tmp$f.root
       tmp$minimum <- uni_tmp$root
       }, silent = TRUE)
     }
     if (tmp$objective > 0.0001) {
       tmp[["minimum"]] <- NA
-      warning("Cannot obtain RT that is less than 0.0001 away from desired p = ", p[i], ".\nIncrease/decrease interval or obtain for different response.", call. = FALSE)
+      warning("Cannot obtain RT that is less than 0.0001 away from desired p = ", 
+              p[op[i]], ".\nIncrease/decrease interval or obtain for different response.", 
+              call. = FALSE)
     }
-    out[i] <- tmp[["minimum"]]
+    out[op[i]] <- tmp[["minimum"]]
   }
   return(out)
 }
@@ -304,7 +356,7 @@ qdiffusion <- function (p, response = "upper",
 ## When given vectorised parameters, n is the number of replicates for each parameter set
 #' @rdname Diffusion
 #' @export
-rdiffusion <- function (n, 
+rdiffusion2 <- function (n, 
                  a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
                  precision = 3, stop_on_error = TRUE)
 {
@@ -353,6 +405,98 @@ rdiffusion <- function (n,
       
       randRTs[ok_rows]    <- out$rt       
       randBounds[ok_rows] <- out$boundary 
+  }
+  response <- factor(randBounds, levels = 0:1, labels = c("lower", "upper"))
+  data.frame(rt = randRTs, response)
+}
+
+
+#' @export
+rdiffusion <- function (n, 
+                 a, v, t0, z = 0.5*a, d = 0, sz = 0, sv = 0, st0 = 0, s = 1,
+                 precision = 3, stop_on_error = TRUE, maxt = 20, interval = c(0, 10))
+{
+  if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
+  
+  s <- rep(s, length.out = n)
+  a <- rep(a, length.out = n)
+  v <- rep(v, length.out = n)
+  t0 <- rep(t0, length.out = n)
+  z <- rep(z, length.out = n)
+  #z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
+  d <- rep(d, length.out = n)
+  sz <- rep(sz, length.out = n)
+  #sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
+  sv <- rep(sv, length.out = n)
+  st0 <- rep(st0, length.out = n)
+  t0 <- recalc_t0 (t0, st0) 
+  
+  # Build parameter matrix (and divide a, v, and sv, by s)
+  params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z)
+  
+  # Check for illegal parameter values
+  if(ncol(params)<8) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
+  if(!is.numeric(params)) stop("Parameters need to be numeric.")
+  if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
+  
+  randRTs    <- vector("numeric",length=n)
+  randBounds <- vector("numeric",length=n)
+
+  #uniques <- unique(params)
+  parameter_char <- apply(params, 1, paste0, collapse = "\t")
+  parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
+  parameter_indices <- split(seq_len(n), f = parameter_factor)
+  
+  for (i in seq_len(length(parameter_indices))) {
+      ok_rows <- parameter_indices[[i]]
+    
+      # Calculate n for this row
+      current_n <- length(ok_rows)
+      
+      mu <- pdiffusion(rt = Inf, response = "upper", 
+                       a = a[ok_rows[1]], v = v[ok_rows[1]], 
+                       t0 = t0[ok_rows[1]], z = z[ok_rows[1]], 
+                       d = d[ok_rows[1]], sz = sz[ok_rows[1]], 
+                       sv = sv[ok_rows[1]], st0 = st0[ok_rows[1]], 
+                       s = s[ok_rows[1]], precision = precision, 
+                       maxt = maxt)
+      
+      unif_variates <- runif(current_n)
+      
+      sel_u <- unif_variates < mu
+      sel_l <- !sel_u
+      
+      unif_variates_u <- unif_variates[sel_u]
+      unif_variates_l <- 1-unif_variates[sel_l]
+      
+      qdiffusion(p = unif_variates_u, response = "upper", 
+                 a = a[ok_rows[1]], v = v[ok_rows[1]], 
+                       t0 = t0[ok_rows[1]], z = z[ok_rows[1]], 
+                       d = d[ok_rows[1]], sz = sz[ok_rows[1]], 
+                       sv = sv[ok_rows[1]], st0 = st0[ok_rows[1]], 
+                       s = s[ok_rows[1]], precision = precision, 
+                       maxt = maxt, interval = interval, 
+                 scale_p = FALSE)
+      
+      randRTs[ok_rows[sel_u]] <- 
+        qdiffusion(p = unif_variates_u, response = "upper", 
+                   a = a[ok_rows[1]], v = v[ok_rows[1]], 
+                   t0 = t0[ok_rows[1]], z = z[ok_rows[1]], 
+                   d = d[ok_rows[1]], sz = sz[ok_rows[1]], 
+                   sv = sv[ok_rows[1]], st0 = st0[ok_rows[1]], 
+                   s = s[ok_rows[1]], precision = precision, 
+                   maxt = maxt, interval = interval, 
+                   scale_p = FALSE)
+      randRTs[ok_rows[sel_l]] <- 
+        qdiffusion(p = unif_variates_l, response = "lower", 
+                   a = a[ok_rows[1]], v = v[ok_rows[1]], 
+                   t0 = t0[ok_rows[1]], z = z[ok_rows[1]], 
+                   d = d[ok_rows[1]], sz = sz[ok_rows[1]], 
+                   sv = sv[ok_rows[1]], st0 = st0[ok_rows[1]], 
+                   s = s[ok_rows[1]], precision = precision, 
+                   maxt = maxt, interval = interval, 
+                   scale_p = FALSE)
+      randBounds[ok_rows] <- ifelse(sel_u, 1, 0)
   }
   response <- factor(randBounds, levels = 0:1, labels = c("lower", "upper"))
   data.frame(rt = randRTs, response)
