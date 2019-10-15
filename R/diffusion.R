@@ -51,8 +51,6 @@
 #' 
 #' We have changed the parameterization of the start point \code{z} which is now the absolute start point in line with most published literature (it was the relative start point in previous versions of \pkg{rtdists}). 
 #' 
-#' RTs need to be sorted (in increasing order) for \code{pdiffusion}.
-#' 
 #' @references Ratcliff, R. (1978). A theory of memory retrieval. \emph{Psychological Review}, 85(2), 59-108.
 #' 
 #' Ratcliff, R., & McKoon, G. (2008). The diffusion decision model: Theory and data for two-choice decision tasks. \emph{Neural Computation}, 20(4), 873-922.
@@ -202,7 +200,7 @@ pdiffusion <- function (rt, response = "upper",
   }
   
   rt[rt>maxt] <- maxt
-  if(!all(rt == sort(rt)))  stop("rt needs to be sorted")
+  # if(!all(rt == sort(rt)))  stop("rt needs to be sorted")
   
   # Convert boundaries to numeric
   nn <- length(rt)
