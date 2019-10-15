@@ -51,8 +51,6 @@
 #' 
 #' We have changed the parameterization of the start point \code{z} which is now the absolute start point in line with most published literature (it was the relative start point in previous versions of \pkg{rtdists}). 
 #' 
-#' RTs need to be sorted (in increasing order) for \code{pdiffusion}.
-#' 
 #' @references Ratcliff, R. (1978). A theory of memory retrieval. \emph{Psychological Review}, 85(2), 59-108.
 #' 
 #' Ratcliff, R., & McKoon, G. (2008). The diffusion decision model: Theory and data for two-choice decision tasks. \emph{Neural Computation}, 20(4), 873-922.
@@ -113,19 +111,39 @@ ddiffusion <- function (rt, response = "upper",
     if(any(!(response %in% 1:2))) stop("response needs to be either 'upper', 'lower', or as.numeric(response) %in% 1:2!")
     numeric_bounds <- as.integer(response)
   }
+  
+  ### attempt for speed increase: check if all parameter are of length 1.
+  ## if so, skip bringing all to same length and avoid expensive paste0 operation
+  if ( (length(s) == 1) & 
+       (length(a) == 1) & 
+       (length(v) == 1) & 
+       (length(t0) == 1) & 
+       (length(z) == 1) & 
+       (length(d) == 1) & 
+       (length(sz) == 1) & 
+       (length(sv) == 1) & 
+       (length(st0) == 1)) {
+    skip_checks <- TRUE
+  } else {
+    skip_checks <- FALSE
+  }
+  
+  
   numeric_bounds <- rep(numeric_bounds, length.out = nn)
-  # all parameters brought to length of rt
-  s <- rep(s, length.out = nn)
-  a <- rep(a, length.out = nn)
-  v <- rep(v, length.out = nn)
-  t0 <- rep(t0, length.out = nn)
-  z <- rep(z, length.out = nn)
+  if (!skip_checks) {
+    # all parameters brought to length of rt
+    s <- rep(s, length.out = nn)
+    a <- rep(a, length.out = nn)
+    v <- rep(v, length.out = nn)
+    t0 <- rep(t0, length.out = nn)
+    z <- rep(z, length.out = nn)
+    d <- rep(d, length.out = nn)
+    sz <- rep(sz, length.out = nn)
+    sv <- rep(sv, length.out = nn)
+    st0 <- rep(st0, length.out = nn)
+  }
   z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
-  d <- rep(d, length.out = nn)
-  sz <- rep(sz, length.out = nn)
   sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
-  sv <- rep(sv, length.out = nn)
-  st0 <- rep(st0, length.out = nn)
   t0 <- recalc_t0 (t0, st0) 
   
   # Build parameter matrix (and divide a, v, and sv, by s)
@@ -139,9 +157,19 @@ ddiffusion <- function (rt, response = "upper",
     else return(rep(0, nn))
   }
   
-  parameter_char <- apply(params, 1, paste0, collapse = "\t")
-  parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
-  parameter_indices <- split(seq_len(nn), f = parameter_factor)
+  if (!skip_checks) {
+    parameter_char <- apply(params, 1, paste0, collapse = "\t")
+    parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
+    parameter_indices <- split(seq_len(nn), f = parameter_factor)
+  } else {
+    parameter_indices <- list(
+      seq_len(nn)[numeric_bounds == 2L], 
+      seq_len(nn)[numeric_bounds == 1L]
+    )
+    parameter_indices <- parameter_indices[
+      vapply(parameter_indices, length, NA_integer_) != 0
+      ]
+  }
   
   densities <- vector("numeric",length=nn)  
   for (i in seq_len(length(parameter_indices))) {
@@ -172,7 +200,7 @@ pdiffusion <- function (rt, response = "upper",
   }
   
   rt[rt>maxt] <- maxt
-  if(!all(rt == sort(rt)))  stop("rt needs to be sorted")
+  # if(!all(rt == sort(rt)))  stop("rt needs to be sorted")
   
   # Convert boundaries to numeric
   nn <- length(rt)
@@ -187,19 +215,38 @@ pdiffusion <- function (rt, response = "upper",
     if(any(!(response %in% 1:2))) stop("response needs to be either 'upper', 'lower', or as.numeric(response) %in% 1:2!")
     numeric_bounds <- as.integer(response)
   }
-  numeric_bounds <- rep(numeric_bounds, length.out = nn)
-  # all parameters brought to length of rt
-  s <- rep(s, length.out = nn)
-  a <- rep(a, length.out = nn)
-  v <- rep(v, length.out = nn)
-  t0 <- rep(t0, length.out = nn)
-  z <- rep(z, length.out = nn)
+  
+  ### attempt for speed increase: check if all parameter are of length 1.
+  ## if so, skip bringing all to same length and avoid expensive paste0 operation
+  if ( (length(s) == 1) & 
+       (length(a) == 1) & 
+       (length(v) == 1) & 
+       (length(t0) == 1) & 
+       (length(z) == 1) & 
+       (length(d) == 1) & 
+       (length(sz) == 1) & 
+       (length(sv) == 1) & 
+       (length(st0) == 1)) {
+    skip_checks <- TRUE
+  } else {
+    skip_checks <- FALSE
+  }
+  
+    numeric_bounds <- rep(numeric_bounds, length.out = nn)
+  if (!skip_checks) {
+    # all parameters brought to length of rt
+    s <- rep(s, length.out = nn)
+    a <- rep(a, length.out = nn)
+    v <- rep(v, length.out = nn)
+    t0 <- rep(t0, length.out = nn)
+    z <- rep(z, length.out = nn)
+    d <- rep(d, length.out = nn)
+    sz <- rep(sz, length.out = nn)
+    sv <- rep(sv, length.out = nn)
+    st0 <- rep(st0, length.out = nn)
+  }
   z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
-  d <- rep(d, length.out = nn)
-  sz <- rep(sz, length.out = nn)
   sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
-  sv <- rep(sv, length.out = nn)
-  st0 <- rep(st0, length.out = nn)
   t0 <- recalc_t0 (t0, st0) 
   
   # Build parameter matrix (and divide a, v, and sv, by s)
@@ -214,9 +261,19 @@ pdiffusion <- function (rt, response = "upper",
   }
   
 
-  parameter_char <- apply(params, 1, paste0, collapse = "\t")
-  parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
-  parameter_indices <- split(seq_len(nn), f = parameter_factor)
+  if (!skip_checks) {
+    parameter_char <- apply(params, 1, paste0, collapse = "\t")
+    parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
+    parameter_indices <- split(seq_len(nn), f = parameter_factor)
+  } else {
+    parameter_indices <- list(
+      seq_len(nn)[numeric_bounds == 2L], 
+      seq_len(nn)[numeric_bounds == 1L]
+    )
+    parameter_indices <- parameter_indices[
+      vapply(parameter_indices, length, NA_integer_) != 0
+      ]
+  }
   
   pvalues <- vector("numeric",length=nn)  
   

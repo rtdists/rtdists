@@ -134,3 +134,37 @@ test_that("pdiffusion recovers proportions of Table 1 from Wagenmakers et al. (2
   props <- pdiffusion(rep(Inf, 4), a = rep(c(0.12, 0.08), each = 2), v = 0.25, t0 = c(0.3, 0.25), z = rep(c(0.06, 0.04), each = 2), s = 0.1)
   expect_equal(props, c(0.953, 0.953, 0.881, 0.881), tolerance = 0.001)
 })
+
+test_that("ddiffusion and dwiener give same log-likelihoods when fitted to RNG data", {
+  skip_if_not_installed("RWiener")
+  library("RWiener")
+  
+  set.seed(1)
+  ## identical calls (but different random values)
+  rt1 <- rdiffusion(500, a=1, v=2, t0=0.5)
+  
+  ll_diffusion <- function(pars, rt, response) 
+  {
+    densities <- ddiffusion(rt, response=response, 
+                            a=pars[1], v=pars[2], t0=pars[3])
+    if (any(densities == 0)) return(1e6)
+    return(-sum(log(densities)))
+  }
+  
+  ll_wiener <- function(pars, rt, response) 
+  {
+    densities <- dwiener(q = rt, resp=response, 
+                         alpha = pars[1], delta = pars[2], tau = pars[3], 
+                         beta = 0.5)
+    if (any(densities == 0)) return(1e6)
+    return(-sum(log(densities)))
+  }
+  
+  start <- c(runif(2, 0.5, 3), 0.1, runif(3, 0, 0.5))
+  names(start) <- c("a", "v", "t0")
+  recov_rtdists <- nlminb(start, ll_diffusion, lower = 0.1, 
+                          rt=rt1$rt, response=rt1$response)
+  recov_rwiener <- nlminb(start, ll_wiener, lower = 0.1, 
+                          rt=rt1$rt, response=rt1$response)
+  expect_equivalent(recov_rtdists, recov_rwiener)
+})

@@ -99,9 +99,7 @@ The parameterization of the non-decisional components, \code{t0} and \code{st0},
 
 The default diffusion constant \code{s} is 1 and not 0.1 as in most applications of Roger Ratcliff and others.
 
-We have changed the parameterization of the start point \code{z} which is now the absolute start point in line with most published literature (it was the relative start point in previous versions of \pkg{rtdists}). 
-
-RTs need to be sorted (in increasing order) for \code{pdiffusion}.
+We have changed the parameterization of the start point \code{z} which is now the absolute start point in line with most published literature (it was the relative start point in previous versions of \pkg{rtdists}).
 }
 \examples{
 
