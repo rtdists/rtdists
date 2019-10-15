@@ -28,14 +28,19 @@ test_that("ddiffusion is equal to dwiener", {
 test_that("pdiffusion is equal to pwiener", {
   testthat::skip_on_cran()
   if (require(RWiener)) {
-    for (a in seq(0.5, 2.0, length.out = 10)) {
-      for (v in seq(0.5, 2.0, length.out = 10)) {
-        for (t0 in seq(0.05, 0.5, length.out = 10)) {
-          for (z in seq(0.4, 0.6, length.out = 7)) {
+    for (a in seq(0.5, 2.0, length.out = 6)) {
+      for (v in seq(0.5, 2.0, length.out = 6)) {
+        for (t0 in seq(0.05, 0.5, length.out = 6)) {
+          for (z in seq(0.4, 0.6, length.out = 6)) {
             expect_equal(
               pdiffusion(seq(0, 3, length.out = 15), a=a, v=v, t0=t0, z = z*a)
               ,
               pwiener(seq(0, 3, length.out = 15), resp = rep("upper", 15), alpha=a, delta=v, tau = t0, beta = z)
+            , tolerance = 0.01)
+            expect_equivalent(
+              pdiffusion(seq(0, 3, length.out = 16), c("upper", "lower"), a=a, v=v, t0=t0, z = z*a)
+              ,
+              pwiener(seq(0, 3, length.out = 16), resp = rep(c("upper", "lower"), 8), alpha=a, delta=v, tau = t0, beta = z)
             , tolerance = 0.01)
           }
         }
