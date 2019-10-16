@@ -23,7 +23,7 @@ pdiffusion(rt, response = "upper", a, v, t0, z = 0.5 * a, d = 0,
 qdiffusion(p, response = "upper", a, v, t0, z = 0.5 * a, d = 0,
   sz = 0, sv = 0, st0 = 0, s = 1, precision = 3, maxt = 20,
   interval = c(0, 10), scale_p = FALSE, scale_max = Inf,
-  stop_on_error = FALSE)
+  stop_on_error = FALSE, max_diff = 1e-04)
 
 rdiffusion(n, a, v, t0, z = 0.5 * a, d = 0, sz = 0, sv = 0,
   st0 = 0, s = 1, precision = 3, stop_on_error = TRUE, maxt = 20,
@@ -67,6 +67,8 @@ rdiffusion(n, a, v, t0, z = 0.5 * a, d = 0, sz = 0, sv = 0,
 \item{scale_p}{logical. Should entered probabilities automatically be scaled by maximally predicted probability? Default is \code{FALSE}. Convenience argument for obtaining predicted quantiles. Can be slow as the maximally predicted probability is calculated individually for each \code{p}.}
 
 \item{scale_max}{numerical scalar. Value at which maximally predicted RT should be calculated if \code{scale_p} is \code{TRUE}.}
+
+\item{max_diff}{numeric. Maximum acceptable difference between desired and observed probability of the quantile function (\code{qdiffusion}).}
 
 \item{n}{is a desired number of observations.}
 

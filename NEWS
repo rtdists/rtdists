@@ -4,6 +4,17 @@ Changes to Version 0.11-x (released XXX 2019)
     in case exactly one set of parameters is passed. In this case, some checks 
     are skipped now leading to a 40% to 50% speed increase.
 
+  o Diffusion quantile function qdiffusion should be faster now when it is 
+    called with many probabilities for the same response. 
+
+  o Diffusion quantile function qdiffusion has a new argument max_diff which 
+    allows to control the minimally acceptable difference between desired and
+    obtained probabilities.
+
+  o Added experimental method = "qdiffusion" to rdiffusion() which obtains 
+    random derivates via the quantile function and runif(). This method is for 
+    the time being a lot slower than the native one (i.e., method = "fastdm").
+
 
 Changes to Version 0.10-x (released October 2019)
 
