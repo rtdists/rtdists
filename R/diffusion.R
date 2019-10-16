@@ -382,43 +382,22 @@ rdiffusion <- function (n,
   method <- match.arg(method)
   
   if (method == "fastdm") {
-    s <- rep(s, length.out = n)
-    a <- rep(a, length.out = n)
-    v <- rep(v, length.out = n)
-    t0 <- rep(t0, length.out = n)
-    z <- rep(z, length.out = n)
-    z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
-    d <- rep(d, length.out = n)
-    sz <- rep(sz, length.out = n)
-    sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
-    sv <- rep(sv, length.out = n)
-    st0 <- rep(st0, length.out = n)
-    t0 <- recalc_t0 (t0, st0) 
-    
-    # Build parameter matrix (and divide a, v, and sv, by s)
-    params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z)
-    
-    # Check for illegal parameter values
-    if(ncol(params)<8) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
-    if(!is.numeric(params)) stop("Parameters need to be numeric.")
-    if (any(is.na(params)) || !all(is.finite(params))) stop("Parameters need to be numeric and finite.")
+    pars <- prepare_diffusion_parameter(response = 1L, 
+                              a = a, v = v, t0 = t0, z = z, 
+                              d = d, sz = sz, sv = sv, st0 = st0, s = s, 
+                              nn = n)
     
     randRTs    <- vector("numeric",length=n)
     randBounds <- vector("numeric",length=n)
     
-    #uniques <- unique(params)
-    parameter_char <- apply(params, 1, paste0, collapse = "\t")
-    parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
-    parameter_indices <- split(seq_len(n), f = parameter_factor)
-    
-    for (i in seq_len(length(parameter_indices))) {
-      ok_rows <- parameter_indices[[i]]
+    for (i in seq_len(length(pars$parameter_indices))) {
+      ok_rows <- pars$parameter_indices[[i]]
       
       # Calculate n for this row
       current_n <- length(ok_rows)
       
       out <- r_fastdm (current_n, 
-                       params[ok_rows[1],1:8], 
+                       pars$params[ok_rows[1],1:8], 
                        precision, 
                        stop_on_error=stop_on_error)
       #current_n, uniques[i,1:8], precision, stop_on_error=stop_on_error)
@@ -443,7 +422,7 @@ rdiffusion <- function (n,
     t0 <- recalc_t0 (t0, st0) 
     
     # Build parameter matrix (and divide a, v, and sv, by s)
-    params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z)
+    params <- cbind (a, v, t0, d, sz, sv, st0, z)
     
     # Check for illegal parameter values
     if(ncol(params)<8) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
