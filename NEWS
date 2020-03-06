@@ -1,4 +1,4 @@
-Changes to Version 0.11-x (released XXX 2019)
+Changes to Version 0.11-x (released March 2020)
 
   o Faster calculation of diffusion density (ddiffusion) and CDF (pdiffusion) 
     in case exactly one set of parameters is passed. In this case, some checks 

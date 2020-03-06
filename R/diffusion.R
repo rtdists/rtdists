@@ -88,10 +88,11 @@ recalc_t0 <- function (t0, st0) { t0 <- t0 + st0/2 }
 
 
 prepare_diffusion_parameter <- function(response, 
-                                           a, v, t0, z, d, 
-                                           sz, sv, st0, s, 
-                                           nn, 
-                                           z_absolute = TRUE) {
+                                        a, v, t0, z, d, 
+                                        sz, sv, st0, s, 
+                                        nn, 
+                                        z_absolute = TRUE, 
+                                        stop_on_error) {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
   if ( (length(s) == 1) & 
        (length(a) == 1) & 
@@ -191,7 +192,7 @@ ddiffusion <- function (rt, response = "upper",
   pars <- prepare_diffusion_parameter(response = response, 
                               a = a, v = v, t0 = t0, z = z, 
                               d = d, sz = sz, sv = sv, st0 = st0, s = s, 
-                              nn = nn)
+                              nn = nn, stop_on_error = stop_on_error)
   
   densities <- vector("numeric",length=nn)  
   for (i in seq_len(length(pars$parameter_indices))) {
@@ -230,7 +231,7 @@ pdiffusion <- function (rt, response = "upper",
   pars <- prepare_diffusion_parameter(response = response, 
                               a = a, v = v, t0 = t0, z = z, 
                               d = d, sz = sz, sv = sv, st0 = st0, s = s, 
-                              nn = nn)
+                              nn = nn, stop_on_error = stop_on_error)
   
   pvalues <- vector("numeric",length=nn)  
   
@@ -385,7 +386,7 @@ rdiffusion <- function (n,
     pars <- prepare_diffusion_parameter(response = 1L, 
                               a = a, v = v, t0 = t0, z = z, 
                               d = d, sz = sz, sv = sv, st0 = st0, s = s, 
-                              nn = n)
+                              nn = n, stop_on_error = stop_on_error)
     
     randRTs    <- vector("numeric",length=n)
     randBounds <- vector("numeric",length=n)
