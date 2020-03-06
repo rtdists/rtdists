@@ -32,7 +32,7 @@ test_that("diffusion functions are identical with all input options", {
 #                     response = rep(c("upper", "lower"), each = 5))
 
   rt3 <- data.frame(p = rep(c(0.05, 0.1), 2),
-                    response = rep(c("upper", "lower"), each = 2))
+                    response = factor(rep(c("upper", "lower"), each = 2)))
   ref3 <- qdiffusion(rt3$p, rt3$response, a=1, v=2, t0=0.5)
   expect_identical(qdiffusion(rt3$p, as.numeric(rt3$response), a=1, v=2, t0=0.5), ref3)
   expect_identical(qdiffusion(rt3$p, as.character(rt3$response), a=1, v=2, t0=0.5), ref3)
