@@ -1,5 +1,20 @@
 
-context("Diffusion Model: quantile bugs")
+context("Diffusion Model: bugs")
+
+test_that("ddiffusion passes NAs if all are NA", {
+  expect_true(
+    isTRUE(is.na(ddiffusion(rt = 1, response = 1, a = NA, v = NA, t0 = NA)))
+  )
+  # expect_true(
+  #   isTRUE(is.na(ddiffusion(rt = 1, response = 1, a = 0, v = NA, t0 = NA)))
+  # )
+  expect_true(
+    isTRUE(is.na(ddiffusion(rt = 1, response = 1, a = NA, v = 0, t0 = NA)))
+  )
+  expect_true(
+    isTRUE(is.na(ddiffusion(rt = 1, response = 1, a = NA, v = NA, t0 = 0)))
+  )
+})
 
 test_that("qdiffusion does not fail for certain values", {
   qex <- c(a = 1.97092532512193, t0 = 0.22083875893466, sv = 0.462630056494015, v = -2.59881372383245, resp_prop = 0.99877722499984, z = 0.5, sz= 0.1)

@@ -148,7 +148,6 @@ prepare_diffusion_parameter <- function(response,
   if(!is.numeric(params)) stop("Parameters need to be numeric.")
   if (any(is.na(params)) || !all(is.finite(params))) {
     if (stop_on_error) stop("Parameters need to be numeric and finite.")
-    else return(rep(0, nn))
   }
   
   
