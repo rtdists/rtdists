@@ -18,7 +18,9 @@
  * 02110-1301 USA.
  */
 
+#define STRICT_R_HEADERS
 #include <Rcpp.h>
+#include <cfloat>
 #include <iostream>
 #include <sstream>
 
