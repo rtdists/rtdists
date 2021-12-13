@@ -45,3 +45,6 @@ n1CDF(r_lba1$rt[ r_lba1$response==1 ] - t0, A = A, b = b, t0 = 0, mean_v = v1, s
 ## reverse dependency checks
 revdepcheck::revdep_check(num_workers = 2) ## run in a new terminal
 revdepcheck::revdep_summary()
+
+###
+rhub::check_for_cran("../rtdists_0.11-3.tar.gz")

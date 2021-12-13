@@ -18,8 +18,11 @@ Changes to Version 0.11-x (released March 2020)
   o Tests should work even if options("stringsAsFactors" = FALSE) (in 
     preparation for R 4.0).
     
-  o 0.11-3: removed bug that diffusion functions failed if there were NAs in the
-    parameters.
+  o 0.11-3: removed bug that diffusion functions failed if there were NAs in 
+    the parameters.
+    
+  o 0.11-3: uses RCPP STRICT_R_HEADERS: 
+    https://github.com/rtdists/rtdists/pull/14
 
 
 Changes to Version 0.10-x (released October 2019)
