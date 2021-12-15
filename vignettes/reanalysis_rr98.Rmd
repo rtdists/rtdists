@@ -13,7 +13,7 @@ vignette: >
 
 This vignette provides the `R` scripts for a reanalysis of Experiment 1 of Ratcliff and Rouder (1998). In contrast to the original analysis, which used RT bins, we will employ trial-wise maximum likelihood estimation. 
 
-The code heavily uses [`dplyr`](https://cran.r-project.org/package=dplyr) ([vignette](https://CRAN.R-project.org/package=dplyr/vignettes/dplyr.html)),  [`tidyr`](https://cran.r-project.org/package=tidyr) ([vignette](https://CRAN.R-project.org/package=tidyr/vignettes/tidy-data.html)), and [`purrr`](https://cran.r-project.org/package=purrr) for data handling and `lattice` (see `?Lattice`) and `latticeExtra` (specifically `as.layer`) for plotting. A throrough introduction to the former three packages is provided in [R for Data Science](http://r4ds.had.co.nz) by Wickham and Gorlemund, see especially Chapter 25.
+The code heavily uses [`dplyr`](https://cran.r-project.org/package=dplyr) ([vignette](https://CRAN.R-project.org/package=dplyr/vignettes/dplyr.html)),  [`tidyr`](https://cran.r-project.org/package=tidyr) ([vignette](https://CRAN.R-project.org/package=tidyr/vignettes/tidy-data.html)), and [`purrr`](https://cran.r-project.org/package=purrr) for data handling and `lattice` (see `?Lattice`) and `latticeExtra` (specifically `as.layer`) for plotting. A throrough introduction to the former three packages is provided in [R for Data Science](https://r4ds.had.co.nz/) by Wickham and Gorlemund, see especially Chapter 25.
 
 # Description of the Experiment
 
@@ -931,5 +931,5 @@ Here we see the same observation as for the speed condition. Considerable change
 
 # References
 
-- Ratcliff, R., & Rouder, J. N. (1998). Modeling Response Times for Two-Choice Decisions. _Psychological Science_, 9(5), 347--356. http://doi.org/10.1111/1467-9280.00067
+- Ratcliff, R., & Rouder, J. N. (1998). Modeling Response Times for Two-Choice Decisions. _Psychological Science_, 9(5), 347--356. https://doi.org/10.1111/1467-9280.00067
 

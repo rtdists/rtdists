@@ -48,3 +48,7 @@ revdepcheck::revdep_summary()
 
 ###
 rhub::check_for_cran("../rtdists_0.11-3.tar.gz")
+rhub::check_on_debian(path = "../rtdists_0.11-4.tar.gz", 
+                        check_args = "--as-cran")
+rhub::check_with_rdevel(path = "../rtdists_0.11-3.tar.gz", 
+                        check_args = "--as-cran")
