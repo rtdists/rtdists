@@ -47,8 +47,15 @@ revdepcheck::revdep_check(num_workers = 2) ## run in a new terminal
 revdepcheck::revdep_summary()
 
 ###
-rhub::check_for_cran("../rtdists_0.11-3.tar.gz")
+rhub::list_validated_emails()
+rhub::validate_email("singmann@gmail.com", 
+                     token = "2928445ca3c645079033bde73b754e40")
+rhub::check_for_cran("../rtdists_0.11-5.tar.gz")
 rhub::check_on_debian(path = "../rtdists_0.11-4.tar.gz", 
                         check_args = "--as-cran")
 rhub::check_with_rdevel(path = "../rtdists_0.11-3.tar.gz", 
                         check_args = "--as-cran")
+rhub::check_with_sanitizers("../rtdists_0.11-4.tar.gz")
+rhub::check(platform = "linux-x86_64-rocker-gcc-san",
+            path = "../rtdists_0.11-5.tar.gz", 
+            check_args = "--as-cran")

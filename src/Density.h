@@ -235,7 +235,9 @@ static double g_minus_large_time(double t, double zr, int N)
 static double integrate_z_over_t (Parameters *params, double a, double b, double step_width)
 {
     double width = b-a;
-    int N = std::max(4, (int) (width / step_width));
+    double tmp_N = width / step_width;
+    if (std::isnan(tmp_N)) tmp_N = 20;
+    int N = std::max(4, static_cast<int>(tmp_N));
     double step = std::max(width / N, EPSILON);
     double x;
     double result = 0;
@@ -250,7 +252,9 @@ static double integrate_z_over_t (Parameters *params, double a, double b, double
 static double integrate_v_over_zr (Parameters *params, double a, double b, double t, double step_width)
 {
     double width = b-a;
-    int N = std::max(4, (int) (width / step_width));
+    double tmp_N = width / step_width;
+    if (std::isnan(tmp_N)) tmp_N = 20;
+    int N = std::max(4, static_cast<int>(tmp_N));
     double step = std::max(width / N, EPSILON);
     double x;
     double result = 0;
