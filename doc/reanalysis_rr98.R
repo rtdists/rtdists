@@ -400,7 +400,7 @@ objective_lba_separate <- function(pars, rt, response, drift, ...) {
       A = list(pars["a_1"], pars["a_2"]), 
       b = max(pars["a_1"], pars["a_2"])+pars["b"], 
       t0 = pars["t0"], 
-      mean_v = c(pars[i], 1-pars[i]), 
+      mean_v = c(pars[base_par+i], 1-pars[base_par+i]), 
       sd_v = pars["sv"], silent=TRUE)
   }
   if (any(densities == 0)) return(1e6)
