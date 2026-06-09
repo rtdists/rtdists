@@ -4,7 +4,8 @@
 \name{rr98}
 \alias{rr98}
 \title{Ratcliff and Rouder (1998, Exp. 1) Luminance Discrimination Data}
-\format{A \code{data.frame} with 24,358 obs. and 12 variables:
+\format{
+A \code{data.frame} with 24,358 obs. and 12 variables:
 \describe{
  \item{id}{participant id, factor with three levels}
  \item{session}{session number, integer}
@@ -18,7 +19,8 @@
  \item{correct}{boolean indicating whether or not \code{source==response}. (Does not seem to be used in the original analysis.)}
  \item{rt}{response time in seconds}
  \item{outlier}{boolean indicating whether or not the response was considered an outlier by Ratcliff and Rouder (1998), i.e., RTs outside of (200ms, 2500ms)}
-}}
+}
+}
 \source{
 Ratcliff, R., & Rouder, J. N. (1998). Modeling Response Times for Two-Choice Decisions. \emph{Psychological Science}, 9(5), 347-356. http://doi.org/10.1111/1467-9280.00067
 }

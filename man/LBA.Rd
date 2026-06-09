@@ -8,18 +8,59 @@
 \alias{rLBA}
 \title{The Linear Ballistic Accumulator (LBA)}
 \usage{
-dLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm",
-  "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE)
+dLBA(
+  rt,
+  response,
+  A,
+  b,
+  t0,
+  ...,
+  st0 = 0,
+  distribution = c("norm", "gamma", "frechet", "lnorm"),
+  args.dist = list(),
+  silent = FALSE
+)
 
-pLBA(rt, response, A, b, t0, ..., st0 = 0, distribution = c("norm",
-  "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE)
+pLBA(
+  rt,
+  response,
+  A,
+  b,
+  t0,
+  ...,
+  st0 = 0,
+  distribution = c("norm", "gamma", "frechet", "lnorm"),
+  args.dist = list(),
+  silent = FALSE
+)
 
-qLBA(p, response, A, b, t0, ..., st0 = 0, distribution = c("norm",
-  "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE,
-  interval = c(0, 10), scale_p = FALSE, scale_max = Inf)
+qLBA(
+  p,
+  response,
+  A,
+  b,
+  t0,
+  ...,
+  st0 = 0,
+  distribution = c("norm", "gamma", "frechet", "lnorm"),
+  args.dist = list(),
+  silent = FALSE,
+  interval = c(0, 10),
+  scale_p = FALSE,
+  scale_max = Inf
+)
 
-rLBA(n, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
-  "frechet", "lnorm"), args.dist = list(), silent = FALSE)
+rLBA(
+  n,
+  A,
+  b,
+  t0,
+  ...,
+  st0 = 0,
+  distribution = c("norm", "gamma", "frechet", "lnorm"),
+  args.dist = list(),
+  silent = FALSE
+)
 }
 \arguments{
 \item{rt}{vector of RTs. Or for convenience also a \code{data.frame} with

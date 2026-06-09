@@ -4,7 +4,8 @@
 \name{speed_acc}
 \alias{speed_acc}
 \title{Speed-Accuracy Data from Wagenmakers, Ratcliff, Gomez, & McKoon (2008, Experiment 1)}
-\format{A \code{data.frame} with 31,522 obs. and 9 variables:
+\format{
+A \code{data.frame} with 31,522 obs. and 9 variables:
 \describe{
  \item{id}{participant id}
  \item{block}{block number}
@@ -15,7 +16,8 @@
  \item{response}{\code{word}, \code{nonword}, or not interpretable response (\code{error}, i.e., pushed a button, but not the right one and also not the one next to the right button)}
  \item{rt}{response time in seconds}
  \item{censor}{boolean indicating whether or not a response should be eliminated prior to analysis; uninterpretable response, too fast response (<180 ms), too slow response (>3 sec)}
-}}
+}
+}
 \source{
 Wagenmakers, E.-J., Ratcliff, R., Gomez, P., & McKoon, G. (2008). A diffusion model account of criterion shifts in the lexical decision task. \emph{Journal of Memory and Language}, 58(1), 140-159.
 }

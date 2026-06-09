@@ -1,3 +1,7 @@
+Changes to Version 0.11-6 (released June 2026)
+
+  o included a check in rdiffusion preventing RTs < t0. Thanks to Andrew Heathcote for reporting this.
+
 Changes to Version 0.11-x (released March 2020)
 
   o Faster calculation of diffusion density (ddiffusion) and CDF (pdiffusion) 

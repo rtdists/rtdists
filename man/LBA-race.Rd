@@ -6,11 +6,29 @@
 \alias{n1CDF}
 \title{LBA race functions: Likelihood for first accumulator to win.}
 \usage{
-n1PDF(rt, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
-  "frechet", "lnorm"), args.dist = list(), silent = FALSE)
+n1PDF(
+  rt,
+  A,
+  b,
+  t0,
+  ...,
+  st0 = 0,
+  distribution = c("norm", "gamma", "frechet", "lnorm"),
+  args.dist = list(),
+  silent = FALSE
+)
 
-n1CDF(rt, A, b, t0, ..., st0 = 0, distribution = c("norm", "gamma",
-  "frechet", "lnorm"), args.dist = list(), silent = FALSE)
+n1CDF(
+  rt,
+  A,
+  b,
+  t0,
+  ...,
+  st0 = 0,
+  distribution = c("norm", "gamma", "frechet", "lnorm"),
+  args.dist = list(),
+  silent = FALSE
+)
 }
 \arguments{
 \item{rt}{a vector of RTs.}
@@ -154,5 +172,5 @@ n1PDF(xx$rt, A=0.5, b=1, t0 = list(c(0.4, 0.5), c(0.5, 0.6)), mean_v=c(1.2, 1.0)
 }
 \seealso{
 For more user-friendly functions that return the PDF or CDF for the
-  corresponding (and not first) accumulator winning see /code{/link{LBA}}.
+  corresponding (and not first) accumulator winning see \code{\link{LBA}}.
 }
