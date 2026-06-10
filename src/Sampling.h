@@ -114,7 +114,12 @@ List sampling (int s_size)
         if (F[i] > 1)	F[i] = 1;
     }
 
-    qsort(F, N+1, sizeof(double), compare_doubles);
+    // OLD:
+    // qsort(F, N+1, sizeof(double), compare_doubles);
+    // NEW: enforce monotonicity in place, without moving values across time slots
+    for (i=1; i<=N; ++i)
+      if (F[i] < F[i-1])  F[i] = F[i-1];
+
     if (F[0] > Fs_min)		F[0] = Fs_min;
     if (F[N] < Fs_max)		F[N] = Fs_max;
 

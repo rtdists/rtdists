@@ -405,10 +405,10 @@ rdiffusion <- function (n,
       randRTs[ok_rows]    <- out$rt       
       randBounds[ok_rows] <- out$boundary 
     }
-    badrt <- randRTs <=  pars$params[,3]
-    if (any(badrt)) {
-      randRTs[badrt] <- pars$params[badrt,3] + 1.5e-8
-    }
+    # badrt <- randRTs <=  pars$params[,3]
+    # if (any(badrt)) {
+    #   randRTs[badrt] <- pars$params[badrt,3] + 1.5e-8
+    # }
     response <- factor(randBounds, levels = 0:1, labels = c("lower", "upper"))
     return(data.frame(rt = randRTs, response))
   } else if (method == "qdiffusion") {
