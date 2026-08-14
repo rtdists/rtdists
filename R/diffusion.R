@@ -87,8 +87,23 @@
 recalc_t0 <- function (t0, st0) { t0 <- t0 + st0/2 }
 
 
-prepare_diffusion_parameter <- function(response, 
-                                        a, v, t0, z, d, 
+group_parameters <- function(params, nn) {
+  if (nn == 1L || anyNA(params)) {
+    parameter_char <- do.call(paste, c(as.data.frame(params), sep = "\t"))
+    parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
+    return(split(seq_len(nn), f = parameter_factor))
+  }
+  p <- signif(params, 15)
+  o <- do.call(order, as.data.frame(p))
+  ps <- p[o, , drop = FALSE]
+  differs <- rowSums(ps[-1L, , drop = FALSE] != ps[-nn, , drop = FALSE]) > 0
+  idx <- split(o, cumsum(c(TRUE, differs)))
+  idx[order(vapply(idx, min, integer(1)))]
+}
+
+
+prepare_diffusion_parameter <- function(response,
+                                        a, v, t0, z, d,
                                         sz, sv, st0, s, 
                                         nn, 
                                         z_absolute = TRUE, 
@@ -152,9 +167,7 @@ prepare_diffusion_parameter <- function(response,
   
   
   if (!skip_checks) {
-    parameter_char <- apply(params, 1, paste0, collapse = "\t")
-    parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
-    parameter_indices <- split(seq_len(nn), f = parameter_factor)
+    parameter_indices <- group_parameters(params, nn)
   } else {
     if (all(numeric_bounds == 2L) | all(numeric_bounds == 1L)) {
       parameter_indices <- list(
@@ -437,10 +450,8 @@ rdiffusion <- function (n,
     randBounds <- vector("numeric",length=n)
     
     #uniques <- unique(params)
-    parameter_char <- apply(params, 1, paste0, collapse = "\t")
-    parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
-    parameter_indices <- split(seq_len(n), f = parameter_factor)
-    
+    parameter_indices <- group_parameters(params, n)
+
     for (i in seq_len(length(parameter_indices))) {
       ok_rows <- parameter_indices[[i]]
       
