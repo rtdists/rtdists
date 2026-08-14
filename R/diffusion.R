@@ -250,19 +250,21 @@ pdiffusion <- function (rt, response = "upper",
   if (use_precise) {
     for (i in seq_len(length(pars$parameter_indices))) {
       ok_rows <- pars$parameter_indices[[i]]
-      pvalues[ok_rows] <- p_precise_fastdm (rt[ok_rows], 
-                                        pars$params[ok_rows[1],1:8], 
-                                        precision, 
-                                        pars$params[ok_rows[1],9], 
+      ok_rows <- ok_rows[order(rt[ok_rows])]
+      pvalues[ok_rows] <- p_precise_fastdm (rt[ok_rows],
+                                        pars$params[ok_rows[1],1:8],
+                                        precision,
+                                        pars$params[ok_rows[1],9],
                                         stop_on_error)
     }
   } else {
     for (i in seq_len(length(pars$parameter_indices))) {
       ok_rows <- pars$parameter_indices[[i]]
-      pvalues[ok_rows] <- p_fastdm (rt[ok_rows], 
-                                pars$params[ok_rows[1],1:8], 
-                                precision, 
-                                pars$params[ok_rows[1],9], 
+      ok_rows <- ok_rows[order(rt[ok_rows])]
+      pvalues[ok_rows] <- p_fastdm (rt[ok_rows],
+                                pars$params[ok_rows[1],1:8],
+                                precision,
+                                pars$params[ok_rows[1],9],
                                 stop_on_error)
     }
   }
