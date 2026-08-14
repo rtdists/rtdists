@@ -338,7 +338,7 @@ qdiffusion <- function (p, response = "upper",
     if (tmp$objective > max_diff) {
       tmp <- do.call(optimize, args = 
                        c(f = inv_cdf_diffusion, 
-                         interval = list(c(max(interval[1], t0), interval[2])), 
+                         interval = list(c(max(interval[1], t0[op[i]]), interval[2])), 
                          response=response[op[i]], 
                          a=a[op[i]], v=v[op[i]], t0=t0[op[i]], z=z[op[i]], d=d[op[i]], sz=sz[op[i]], 
                          sv=sv[op[i]], st0=st0[op[i]], s=s[op[i]], 
@@ -349,7 +349,7 @@ qdiffusion <- function (p, response = "upper",
     if (tmp$objective > max_diff) {
       tmp <- do.call(optimize, args = 
                        c(f=inv_cdf_diffusion, 
-                         interval = list(c(max(interval[1], t0),max(interval)/2)), 
+                         interval = list(c(max(interval[1], t0[op[i]]),max(interval)/2)), 
                          response=response[op[i]], a=a[op[i]], v=v[op[i]], t0=t0[op[i]], 
                          z=z[op[i]], d=d[op[i]], sz=sz[op[i]], sv=sv[op[i]], 
                          st0=st0[op[i]], s=s[op[i]], precision=precision, 
@@ -360,7 +360,7 @@ qdiffusion <- function (p, response = "upper",
       try({
         uni_tmp <- do.call(uniroot, args = 
                              c(f=inv_cdf_diffusion, 
-                               interval = list(c(max(interval[1], t0), interval[2])), 
+                               interval = list(c(max(interval[1], t0[op[i]]), interval[2])), 
                                response=response[op[i]], 
                                a=a[op[i]], v=v[op[i]], t0=t0[op[i]], z=z[op[i]], d=d[op[i]], 
                                sz=sz[op[i]], sv=sv[op[i]], st0=st0[op[i]], 
