@@ -101,14 +101,24 @@ ddiffusion <- function (rt, response = "upper",
                               nn = nn, stop_on_error = stop_on_error)
   
   densities <- vector("numeric",length=nn)  
-  for (i in seq_len(length(pars$parameter_indices))) {
-    ok_rows <- pars$parameter_indices[[i]]
-
-    densities[ok_rows] <- d_fastdm (rt[ok_rows], 
-                                pars$params[ok_rows[1],1:8], 
-                                precision, 
-                                pars$params[ok_rows[1],9], 
-                                stop_on_error)
+  if (isTRUE(pars$scalar_params)) {
+    for (i in seq_len(length(pars$parameter_indices))) {
+      ok_rows <- pars$parameter_indices[[i]]
+      densities[ok_rows] <- d_fastdm(rt[ok_rows],
+                                     pars$param_vec,
+                                     precision,
+                                     pars$numeric_bounds[ok_rows[1]],
+                                     stop_on_error)
+    }
+  } else {
+    for (i in seq_len(length(pars$parameter_indices))) {
+      ok_rows <- pars$parameter_indices[[i]]
+      densities[ok_rows] <- d_fastdm(rt[ok_rows],
+                                     pars$params[ok_rows[1],1:8],
+                                     precision,
+                                     pars$params[ok_rows[1],9],
+                                     stop_on_error)
+    }
   }
   abs(densities)
 }
@@ -139,30 +149,30 @@ pdiffusion <- function (rt, response = "upper",
                               d = d, sz = sz, sv = sv, st0 = st0, s = s, 
                               nn = nn, stop_on_error = stop_on_error)
   
-  pvalues <- vector("numeric",length=nn)  
+  pvalues <- vector("numeric",length=nn)
+  pfun <- if (use_precise) p_precise_fastdm else p_fastdm
   
-  if (use_precise) {
+  if (isTRUE(pars$scalar_params)) {
     for (i in seq_len(length(pars$parameter_indices))) {
       ok_rows <- pars$parameter_indices[[i]]
-      ok_rows <- ok_rows[order(rt[ok_rows])]
-      pvalues[ok_rows] <- p_precise_fastdm (rt[ok_rows],
-                                        pars$params[ok_rows[1],1:8],
-                                        precision,
-                                        pars$params[ok_rows[1],9],
-                                        stop_on_error)
+      if (is.unsorted(rt[ok_rows])) ok_rows <- ok_rows[order(rt[ok_rows])]
+      pvalues[ok_rows] <- pfun(rt[ok_rows],
+                               pars$param_vec,
+                               precision,
+                               pars$numeric_bounds[ok_rows[1]],
+                               stop_on_error)
     }
   } else {
     for (i in seq_len(length(pars$parameter_indices))) {
       ok_rows <- pars$parameter_indices[[i]]
-      ok_rows <- ok_rows[order(rt[ok_rows])]
-      pvalues[ok_rows] <- p_fastdm (rt[ok_rows],
-                                pars$params[ok_rows[1],1:8],
-                                precision,
-                                pars$params[ok_rows[1],9],
-                                stop_on_error)
+      if (is.unsorted(rt[ok_rows])) ok_rows <- ok_rows[order(rt[ok_rows])]
+      pvalues[ok_rows] <- pfun(rt[ok_rows],
+                               pars$params[ok_rows[1],1:8],
+                               precision,
+                               pars$params[ok_rows[1],9],
+                               stop_on_error)
     }
   }
-  #pvalues <- unsplit(densities, f = parameter_factor)
   pvalues
 }
 
@@ -298,21 +308,29 @@ rdiffusion <- function (n,
     
     randRTs    <- vector("numeric",length=n)
     randBounds <- vector("numeric",length=n)
-    
-    for (i in seq_len(length(pars$parameter_indices))) {
-      ok_rows <- pars$parameter_indices[[i]]
-      
-      # Calculate n for this row
-      current_n <- length(ok_rows)
-      
-      out <- r_fastdm (current_n, 
-                       pars$params[ok_rows[1],1:8], 
-                       precision, 
-                       stop_on_error=stop_on_error)
-      #current_n, uniques[i,1:8], precision, stop_on_error=stop_on_error)
-      
-      randRTs[ok_rows]    <- out$rt       
-      randBounds[ok_rows] <- out$boundary 
+
+    if (isTRUE(pars$scalar_params)) {
+      for (i in seq_len(length(pars$parameter_indices))) {
+        ok_rows <- pars$parameter_indices[[i]]
+        current_n <- length(ok_rows)
+        out <- r_fastdm(current_n,
+                        pars$param_vec,
+                        precision,
+                        stop_on_error=stop_on_error)
+        randRTs[ok_rows]    <- out$rt
+        randBounds[ok_rows] <- out$boundary
+      }
+    } else {
+      for (i in seq_len(length(pars$parameter_indices))) {
+        ok_rows <- pars$parameter_indices[[i]]
+        current_n <- length(ok_rows)
+        out <- r_fastdm(current_n,
+                        pars$params[ok_rows[1],1:8],
+                        precision,
+                        stop_on_error=stop_on_error)
+        randRTs[ok_rows]    <- out$rt
+        randBounds[ok_rows] <- out$boundary
+      }
     }
     # badrt <- randRTs <=  pars$params[,3]
     # if (any(badrt)) {
@@ -409,21 +427,10 @@ prepare_diffusion_parameter <- function(response,
                                         z_absolute = TRUE, 
                                         stop_on_error) {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
-  if ( (length(s) == 1) & 
-       (length(a) == 1) & 
-       (length(v) == 1) & 
-       (length(t0) == 1) & 
-       (length(z) == 1) & 
-       (length(d) == 1) & 
-       (length(sz) == 1) & 
-       (length(sv) == 1) & 
-       (length(st0) == 1)) {
-    skip_checks <- TRUE
-  } else {
-    skip_checks <- FALSE
-  }
+  skip_checks <- (length(s) == 1) & (length(a) == 1) & (length(v) == 1) &
+                  (length(t0) == 1) & (length(z) == 1) & (length(d) == 1) &
+                  (length(sz) == 1) & (length(sv) == 1) & (length(st0) == 1)
   
-  # Build parameter matrix  
   # Convert boundaries to numeric if necessary
   if (is.character(response)) {
     response <- match.arg(response, choices=c("upper", "lower"),several.ok = TRUE)
@@ -435,28 +442,55 @@ prepare_diffusion_parameter <- function(response,
       stop("response needs to be either 'upper', 'lower', or as.numeric(response) %in% 1:2!")
     numeric_bounds <- as.integer(response)
   }
-  
   numeric_bounds <- rep(numeric_bounds, length.out = nn)
-  if (!skip_checks) {
-    # all parameters brought to length of rt
-    s <- rep(s, length.out = nn)
-    a <- rep(a, length.out = nn)
-    v <- rep(v, length.out = nn)
-    t0 <- rep(t0, length.out = nn)
-    z <- rep(z, length.out = nn)
-    d <- rep(d, length.out = nn)
-    sz <- rep(sz, length.out = nn)
-    sv <- rep(sv, length.out = nn)
-    st0 <- rep(st0, length.out = nn)
+  
+  if (skip_checks) {
+    # Fast path: all model parameters are scalars.
+    # Build an 8-element vector instead of an nn×9 matrix and validate
+    # only the 8 scalars rather than the full matrix.
+    if (z_absolute) {
+      z <- z/a
+      sz <- sz/a
+    }
+    t0 <- recalc_t0(t0, st0)
+    param_vec <- c(a/s, v/s, t0, d, sz, sv/s, st0, z)
+    if (any(is.na(param_vec)) || !all(is.finite(param_vec))) {
+      if (stop_on_error) stop("Parameters need to be numeric and finite.")
+    }
+    if (all(numeric_bounds == 2L) || all(numeric_bounds == 1L)) {
+      parameter_indices <- list(seq_len(nn))
+    } else {
+      parameter_indices <- list(
+        seq_len(nn)[numeric_bounds == 2L],
+        seq_len(nn)[numeric_bounds == 1L]
+      )
+    }
+    return(list(
+      param_vec = param_vec,
+      numeric_bounds = numeric_bounds,
+      parameter_indices = parameter_indices,
+      scalar_params = TRUE
+    ))
   }
+  
+  # Non-scalar path: recycle all parameters to length nn
+  s <- rep(s, length.out = nn)
+  a <- rep(a, length.out = nn)
+  v <- rep(v, length.out = nn)
+  t0 <- rep(t0, length.out = nn)
+  z <- rep(z, length.out = nn)
+  d <- rep(d, length.out = nn)
+  sz <- rep(sz, length.out = nn)
+  sv <- rep(sv, length.out = nn)
+  st0 <- rep(st0, length.out = nn)
   if (z_absolute) {
     z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
     sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
   }
-  t0 <- recalc_t0 (t0, st0) 
+  t0 <- recalc_t0(t0, st0)
   
   # Build parameter matrix (and divide a, v, and sv, by s)
-  params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z, numeric_bounds)
+  params <- cbind(a/s, v/s, t0, d, sz, sv/s, st0, z, numeric_bounds)
   
   # Check for illegal parameter values
   if(ncol(params)<9) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
@@ -465,24 +499,12 @@ prepare_diffusion_parameter <- function(response,
     if (stop_on_error) stop("Parameters need to be numeric and finite.")
   }
   
+  parameter_indices <- group_parameters(params, nn)
   
-  if (!skip_checks) {
-    parameter_indices <- group_parameters(params, nn)
-  } else {
-    if (all(numeric_bounds == 2L) | all(numeric_bounds == 1L)) {
-      parameter_indices <- list(
-        seq_len(nn)
-      )
-    } else {
-      parameter_indices <- list(
-        seq_len(nn)[numeric_bounds == 2L], 
-        seq_len(nn)[numeric_bounds == 1L]
-      )  
-    }
-  }
   list(
-    params = params
-    , parameter_indices = parameter_indices
+    params = params,
+    parameter_indices = parameter_indices,
+    scalar_params = FALSE
   )
 }
 
