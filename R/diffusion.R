@@ -370,15 +370,6 @@ rdiffusion <- function (n,
       unif_variates_u <- unif_variates[sel_u]
       unif_variates_l <- 1-unif_variates[sel_l]
       
-      qdiffusion(p = unif_variates_u, response = "upper", 
-                 a = a[ok_rows[1]], v = v[ok_rows[1]], 
-                 t0 = t0[ok_rows[1]], z = z[ok_rows[1]], 
-                 d = d[ok_rows[1]], sz = sz[ok_rows[1]], 
-                 sv = sv[ok_rows[1]], st0 = st0[ok_rows[1]], 
-                 s = s[ok_rows[1]], precision = precision, 
-                 maxt = maxt, interval = interval, 
-                 scale_p = FALSE)
-      
       randRTs[ok_rows[sel_u]] <- 
         qdiffusion(p = unif_variates_u, response = "upper", 
                    a = a[ok_rows[1]], v = v[ok_rows[1]], 
