@@ -141,16 +141,55 @@ test_that("s only rescales A, b, and v", {
                dwald(rt, A = 0.04, b = 0.1, t0 = 0.25, v = 0.2, s = 0.1))
 })
 
-test_that("RDM parameters can be passed trialwise as a list", {
+test_that("RDM parameters can vary across trials", {
+  set.seed(1)
   n <- 20
-  rt <- seq(0.4, 2.5, length.out = n)
-  response <- rep(1:2, length.out = n)
-  expect_equal(dRDM(rt, response, A = list(rep(0.4, n), rep(0.4, n)), 
-                    b = list(rep(1, n), rep(1, n)), 
-                    t0 = list(rep(0.25, n), rep(0.25, n)), 
-                    v = list(rep(2.5, n), rep(1.5, n)), silent = TRUE),
-               dRDM(rt, response, A = 0.4, b = 1, t0 = 0.25, v = c(2.5, 1.5), 
-                    silent = TRUE))
+  rt <- runif(n, 0.4, 2)
+  response <- sample(1:2, n, replace = TRUE)
+  A <- runif(n, 0.2, 0.5)
+  b <- A + runif(n, 0.4, 0.8)
+  t0 <- runif(n, 0.15, 0.3)
+  v1 <- runif(n, 1.5, 3)
+  v2 <- runif(n, 0.8, 2)
+  
+  single <- vapply(seq_len(n), function(i) 
+    dRDM(rt[i], response[i], A = A[i], b = b[i], t0 = t0[i], 
+         v = c(v1[i], v2[i]), silent = TRUE), 0)
+  expect_equal(dRDM(rt, response, A = list(A, A), b = list(b, b), 
+                    t0 = list(t0, t0), v = list(v1, v2), silent = TRUE), single)
+  
+  single <- vapply(seq_len(n), function(i) 
+    pRDM(rt[i], response[i], A = A[i], b = b[i], t0 = t0[i], 
+         v = c(v1[i], v2[i]), silent = TRUE), 0)
+  expect_equal(pRDM(rt, response, A = list(A, A), b = list(b, b), 
+                    t0 = list(t0, t0), v = list(v1, v2), silent = TRUE), single)
+})
+
+test_that("dRDM and pRDM do not depend on the order of rt", {
+  set.seed(1)
+  rt <- runif(30, 0.35, 2)
+  response <- sample(1:2, 30, replace = TRUE)
+  o <- order(rt)
+  expect_equal(dRDM(rt, response, A = 0.4, b = 1, t0 = 0.25, v = c(2.5, 1.5), 
+                    silent = TRUE)[o],
+               dRDM(rt[o], response[o], A = 0.4, b = 1, t0 = 0.25, 
+                    v = c(2.5, 1.5), silent = TRUE))
+  expect_equal(pRDM(rt, response, A = 0.4, b = 1, t0 = 0.25, v = c(2.5, 1.5), 
+                    silent = TRUE)[o],
+               pRDM(rt[o], response[o], A = 0.4, b = 1, t0 = 0.25, 
+                    v = c(2.5, 1.5), silent = TRUE))
+})
+
+test_that("qRDM uses the t0 of each trial", {
+  p <- c(0.2, 0.5, 0.8)
+  t0 <- c(0.2, 0.9, 0.2)
+  vectorised <- qRDM(p, 1, A = 0.4, b = 1, t0 = list(t0, t0), v = c(2.5, 1.5), 
+                     scale_p = TRUE, silent = TRUE)
+  single <- vapply(seq_along(p), function(i) 
+    qRDM(p[i], 1, A = 0.4, b = 1, t0 = t0[i], v = c(2.5, 1.5), 
+         scale_p = TRUE, silent = TRUE), 0)
+  expect_false(anyNA(vectorised))
+  expect_equal(vectorised, single)
 })
 
 test_that("dRDM and pRDM accept a data.frame", {

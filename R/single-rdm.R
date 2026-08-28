@@ -22,9 +22,9 @@
 #' @note Density (i.e., \code{dwald}) and distribution (i.e., \code{pwald}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{rt}, parameters are recycled). Furthermore, the random derivative function also accepts a matrix of length \code{n} in which each column corresponds to a accumulator specific value (see \code{\link{rRDM}} for a more user-friendly way).
 #'
 #' @references 
-#' Tillman, G., Van Zandt, T., & Logan, G. D. (2020). Sequential sampling models without random between-trial variability: The racing diffusion model of speeded decision making. \emph{Psychonomic Bulletin & Review}, 27(5), 911-936. \doi{10.3758/s13423-020-01719-6}
+#' Tillman, G., Van Zandt, T., & Logan, G. D. (2020). Sequential sampling models without random between-trial variability: The racing diffusion model of speeded decision making. \emph{Psychonomic Bulletin & Review}, 27(5), 911-936. doi:10.3758/s13423-020-01719-6
 #' 
-#' Logan, G. D., Van Zandt, T., Verbruggen, F., & Wagenmakers, E.-J. (2014). On the ability to inhibit thought and action: General and special theories of an act of control. \emph{Psychological Review}, 121(1), 66-95. \doi{10.1037/a0035230}
+#' Logan, G. D., Van Zandt, T., Verbruggen, F., & Wagenmakers, E.-J. (2014). On the ability to inhibit thought and action: General and special theories of an act of control. \emph{Psychological Review}, 121(1), 66-95. doi:10.1037/a0035230
 #' 
 #' @importFrom stats dnorm pnorm qnorm rnorm runif
 #' 

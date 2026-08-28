@@ -168,7 +168,7 @@ qRDM(c(0.1, 0.5, 0.9), response = 1, A=0.5, b=1, t0 = 0.5, v=c(2.4, 1.6),
      scale_p = TRUE)
 }
 \references{
-Tillman, G., Van Zandt, T., & Logan, G. D. (2020). Sequential sampling models without random between-trial variability: The racing diffusion model of speeded decision making. \emph{Psychonomic Bulletin & Review}, 27(5), 911-936. \doi{10.3758/s13423-020-01719-6}
+Tillman, G., Van Zandt, T., & Logan, G. D. (2020). Sequential sampling models without random between-trial variability: The racing diffusion model of speeded decision making. \emph{Psychonomic Bulletin & Review}, 27(5), 911-936. doi:10.3758/s13423-020-01719-6
 }
 \seealso{
 \code{\link{LBA}} for the linear ballistic accumulator and

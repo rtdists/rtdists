@@ -75,7 +75,7 @@
 #'   \code{\link{single-RDM}}.
 #' 
 #' @references 
-#' Tillman, G., Van Zandt, T., & Logan, G. D. (2020). Sequential sampling models without random between-trial variability: The racing diffusion model of speeded decision making. \emph{Psychonomic Bulletin & Review}, 27(5), 911-936. \doi{10.3758/s13423-020-01719-6}
+#' Tillman, G., Van Zandt, T., & Logan, G. D. (2020). Sequential sampling models without random between-trial variability: The racing diffusion model of speeded decision making. \emph{Psychonomic Bulletin & Review}, 27(5), 911-936. doi:10.3758/s13423-020-01719-6
 #' 
 #' @seealso \code{\link{LBA}} for the linear ballistic accumulator and
 #'   \code{\link{Diffusion}} for the Ratcliff diffusion model.
