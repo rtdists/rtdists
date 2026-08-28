@@ -81,112 +81,6 @@
 #' 
 
 
-# [MG 20150616]
-# In line with LBA, adjust t0 to be the lower bound of the non-decision time distribution rather than the average 
-# Called from prd, drd, rrd 
-recalc_t0 <- function (t0, st0) { t0 <- t0 + st0/2 }
-
-
-group_parameters <- function(params, nn) {
-  if (nn == 1L || anyNA(params)) {
-    parameter_char <- do.call(paste, c(as.data.frame(params), sep = "\t"))
-    parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
-    return(split(seq_len(nn), f = parameter_factor))
-  }
-  p <- signif(params, 15)
-  o <- do.call(order, as.data.frame(p))
-  ps <- p[o, , drop = FALSE]
-  differs <- rowSums(ps[-1L, , drop = FALSE] != ps[-nn, , drop = FALSE]) > 0
-  idx <- split(o, cumsum(c(TRUE, differs)))
-  idx[order(vapply(idx, min, integer(1)))]
-}
-
-
-prepare_diffusion_parameter <- function(response,
-                                        a, v, t0, z, d,
-                                        sz, sv, st0, s, 
-                                        nn, 
-                                        z_absolute = TRUE, 
-                                        stop_on_error) {
-  if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
-  if ( (length(s) == 1) & 
-       (length(a) == 1) & 
-       (length(v) == 1) & 
-       (length(t0) == 1) & 
-       (length(z) == 1) & 
-       (length(d) == 1) & 
-       (length(sz) == 1) & 
-       (length(sv) == 1) & 
-       (length(st0) == 1)) {
-    skip_checks <- TRUE
-  } else {
-    skip_checks <- FALSE
-  }
-  
-  # Build parameter matrix  
-  # Convert boundaries to numeric if necessary
-  if (is.character(response)) {
-    response <- match.arg(response, choices=c("upper", "lower"),several.ok = TRUE)
-    numeric_bounds <- ifelse(response == "upper", 2L, 1L)
-  }
-  else {
-    response <- as.numeric(response)
-    if (any(!(response %in% 1:2))) 
-      stop("response needs to be either 'upper', 'lower', or as.numeric(response) %in% 1:2!")
-    numeric_bounds <- as.integer(response)
-  }
-  
-  numeric_bounds <- rep(numeric_bounds, length.out = nn)
-  if (!skip_checks) {
-    # all parameters brought to length of rt
-    s <- rep(s, length.out = nn)
-    a <- rep(a, length.out = nn)
-    v <- rep(v, length.out = nn)
-    t0 <- rep(t0, length.out = nn)
-    z <- rep(z, length.out = nn)
-    d <- rep(d, length.out = nn)
-    sz <- rep(sz, length.out = nn)
-    sv <- rep(sv, length.out = nn)
-    st0 <- rep(st0, length.out = nn)
-  }
-  if (z_absolute) {
-    z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
-    sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
-  }
-  t0 <- recalc_t0 (t0, st0) 
-  
-  # Build parameter matrix (and divide a, v, and sv, by s)
-  params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z, numeric_bounds)
-  
-  # Check for illegal parameter values
-  if(ncol(params)<9) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
-  if(!is.numeric(params)) stop("Parameters need to be numeric.")
-  if (any(is.na(params)) || !all(is.finite(params))) {
-    if (stop_on_error) stop("Parameters need to be numeric and finite.")
-  }
-  
-  
-  if (!skip_checks) {
-    parameter_indices <- group_parameters(params, nn)
-  } else {
-    if (all(numeric_bounds == 2L) | all(numeric_bounds == 1L)) {
-      parameter_indices <- list(
-        seq_len(nn)
-      )
-    } else {
-      parameter_indices <- list(
-        seq_len(nn)[numeric_bounds == 2L], 
-        seq_len(nn)[numeric_bounds == 1L]
-      )  
-    }
-  }
-  list(
-    params = params
-    , parameter_indices = parameter_indices
-  )
-}
-
-
 #' @rdname Diffusion
 #' @export
 ddiffusion <- function (rt, response = "upper", 
@@ -509,3 +403,109 @@ rdiffusion <- function (n,
     return(data.frame(rt = randRTs, response))
   }
 }
+
+# internal functions below to not mess with exporting:
+
+# [MG 20150616]
+# In line with LBA, adjust t0 to be the lower bound of the non-decision time distribution rather than the average 
+# Called from prd, drd, rrd 
+recalc_t0 <- function (t0, st0) { t0 <- t0 + st0/2 }
+
+prepare_diffusion_parameter <- function(response,
+                                        a, v, t0, z, d,
+                                        sz, sv, st0, s, 
+                                        nn, 
+                                        z_absolute = TRUE, 
+                                        stop_on_error) {
+  if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
+  if ( (length(s) == 1) & 
+       (length(a) == 1) & 
+       (length(v) == 1) & 
+       (length(t0) == 1) & 
+       (length(z) == 1) & 
+       (length(d) == 1) & 
+       (length(sz) == 1) & 
+       (length(sv) == 1) & 
+       (length(st0) == 1)) {
+    skip_checks <- TRUE
+  } else {
+    skip_checks <- FALSE
+  }
+  
+  # Build parameter matrix  
+  # Convert boundaries to numeric if necessary
+  if (is.character(response)) {
+    response <- match.arg(response, choices=c("upper", "lower"),several.ok = TRUE)
+    numeric_bounds <- ifelse(response == "upper", 2L, 1L)
+  }
+  else {
+    response <- as.numeric(response)
+    if (any(!(response %in% 1:2))) 
+      stop("response needs to be either 'upper', 'lower', or as.numeric(response) %in% 1:2!")
+    numeric_bounds <- as.integer(response)
+  }
+  
+  numeric_bounds <- rep(numeric_bounds, length.out = nn)
+  if (!skip_checks) {
+    # all parameters brought to length of rt
+    s <- rep(s, length.out = nn)
+    a <- rep(a, length.out = nn)
+    v <- rep(v, length.out = nn)
+    t0 <- rep(t0, length.out = nn)
+    z <- rep(z, length.out = nn)
+    d <- rep(d, length.out = nn)
+    sz <- rep(sz, length.out = nn)
+    sv <- rep(sv, length.out = nn)
+    st0 <- rep(st0, length.out = nn)
+  }
+  if (z_absolute) {
+    z <- z/a  # transform z from absolute to relative scale (which is currently required by the C code)
+    sz <- sz/a # transform sz from absolute to relative scale (which is currently required by the C code)
+  }
+  t0 <- recalc_t0 (t0, st0) 
+  
+  # Build parameter matrix (and divide a, v, and sv, by s)
+  params <- cbind (a/s, v/s, t0, d, sz, sv/s, st0, z, numeric_bounds)
+  
+  # Check for illegal parameter values
+  if(ncol(params)<9) stop("Not enough parameters supplied: probable attempt to pass NULL values?")
+  if(!is.numeric(params)) stop("Parameters need to be numeric.")
+  if (any(is.na(params)) || !all(is.finite(params))) {
+    if (stop_on_error) stop("Parameters need to be numeric and finite.")
+  }
+  
+  
+  if (!skip_checks) {
+    parameter_indices <- group_parameters(params, nn)
+  } else {
+    if (all(numeric_bounds == 2L) | all(numeric_bounds == 1L)) {
+      parameter_indices <- list(
+        seq_len(nn)
+      )
+    } else {
+      parameter_indices <- list(
+        seq_len(nn)[numeric_bounds == 2L], 
+        seq_len(nn)[numeric_bounds == 1L]
+      )  
+    }
+  }
+  list(
+    params = params
+    , parameter_indices = parameter_indices
+  )
+}
+
+group_parameters <- function(params, nn) {
+  if (nn == 1L || anyNA(params)) {
+    parameter_char <- do.call(paste, c(as.data.frame(params), sep = "\t"))
+    parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
+    return(split(seq_len(nn), f = parameter_factor))
+  }
+  p <- signif(params, 15)
+  o <- do.call(order, as.data.frame(p))
+  ps <- p[o, , drop = FALSE]
+  differs <- rowSums(ps[-1L, , drop = FALSE] != ps[-nn, , drop = FALSE]) > 0
+  idx <- split(o, cumsum(c(TRUE, differs)))
+  idx[order(vapply(idx, min, integer(1)))]
+}
+
