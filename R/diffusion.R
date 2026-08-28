@@ -87,8 +87,23 @@
 recalc_t0 <- function (t0, st0) { t0 <- t0 + st0/2 }
 
 
-prepare_diffusion_parameter <- function(response, 
-                                        a, v, t0, z, d, 
+group_parameters <- function(params, nn) {
+  if (nn == 1L || anyNA(params)) {
+    parameter_char <- do.call(paste, c(as.data.frame(params), sep = "\t"))
+    parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
+    return(split(seq_len(nn), f = parameter_factor))
+  }
+  p <- signif(params, 15)
+  o <- do.call(order, as.data.frame(p))
+  ps <- p[o, , drop = FALSE]
+  differs <- rowSums(ps[-1L, , drop = FALSE] != ps[-nn, , drop = FALSE]) > 0
+  idx <- split(o, cumsum(c(TRUE, differs)))
+  idx[order(vapply(idx, min, integer(1)))]
+}
+
+
+prepare_diffusion_parameter <- function(response,
+                                        a, v, t0, z, d,
                                         sz, sv, st0, s, 
                                         nn, 
                                         z_absolute = TRUE, 
@@ -152,9 +167,7 @@ prepare_diffusion_parameter <- function(response,
   
   
   if (!skip_checks) {
-    parameter_char <- apply(params, 1, paste0, collapse = "\t")
-    parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
-    parameter_indices <- split(seq_len(nn), f = parameter_factor)
+    parameter_indices <- group_parameters(params, nn)
   } else {
     if (all(numeric_bounds == 2L) | all(numeric_bounds == 1L)) {
       parameter_indices <- list(
@@ -237,19 +250,21 @@ pdiffusion <- function (rt, response = "upper",
   if (use_precise) {
     for (i in seq_len(length(pars$parameter_indices))) {
       ok_rows <- pars$parameter_indices[[i]]
-      pvalues[ok_rows] <- p_precise_fastdm (rt[ok_rows], 
-                                        pars$params[ok_rows[1],1:8], 
-                                        precision, 
-                                        pars$params[ok_rows[1],9], 
+      ok_rows <- ok_rows[order(rt[ok_rows])]
+      pvalues[ok_rows] <- p_precise_fastdm (rt[ok_rows],
+                                        pars$params[ok_rows[1],1:8],
+                                        precision,
+                                        pars$params[ok_rows[1],9],
                                         stop_on_error)
     }
   } else {
     for (i in seq_len(length(pars$parameter_indices))) {
       ok_rows <- pars$parameter_indices[[i]]
-      pvalues[ok_rows] <- p_fastdm (rt[ok_rows], 
-                                pars$params[ok_rows[1],1:8], 
-                                precision, 
-                                pars$params[ok_rows[1],9], 
+      ok_rows <- ok_rows[order(rt[ok_rows])]
+      pvalues[ok_rows] <- p_fastdm (rt[ok_rows],
+                                pars$params[ok_rows[1],1:8],
+                                precision,
+                                pars$params[ok_rows[1],9],
                                 stop_on_error)
     }
   }
@@ -323,7 +338,7 @@ qdiffusion <- function (p, response = "upper",
     if (tmp$objective > max_diff) {
       tmp <- do.call(optimize, args = 
                        c(f = inv_cdf_diffusion, 
-                         interval = list(c(max(interval[1], t0), interval[2])), 
+                         interval = list(c(max(interval[1], t0[op[i]]), interval[2])), 
                          response=response[op[i]], 
                          a=a[op[i]], v=v[op[i]], t0=t0[op[i]], z=z[op[i]], d=d[op[i]], sz=sz[op[i]], 
                          sv=sv[op[i]], st0=st0[op[i]], s=s[op[i]], 
@@ -334,7 +349,7 @@ qdiffusion <- function (p, response = "upper",
     if (tmp$objective > max_diff) {
       tmp <- do.call(optimize, args = 
                        c(f=inv_cdf_diffusion, 
-                         interval = list(c(max(interval[1], t0),max(interval)/2)), 
+                         interval = list(c(max(interval[1], t0[op[i]]),max(interval)/2)), 
                          response=response[op[i]], a=a[op[i]], v=v[op[i]], t0=t0[op[i]], 
                          z=z[op[i]], d=d[op[i]], sz=sz[op[i]], sv=sv[op[i]], 
                          st0=st0[op[i]], s=s[op[i]], precision=precision, 
@@ -345,7 +360,7 @@ qdiffusion <- function (p, response = "upper",
       try({
         uni_tmp <- do.call(uniroot, args = 
                              c(f=inv_cdf_diffusion, 
-                               interval = list(c(max(interval[1], t0), interval[2])), 
+                               interval = list(c(max(interval[1], t0[op[i]]), interval[2])), 
                                response=response[op[i]], 
                                a=a[op[i]], v=v[op[i]], t0=t0[op[i]], z=z[op[i]], d=d[op[i]], 
                                sz=sz[op[i]], sv=sv[op[i]], st0=st0[op[i]], 
@@ -437,10 +452,8 @@ rdiffusion <- function (n,
     randBounds <- vector("numeric",length=n)
     
     #uniques <- unique(params)
-    parameter_char <- apply(params, 1, paste0, collapse = "\t")
-    parameter_factor <- factor(parameter_char, levels = unique(parameter_char))
-    parameter_indices <- split(seq_len(n), f = parameter_factor)
-    
+    parameter_indices <- group_parameters(params, n)
+
     for (i in seq_len(length(parameter_indices))) {
       ok_rows <- parameter_indices[[i]]
       
