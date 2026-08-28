@@ -110,3 +110,41 @@ test_that("ddiffusion does not go crazy if sz, sv, and st0 goes to 0", {
   # curve(ddiffusion(rep(0.53, 101), a = 1.84, t0 = 0.14, sv =0 , sz =0, z = 0.879, v = -2.4, st0 = x, response = 1), from= 0, to = 0.00001, xlab = "st0")
   # curve(ddiffusion(rep(0.53, 101), a = 2, t0 = 0.3, sv =0 , sz =0, z = x, v = 1, response = 1), from= 0, to = 0.1, xlab = "sz")
 })
+
+test_that("pdiffusion does not depend on the order of rt", {
+  set.seed(2026)
+  rt <- runif(50, 0.35, 1.6)
+  response <- sample(c("upper", "lower"), 50, replace = TRUE)
+  o <- order(rt)
+  
+  expect_equal(
+    pdiffusion(rt, response, a = 1, v = 2, t0 = 0.3)[o], 
+    pdiffusion(rt[o], response[o], a = 1, v = 2, t0 = 0.3)
+  )
+  
+  single <- vapply(seq_along(rt), function(i) 
+    pdiffusion(rt[i], response[i], a = 1, v = 2, t0 = 0.3), 0)
+  expect_equal(
+    pdiffusion(rt, response, a = 1, v = 2, t0 = 0.3), single, 
+    tolerance = 0.001
+  )
+  
+  expect_equal(
+    pdiffusion(rt, response, a = 1, v = 2, t0 = 0.3, 
+               sz = 0.2, sv = 0.5, st0 = 0.1)[o], 
+    pdiffusion(rt[o], response[o], a = 1, v = 2, t0 = 0.3, 
+               sz = 0.2, sv = 0.5, st0 = 0.1)
+  )
+})
+
+test_that("qdiffusion uses the t0 of each trial", {
+  p <- c(0.2, 0.5, 0.8)
+  t0 <- c(0.2, 0.9, 0.2)
+  
+  vectorised <- qdiffusion(p, response = "upper", a = 1, v = 2, t0 = t0)
+  single <- vapply(seq_along(p), function(i) 
+    qdiffusion(p[i], response = "upper", a = 1, v = 2, t0 = t0[i]), 0)
+  
+  expect_false(anyNA(vectorised))
+  expect_equal(vectorised, single)
+})
