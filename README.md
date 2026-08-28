@@ -17,6 +17,7 @@ rtdists: Response time distributions in R
 * The following choice RT models are currently supported:
   * diffusion model (using fast-dm C code by Andreas and Jochen Voss)
   * LBA with varying distributions of the drift rate variability
+  * racing diffusion model (RDM; a race of Wald accumulators)
 
 ## Installation
 
