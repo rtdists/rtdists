@@ -93,3 +93,33 @@ test_that("plba_gamma mixed A produces no warnings", {
     t0 = rep(0, 4), shape_v = rep(1, 4), rate_v = rep(1, 4)
   ))
 })
+
+## Frechet functions do not have an A_small branch; they use a ps_below_zero
+## filter that subsets all variables upfront. These tests confirm that mixed
+## A values and rem_t0 are handled correctly.
+
+test_that("dlba_frechet with mixed A values matches individual calls", {
+  d_mixed <- dlba_frechet(
+    rt = rep(1, 4), A = c(1e-12, 0.5, 1e-12, 0.5), b = rep(1, 4),
+    t0 = rep(0, 4), shape_v = rep(2, 4), scale_v = rep(1, 4)
+  )
+  d_small  <- dlba_frechet(rt = 1, A = 1e-12, b = 1, t0 = 0, shape_v = 2, scale_v = 1)
+  d_normal <- dlba_frechet(rt = 1, A = 0.5,   b = 1, t0 = 0, shape_v = 2, scale_v = 1)
+  expect_equal(d_mixed, c(d_small, d_normal, d_small, d_normal))
+})
+
+test_that("plba_frechet with mixed A values matches individual calls", {
+  p_mixed <- plba_frechet(
+    rt = rep(1, 4), A = c(1e-12, 0.5, 1e-12, 0.5), b = rep(1, 4),
+    t0 = rep(0, 4), shape_v = rep(2, 4), scale_v = rep(1, 4)
+  )
+  p_small  <- plba_frechet(rt = 1, A = 1e-12, b = 1, t0 = 0, shape_v = 2, scale_v = 1)
+  p_normal <- plba_frechet(rt = 1, A = 0.5,   b = 1, t0 = 0, shape_v = 2, scale_v = 1)
+  expect_equal(p_mixed, c(p_small, p_normal, p_small, p_normal))
+})
+
+test_that("plba_frechet with A small and t0 > 0 applies rem_t0", {
+  p_with_t0  <- plba_frechet(rt = 2, A = 1e-12, b = 1, t0 = 0.5, shape_v = 2, scale_v = 1)
+  p_expected <- plba_frechet(rt = 1.5, A = 1e-12, b = 1, t0 = 0,   shape_v = 2, scale_v = 1)
+  expect_equal(p_with_t0, p_expected)
+})
