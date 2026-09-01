@@ -15,7 +15,7 @@
 #' @param v drift rate. Mean rate of evidence accumulation within a trial. Needs to be positive, accumulators with a negative rate never finish.
 #' @param s within-trial standard deviation of the evidence accumulation process (i.e., the diffusion constant), scales \code{A}, \code{b}, and \code{v}. Needs to be fixed to a constant in most applications. Default is 1.
 #'   
-#' @details These functions are mainly for internal purposes. We do not recommend to use them. Use the high-level functions described in \code{/link{RDM}} instead.
+#' @details These functions are mainly for internal purposes. We do not recommend to use them. Use the high-level functions described in \code{\link{RDM}} instead.
 #' 
 #' @return All functions starting with a \code{d} return the density (PDF), all functions starting with \code{p} return the distribution function (CDF), and all functions starting with \code{r} return random response times and responses (in a \code{matrix}).
 #' 

@@ -40,7 +40,7 @@ drift rate racing towards a single threshold with a uniformly distributed
 start point.
 }
 \details{
-These functions are mainly for internal purposes. We do not recommend to use them. Use the high-level functions described in \code{/link{RDM}} instead.
+These functions are mainly for internal purposes. We do not recommend to use them. Use the high-level functions described in \code{\link{RDM}} instead.
 }
 \note{
 Density (i.e., \code{dwald}) and distribution (i.e., \code{pwald}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{rt}, parameters are recycled). Furthermore, the random derivative function also accepts a matrix of length \code{n} in which each column corresponds to a accumulator specific value (see \code{\link{rRDM}} for a more user-friendly way).
