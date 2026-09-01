@@ -67,7 +67,7 @@
 #'   
 #' @details
 #' 
-#' For convenience, all functions (with the exception of \code{rdiffusion})
+#' For convenience, all functions (with the exception of \code{rLBA})
 #' allow that the first argument is a \code{data.frame} containing the
 #' information of the first and second argument in two columns (i.e.,
 #' \code{rt}/\code{p} and \code{response}). Other columns will be ignored. This
@@ -116,7 +116,7 @@
 #' quantiles/RTs for any accumulator up to the maximal probability of that
 #' accumulator's CDF. This can be obtained by evaluating the CDF at \code{Inf}.
 #' 
-#' As a conveniece for the user, if \code{scale_p = TRUE} in the call to
+#' As a convenience for the user, if \code{scale_p = TRUE} in the call to
 #' \code{qLBA} the desired probabilities are automatically scaled by the maximal
 #' probability for the corresponding response. Note that this can be slow as the
 #' maximal probability is calculated separately for each desired probability.
