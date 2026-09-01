@@ -13,7 +13,7 @@ n1PDF(
   t0,
   ...,
   st0 = 0,
-  distribution = c("norm", "gamma", "frechet", "lnorm"),
+  distribution = c("norm", "gamma", "frechet", "lnorm", "wald"),
   args.dist = list(),
   silent = FALSE
 )
@@ -25,7 +25,7 @@ n1CDF(
   t0,
   ...,
   st0 = 0,
-  distribution = c("norm", "gamma", "frechet", "lnorm"),
+  distribution = c("norm", "gamma", "frechet", "lnorm", "wald"),
   args.dist = list(),
   silent = FALSE
 )
@@ -54,9 +54,12 @@ of the list to match the length of \code{rt}). See examples.}
 uniformly from \code{t0} to \code{t0} + \code{st0}). Can be trialwise, and
 will be recycled to length of \code{rt}.}
 
-\item{distribution}{character specifying the distribution of the drift rate.
-Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default
-is \code{"norm"}.}
+\item{distribution}{character specifying the distribution of the finishing
+times of a single accumulator. Possible values are \code{c("norm", "gamma",
+"frechet", "lnorm", "wald")}. The first four are LBA accumulators and refer
+to the distribution of the drift rate. \code{"wald"} is the accumulator of
+the racing diffusion model (see \code{\link{RDM}}). Default is
+\code{"norm"}.}
 
 \item{args.dist}{list of optional further arguments to the distribution
 functions (i.e., \code{posdrift} or \code{robust} for

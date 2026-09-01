@@ -44,9 +44,12 @@
 #'   element corresponds to one accumulator allowing again trialwise driftrates.
 #'   The shorter parameter will be recycled as necessary (and also the elements
 #'   of the list to match the length of \code{rt}). See details.
-#' @param distribution character specifying the distribution of the drift rate.
-#'   Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default
-#'   is \code{"norm"}.
+#' @param distribution character specifying the distribution of the finishing
+#'   times of a single accumulator. Possible values are \code{c("norm", "gamma",
+#'   "frechet", "lnorm", "wald")}. The first four are LBA accumulators and refer
+#'   to the distribution of the drift rate. \code{"wald"} is the accumulator of
+#'   the racing diffusion model (see \code{\link{RDM}}). Default is
+#'   \code{"norm"}.
 #' @param args.dist list of optional further arguments to the distribution
 #'   functions (i.e., \code{posdrift} or \code{robust} for
 #'   \code{distribution=="norm"}, see \code{\link{single-LBA}}).
@@ -208,7 +211,7 @@ check_i_arguments <- function(arg, nn, n_v, dots = FALSE) {
 #' @rdname LBA
 #' @export 
 dLBA <-  function(rt, response, A, b, t0, ..., st0=0, 
-                  distribution = c("norm", "gamma", "frechet", "lnorm"), 
+                  distribution = c("norm", "gamma", "frechet", "lnorm", "wald"), 
                   args.dist = list(), silent = FALSE) {
   dots <- list(...)
   if (is.null(names(dots))) stop("... arguments need to be named.")
@@ -270,6 +273,12 @@ dLBA <-  function(rt, response, A, b, t0, ..., st0=0,
            dots$meanlog_v <- check_i_arguments(dots$meanlog_v, nn=nn, n_v=n_v, dots = TRUE)
            dots$sdlog_v <- check_i_arguments(dots$sdlog_v, nn=nn, n_v=n_v, dots = TRUE)
            dots <- dots[c("meanlog_v","sdlog_v")]
+         },
+         wald = {
+           if (!("v" %in% names(dots))) 
+             stop("v needs to be passed for distribution = \"wald\"")
+           dots$v <- check_i_arguments(dots$v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots["v"]
          }
   )
   #browser()
@@ -297,7 +306,7 @@ dLBA <-  function(rt, response, A, b, t0, ..., st0=0,
 #' @rdname LBA
 #' @export 
 pLBA <-  function(rt, response, A, b, t0, ..., st0=0, 
-                  distribution = c("norm", "gamma", "frechet", "lnorm"), 
+                  distribution = c("norm", "gamma", "frechet", "lnorm", "wald"), 
                   args.dist = list(), silent = FALSE) {
   dots <- list(...)
   if (is.null(names(dots))) 
@@ -357,6 +366,12 @@ pLBA <-  function(rt, response, A, b, t0, ..., st0=0,
            dots$meanlog_v <- check_i_arguments(dots$meanlog_v, nn=nn, n_v=n_v, dots = TRUE)
            dots$sdlog_v <- check_i_arguments(dots$sdlog_v, nn=nn, n_v=n_v, dots = TRUE)
            dots <- dots[c("meanlog_v","sdlog_v")]
+         },
+         wald = {
+           if (!("v" %in% names(dots))) 
+             stop("v needs to be passed for distribution = \"wald\"")
+           dots$v <- check_i_arguments(dots$v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots["v"]
          }
   )
   #browser()
@@ -399,7 +414,7 @@ inv_cdf_lba <- function(x, response, A, b, t0, ..., st0,
 #' @rdname LBA
 #' @export 
 qLBA <-  function(p, response, A, b, t0, ..., st0=0, 
-                  distribution = c("norm", "gamma", "frechet", "lnorm"), 
+                  distribution = c("norm", "gamma", "frechet", "lnorm", "wald"), 
                   args.dist = list(), silent = FALSE, interval = c(0, 10),
                   scale_p = FALSE, scale_max = Inf) {
   dots <- list(...)
@@ -541,7 +556,7 @@ qLBA <-  function(p, response, A, b, t0, ..., st0=0,
 
 #' @rdname LBA
 #' @export
-rLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm"), args.dist = list(), silent = FALSE) {
+rLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "frechet", "lnorm", "wald"), args.dist = list(), silent = FALSE) {
   dots <- list(...)
   if (is.null(names(dots))) stop("... arguments need to be named.")
   if (any(names(dots) == "")) stop("all ... arguments need to be named.")
@@ -593,6 +608,13 @@ rLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "freche
            dots$meanlog_v <- check_i_arguments(dots$meanlog_v, nn=nn, n_v=n_v, dots = TRUE)
            dots$sdlog_v <- check_i_arguments(dots$sdlog_v, nn=nn, n_v=n_v, dots = TRUE)
            dots <- dots[c("meanlog_v","sdlog_v")]
+         },
+         wald = {
+           rng <- rwald
+           if (!("v" %in% names(dots))) 
+             stop("v needs to be passed for distribution = \"wald\"")
+           dots$v <- check_i_arguments(dots$v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots["v"]
          }
   )
   for (i in seq_len(length(dots))) {

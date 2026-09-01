@@ -24,9 +24,12 @@
 #'   element corresponds to one accumulator allowing again trialwise driftrates.
 #'   The shorter parameter will be recycled as necessary (and also the elements
 #'   of the list to match the length of \code{rt}). See examples.
-#' @param distribution character specifying the distribution of the drift rate.
-#'   Possible values are \code{c("norm", "gamma", "frechet", "lnorm")}, default
-#'   is \code{"norm"}.
+#' @param distribution character specifying the distribution of the finishing
+#'   times of a single accumulator. Possible values are \code{c("norm", "gamma",
+#'   "frechet", "lnorm", "wald")}. The first four are LBA accumulators and refer
+#'   to the distribution of the drift rate. \code{"wald"} is the accumulator of
+#'   the racing diffusion model (see \code{\link{RDM}}). Default is
+#'   \code{"norm"}.
 #' @param args.dist list of optional further arguments to the distribution
 #'   functions (i.e., \code{posdrift} or \code{robust} for
 #'   \code{distribution=="norm"}).
@@ -127,7 +130,7 @@ check_n1_arguments <- function(arg, nn, n_v, dots = FALSE) {
 #' @rdname LBA-race
 #' @export
 n1PDF <- function(rt, A, b, t0, ..., st0=0, 
-                  distribution = c("norm", "gamma", "frechet", "lnorm"), 
+                  distribution = c("norm", "gamma", "frechet", "lnorm", "wald"), 
                   args.dist = list(), silent = FALSE) {
   dots <- list(...)
   #browser()
@@ -188,6 +191,14 @@ n1PDF <- function(rt, A, b, t0, ..., st0=0,
            dots$meanlog_v <- check_n1_arguments(dots$meanlog_v, nn=nn, n_v=n_v, dots = TRUE)
            dots$sdlog_v <- check_n1_arguments(dots$sdlog_v, nn=nn, n_v=n_v, dots = TRUE)
            dots <- dots[c("meanlog_v","sdlog_v")]
+         },
+         wald = {
+           pdf <- dwald_core
+           cdf <- pwald_core
+           if (!("v" %in% names(dots))) 
+             stop("v needs to be passed for distribution = \"wald\"")
+           dots$v <- check_n1_arguments(dots$v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots["v"]
          }
   )
   #browser()
@@ -329,7 +340,7 @@ ret_arg2 <- function(arg, which) {
 #' @rdname LBA-race
 #' @export
 n1CDF <- function(rt,A,b, t0, ..., st0=0, 
-                  distribution = c("norm", "gamma", "frechet", "lnorm"), 
+                  distribution = c("norm", "gamma", "frechet", "lnorm", "wald"), 
                   args.dist = list(), silent = FALSE) {  #, browser=FALSE
   # Generates defective CDF for responses on node #1. 
   dots <- list(...)
@@ -389,6 +400,14 @@ n1CDF <- function(rt,A,b, t0, ..., st0=0,
            dots$meanlog_v <- check_n1_arguments(dots$meanlog_v, nn=nn, n_v=n_v, dots = TRUE)
            dots$sdlog_v <- check_n1_arguments(dots$sdlog_v, nn=nn, n_v=n_v, dots = TRUE)
            dots <- dots[c("meanlog_v","sdlog_v")]
+         },
+         wald = {
+           pdf <- dwald_core
+           cdf <- pwald_core
+           if (!("v" %in% names(dots))) 
+             stop("v needs to be passed for distribution = \"wald\"")
+           dots$v <- check_n1_arguments(dots$v, nn=nn, n_v=n_v, dots = TRUE)
+           dots <- dots["v"]
          }
   )
   
