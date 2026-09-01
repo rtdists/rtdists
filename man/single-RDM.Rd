@@ -2,21 +2,39 @@
 % Please edit documentation in R/single-rdm.R
 \name{single-RDM}
 \alias{single-RDM}
+\alias{Wald}
+\alias{ShiftedWald}
+\alias{shifted-Wald}
 \alias{dwald}
 \alias{pwald}
+\alias{qwald}
 \alias{rwald}
-\title{Single accumulator of the racing diffusion model (RDM)}
+\title{Wald and shifted Wald distribution (single accumulator of the RDM)}
 \usage{
-dwald(rt, A, b, t0, v, s = 1)
+dwald(rt, A = 0, b, t0, v, s = 1, st0 = 0, log = FALSE)
 
-pwald(rt, A, b, t0, v, s = 1)
+pwald(rt, A = 0, b, t0, v, s = 1, st0 = 0, lower.tail = TRUE, log.p = FALSE)
 
-rwald(n, A, b, t0, v, s = 1, st0 = 0)
+qwald(
+  p,
+  A = 0,
+  b,
+  t0,
+  v,
+  s = 1,
+  st0 = 0,
+  lower.tail = TRUE,
+  log.p = FALSE,
+  interval = c(0, 10),
+  max_diff = 1e-04
+)
+
+rwald(n, A = 0, b, t0, v, s = 1, st0 = 0)
 }
 \arguments{
 \item{rt}{a vector of RTs.}
 
-\item{A}{start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2.}
+\item{A}{start point interval or evidence in accumulator before beginning of decision process. Start point varies from trial to trial in the interval [0, \code{A}] (uniform distribution). Average amount of evidence before evidence accumulation across trials is \code{A}/2. Default is 0, which gives the shifted Wald distribution.}
 
 \item{b}{response threshold. (\code{b} - \code{A}/2) is a measure of "response caution".}
 
@@ -26,52 +44,143 @@ rwald(n, A, b, t0, v, s = 1, st0 = 0)
 
 \item{s}{within-trial standard deviation of the evidence accumulation process (i.e., the diffusion constant), scales \code{A}, \code{b}, and \code{v}. Needs to be fixed to a constant in most applications. Default is 1.}
 
-\item{n}{desired number of observations (scalar integer).}
+\item{st0}{variability of non-decision time, such that \code{t0} is uniformly distributed between \code{t0} and \code{t0} + \code{st0}. Only supported for \code{A = 0} in \code{dwald}, \code{pwald}, and \code{qwald} (see Details).}
 
-\item{st0}{variability of non-decision time, such that \code{t0} is uniformly distributed between \code{t0} and \code{t0} + \code{st0}. Only available in random number generation function \code{rwald}.}
+\item{log}{logical. If \code{TRUE}, the log density is returned. Default is \code{FALSE}.}
+
+\item{lower.tail}{logical. If \code{TRUE} (default), probabilities are \eqn{P[T \le t]}, otherwise \eqn{P[T > t]}.}
+
+\item{log.p}{logical. If \code{TRUE}, probabilities \code{p} are given as (and returned on) the log scale. Default is \code{FALSE}.}
+
+\item{p}{vector of probabilities.}
+
+\item{interval}{a vector containing the end-points of the interval to be searched for the desired quantiles in \code{qwald} if no analytical solution is available (i.e., if \code{A > 0} or \code{st0 > 0}). Default is \code{c(0, 10)}.}
+
+\item{max_diff}{numeric. Maximum acceptable difference between desired and observed probability of the quantile function (\code{qwald}) in the numerical case.}
+
+\item{n}{desired number of observations (scalar integer).}
 }
 \value{
-All functions starting with a \code{d} return the density (PDF), all functions starting with \code{p} return the distribution function (CDF), and all functions starting with \code{r} return random response times and responses (in a \code{matrix}).
+\code{dwald} returns the density (PDF), \code{pwald} the distribution
+  function (CDF), and \code{qwald} the quantile function (i.e., predicted
+  RTs), all of the same length as \code{rt} or \code{p}, respectively.
+  \code{rwald} returns random response times: a numeric vector if a single
+  accumulator is requested (i.e., \code{v} is of length 1) and otherwise a
+  \code{matrix} with columns \code{rt} and \code{response} giving the winner
+  of the race.
 }
 \description{
-Density, distribution, and random generation functions for a single Wald 
-accumulator, that is, a diffusion process with within-trial variability in 
-drift rate racing towards a single threshold with a uniformly distributed 
-start point.
+Density, distribution, quantile, and random generation functions for a single
+Wald accumulator, that is, a diffusion process with within-trial variability
+in drift rate racing towards a single threshold with a uniformly distributed
+start point. With the default \code{A = 0} (i.e., no start point
+variability) these are the functions of the \strong{shifted Wald}
+distribution in the evidence accumulation parameterization.
 }
 \details{
-These functions are mainly for internal purposes. We do not recommend to use them. Use the high-level functions described in \code{\link{RDM}} instead.
+For \code{A = 0} (the default) the first passage time of the
+  accumulator follows an inverse Gaussian (Wald) distribution with mean
+  \code{mu = b/v} and shape \code{lambda = (b/s)^2}, shifted by \code{t0}.
+  This is the shifted Wald distribution as it is commonly used in the
+  response time literature (e.g., Anders, Alario, & Van Maanen, 2016, who
+  write \eqn{\alpha} for \code{b}, \eqn{\gamma} for \code{v}, and
+  \eqn{\theta} for \code{t0}). For \code{A > 0} the start point of the
+  accumulator varies uniformly in [0, \code{A}] across trials.
+
+  The inverse Gaussian density, distribution, and quantile functions are
+  evaluated on the log scale throughout, following the formulations of Giner
+  and Smyth (2016) as implemented in the \pkg{statmod} package. This matters
+  in the tails and whenever \code{2*b*v/s^2} is large, which happens for
+  example with the common choice \code{s = 0.1}.
+
+  Variability in non-decision time, \code{st0}, is only supported for
+  \code{A = 0}. In that case the density and distribution function are
+  available in closed form, \eqn{f(t) = [F(t - t_0) - F(t - t_0 -
+  s_{t0})]/s_{t0}}, where \eqn{F} is the Wald distribution function, and
+  analogously for the distribution function with \eqn{F} replaced by its
+  integral. For \code{A > 0} the corresponding integral has no closed form;
+  use \code{\link{dRDM}}/\code{\link{n1PDF}}, which integrate over \code{st0}
+  numerically. Note that with \code{st0 > 0} the far upper tail of
+  \code{pwald} is accurate in absolute, but not in relative terms.
+
+  These functions are mainly for internal purposes when used as accumulators
+  of a race. For a race of Wald accumulators use the high-level functions
+  described in \code{\link{RDM}} instead.
 }
 \note{
-Density (i.e., \code{dwald}) and distribution (i.e., \code{pwald}) functions are vectorized for all parameters (i.e., in case parameters are not of the same length as \code{rt}, parameters are recycled). Furthermore, the random derivative function also accepts a matrix of length \code{n} in which each column corresponds to a accumulator specific value (see \code{\link{rRDM}} for a more user-friendly way).
+Density (i.e., \code{dwald}), distribution (i.e., \code{pwald}), and
+  quantile (i.e., \code{qwald}) functions are vectorized for all parameters
+  (i.e., in case parameters are not of the same length as \code{rt}/\code{p},
+  parameters are recycled). Furthermore, the random derivative function also
+  accepts a matrix of length \code{n} in which each column corresponds to a
+  accumulator specific value (see \code{\link{rRDM}} for a more user-friendly
+  way).
 }
 \examples{
-## random number generation for a single Wald accumulator:
-rwald(10, A=0.5, b=1, t0 = 0.5, v=c(1.2, 1))
+
+## the shifted Wald distribution is the default (i.e., A = 0), which
+## corresponds to a single evidence accumulation process without start point
+## variability:
+rwald(10, b = 1, t0 = 0.3, v = 2)
 
 # use somewhat plausible values for plotting:
-A <- 0.2
 b <- 0.5
 t0 <- 0.3
 
-# plot density:
-curve(dwald(x, A=A, b=b, t0=t0, v=2), ylim = c(0, 4), xlim = c(0, 3),
-      main="Density/PDF of the Wald accumulator", ylab="density",
-      xlab="response time")
-curve(dwald(x, A=0, b=b, t0=t0, v=2), add=TRUE, lty = 2)
-legend("topright", legend=c("0.2", "0"),
-       title = expression("Start point variability"~~italic(A)), lty = 1:2)
+# plot density of the shifted Wald and the effect of start point variability:
+curve(dwald(x, b = b, t0 = t0, v = 2), ylim = c(0, 4), xlim = c(0, 3),
+      main = "Density/PDF of the Wald accumulator", ylab = "density",
+      xlab = "response time", lty = 2)
+curve(dwald(x, A = 0.2, b = b, t0 = t0, v = 2), add = TRUE)
+legend("topright", legend = c("0.2", "0"),
+       title = expression("Start point variability"~~italic(A)), lty = c(1, 2))
 
 # plot cdf:
-curve(pwald(x, A=A, b=b, t0=t0, v=2), xlim = c(0, 3), ylim = c(0, 1),
-      ylab = "cumulative probability", xlab = "response time",
+curve(pwald(x, b = b, t0 = t0, v = 2), xlim = c(0, 3), ylim = c(0, 1),
+      ylab = "cumulative probability", xlab = "response time", lty = 2,
       main = "Distribution/CDF of the Wald accumulator")
-curve(pwald(x, A=0, b=b, t0=t0, v=2), add=TRUE, lty = 2)
-legend("bottomright", legend=c("0.2", "0"),
-       title = expression("Start point variability"~~italic(A)), lty = 1:2)
+curve(pwald(x, A = 0.2, b = b, t0 = t0, v = 2), add = TRUE)
+legend("bottomright", legend = c("0.2", "0"),
+       title = expression("Start point variability"~~italic(A)), lty = c(1, 2))
+
+## the quantile function inverts the CDF:
+q <- qwald(c(0.1, 0.3, 0.5, 0.7, 0.9), b = b, t0 = t0, v = 2)
+q
+pwald(q, b = b, t0 = t0, v = 2)  # 0.1, 0.3, 0.5, 0.7, 0.9
+
+## variability in non-decision time (only available for A = 0):
+curve(dwald(x, b = b, t0 = t0, v = 2), xlim = c(0, 3), ylim = c(0, 4),
+      main = "Shifted Wald with variable non-decision time",
+      ylab = "density", xlab = "response time")
+curve(dwald(x, b = b, t0 = t0, v = 2, st0 = 0.3), add = TRUE, lty = 2)
+legend("topright", legend = c("0", "0.3"),
+       title = expression("Non-decision time variability"~~italic(s)[t0]),
+       lty = 1:2)
+
+## log densities are calculated on the log scale throughout, so likelihoods
+## remain usable far into the tail:
+dwald(c(0.31, 5), b = b, t0 = t0, v = 2, log = TRUE)
+
+\dontrun{
+## parameter recovery for the shifted Wald:
+set.seed(1)
+rts <- rwald(500, b = 0.5, t0 = 0.3, v = 2)
+
+objective_fun <- function(pars, rt) {
+  -sum(dwald(rt, b = pars[1], t0 = pars[2], v = pars[3], log = TRUE))
+}
+nlminb(c(1, 0.1, 1), objective_fun, rt = rts,
+       lower = c(0.01, 0.01, 0.01), upper = c(10, min(rts), 10))$par
+}
 }
 \references{
 Tillman, G., Van Zandt, T., & Logan, G. D. (2020). Sequential sampling models without random between-trial variability: The racing diffusion model of speeded decision making. \emph{Psychonomic Bulletin & Review}, 27(5), 911-936. doi:10.3758/s13423-020-01719-6
 
 Logan, G. D., Van Zandt, T., Verbruggen, F., & Wagenmakers, E.-J. (2014). On the ability to inhibit thought and action: General and special theories of an act of control. \emph{Psychological Review}, 121(1), 66-95. doi:10.1037/a0035230
+
+Anders, R., Alario, F.-X., & Van Maanen, L. (2016). The shifted Wald distribution for response time data analysis. \emph{Psychological Methods}, 21(3), 309-327. doi:10.1037/met0000066
+
+Giner, G., & Smyth, G. K. (2016). statmod: Probability calculations for the inverse Gaussian distribution. \emph{The R Journal}, 8(1), 339-351. doi:10.32614/RJ-2016-024
+
+Michael, J. R., Schucany, W. R., & Haas, R. W. (1976). Generating random variates using transformations with multiple roots. \emph{The American Statistician}, 30(2), 88-90. doi:10.1080/00031305.1976.10479147
 }

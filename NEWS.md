@@ -5,6 +5,9 @@
 Released September 2026
 
 - Added racing diffusion model (RDM), see `?RDM`. Thanks to Kianté Fernandez (#23).
+- Added the shifted Wald distribution in the evidence accumulation parameterization, see `?ShiftedWald`. It is the single Wald accumulator without start point variability and is provided by `dwald`, `pwald`, `qwald`, and `rwald` (which default to `A = 0`). Suggested by Gidon Frischkorn (#20).
+- `dwald` and `pwald` accept variability of non-decision time (`st0`) for `A = 0`, which is considerably faster than the numerical integration used by `dRDM` and `n1PDF`.
+- `dwald` has a `log` argument, `pwald` and `qwald` have `lower.tail` and `log.p` arguments. All Wald functions are evaluated on the log scale, which keeps them accurate in the tails and for small values of the diffusion constant `s`.
 - Fixed a rather large bug in `pdiffusion` that occurred whenever RTs were not ordered. Thanks to Kianté Fernandez (#21).
 - Large speed improvement to diffusion model functions. Change is probably most noticeable in `ddiffusion` when called with large number of RTs and varying parameters. Thanks to Kianté Fernandez (#21).
 - Fixed bugs in the lognormal and gamma single-accumulator LBA functions (`dlba_lnorm`, `plba_lnorm`, `dlba_gamma`, `plba_gamma`) that produced incorrect results when any element of `A` was below `1e-10` (the A_small branch). The lognormal functions used `max` instead of `min` in several intermediate calculations, `plba_lnorm` did not apply `rem_t0` in the A_small branch, and the gamma functions used full-length vectors instead of subsetted ones.
