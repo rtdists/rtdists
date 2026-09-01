@@ -80,28 +80,16 @@ distribution in the evidence accumulation parameterization.
 \details{
 For \code{A = 0} (the default) the first passage time of the
   accumulator follows an inverse Gaussian (Wald) distribution with mean
-  \code{mu = b/v} and shape \code{lambda = (b/s)^2}, shifted by \code{t0}.
-  This is the shifted Wald distribution as it is commonly used in the
-  response time literature (e.g., Anders, Alario, & Van Maanen, 2016, who
-  write \eqn{\alpha} for \code{b}, \eqn{\gamma} for \code{v}, and
-  \eqn{\theta} for \code{t0}). For \code{A > 0} the start point of the
-  accumulator varies uniformly in [0, \code{A}] across trials.
-
-  The inverse Gaussian density, distribution, and quantile functions are
-  evaluated on the log scale throughout, following the formulations of Giner
-  and Smyth (2016) as implemented in the \pkg{statmod} package. This matters
-  in the tails and whenever \code{2*b*v/s^2} is large, which happens for
-  example with the common choice \code{s = 0.1}.
+  \code{b/v} and shape \code{(b/s)^2}, shifted by \code{t0}. This is the
+  shifted Wald distribution as it is commonly used in the response time
+  literature (e.g., Anders, Alario, & Van Maanen, 2016). For \code{A > 0}
+  the start point of the accumulator varies uniformly in [0, \code{A}]
+  across trials.
 
   Variability in non-decision time, \code{st0}, is only supported for
-  \code{A = 0}. In that case the density and distribution function are
-  available in closed form, \eqn{f(t) = [F(t - t_0) - F(t - t_0 -
-  s_{t0})]/s_{t0}}, where \eqn{F} is the Wald distribution function, and
-  analogously for the distribution function with \eqn{F} replaced by its
-  integral. For \code{A > 0} the corresponding integral has no closed form;
-  use \code{\link{dRDM}}/\code{\link{n1PDF}}, which integrate over \code{st0}
-  numerically. Note that with \code{st0 > 0} the far upper tail of
-  \code{pwald} is accurate in absolute, but not in relative terms.
+  \code{A = 0}. For \code{A > 0} use
+  \code{\link{dRDM}}/\code{\link{n1PDF}}, which integrate over \code{st0}
+  numerically.
 
   These functions are mainly for internal purposes when used as accumulators
   of a race. For a race of Wald accumulators use the high-level functions
@@ -179,8 +167,4 @@ Tillman, G., Van Zandt, T., & Logan, G. D. (2020). Sequential sampling models wi
 Logan, G. D., Van Zandt, T., Verbruggen, F., & Wagenmakers, E.-J. (2014). On the ability to inhibit thought and action: General and special theories of an act of control. \emph{Psychological Review}, 121(1), 66-95. doi:10.1037/a0035230
 
 Anders, R., Alario, F.-X., & Van Maanen, L. (2016). The shifted Wald distribution for response time data analysis. \emph{Psychological Methods}, 21(3), 309-327. doi:10.1037/met0000066
-
-Giner, G., & Smyth, G. K. (2016). statmod: Probability calculations for the inverse Gaussian distribution. \emph{The R Journal}, 8(1), 339-351. doi:10.32614/RJ-2016-024
-
-Michael, J. R., Schucany, W. R., & Haas, R. W. (1976). Generating random variates using transformations with multiple roots. \emph{The American Statistician}, 30(2), 88-90. doi:10.1080/00031305.1976.10479147
 }

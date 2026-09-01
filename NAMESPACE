@@ -2,6 +2,7 @@
 
 export(dLBA)
 export(dRDM)
+export(dcswald)
 export(ddiffusion)
 export(dlba_frechet)
 export(dlba_gamma)
@@ -13,6 +14,7 @@ export(n1CDF)
 export(n1PDF)
 export(pLBA)
 export(pRDM)
+export(pcswald)
 export(pdiffusion)
 export(plba_frechet)
 export(plba_gamma)
@@ -22,10 +24,12 @@ export(prd)
 export(pwald)
 export(qLBA)
 export(qRDM)
+export(qcswald)
 export(qdiffusion)
 export(qwald)
 export(rLBA)
 export(rRDM)
+export(rcswald)
 export(rdiffusion)
 export(rlba_frechet)
 export(rlba_gamma)
@@ -34,25 +38,29 @@ export(rlba_norm)
 export(rrd)
 export(rwald)
 importFrom(Rcpp,evalCpp)
-importFrom(evd,dfrechet)
-importFrom(evd,pfrechet)
-importFrom(evd,rfrechet)
+importFrom(evd,
+  dfrechet,
+  pfrechet,
+  rfrechet
+)
 importFrom(gsl,gamma_inc)
 importFrom(msm,rtnorm)
-importFrom(stats,dgamma)
-importFrom(stats,dlnorm)
-importFrom(stats,dnorm)
-importFrom(stats,integrate)
-importFrom(stats,optimize)
-importFrom(stats,pgamma)
-importFrom(stats,plnorm)
-importFrom(stats,pnorm)
-importFrom(stats,qchisq)
-importFrom(stats,qgamma)
-importFrom(stats,qnorm)
-importFrom(stats,rgamma)
-importFrom(stats,rlnorm)
-importFrom(stats,rnorm)
-importFrom(stats,runif)
-importFrom(stats,uniroot)
+importFrom(stats,
+  dgamma,
+  dlnorm,
+  dnorm,
+  integrate,
+  optimize,
+  pgamma,
+  plnorm,
+  pnorm,
+  qchisq,
+  qgamma,
+  qnorm,
+  rgamma,
+  rlnorm,
+  rnorm,
+  runif,
+  uniroot
+)
 useDynLib(rtdists, .registration = TRUE)

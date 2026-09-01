@@ -37,5 +37,5 @@ Authors@R: c( person(given="Henrik", family="Singmann",
        person(given="Gabriel", family="Tillman", role=c("ctb")) )
 LazyData: true
 Version: 0.12-0
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.0
 Encoding: UTF-8

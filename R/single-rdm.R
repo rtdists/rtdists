@@ -25,28 +25,16 @@
 #'
 #' @details For \code{A = 0} (the default) the first passage time of the
 #'   accumulator follows an inverse Gaussian (Wald) distribution with mean
-#'   \code{mu = b/v} and shape \code{lambda = (b/s)^2}, shifted by \code{t0}.
-#'   This is the shifted Wald distribution as it is commonly used in the
-#'   response time literature (e.g., Anders, Alario, & Van Maanen, 2016, who
-#'   write \eqn{\alpha} for \code{b}, \eqn{\gamma} for \code{v}, and
-#'   \eqn{\theta} for \code{t0}). For \code{A > 0} the start point of the
-#'   accumulator varies uniformly in [0, \code{A}] across trials.
-#'
-#'   The inverse Gaussian density, distribution, and quantile functions are
-#'   evaluated on the log scale throughout, following the formulations of Giner
-#'   and Smyth (2016) as implemented in the \pkg{statmod} package. This matters
-#'   in the tails and whenever \code{2*b*v/s^2} is large, which happens for
-#'   example with the common choice \code{s = 0.1}.
+#'   \code{b/v} and shape \code{(b/s)^2}, shifted by \code{t0}. This is the
+#'   shifted Wald distribution as it is commonly used in the response time
+#'   literature (e.g., Anders, Alario, & Van Maanen, 2016). For \code{A > 0}
+#'   the start point of the accumulator varies uniformly in [0, \code{A}]
+#'   across trials.
 #'
 #'   Variability in non-decision time, \code{st0}, is only supported for
-#'   \code{A = 0}. In that case the density and distribution function are
-#'   available in closed form, \eqn{f(t) = [F(t - t_0) - F(t - t_0 -
-#'   s_{t0})]/s_{t0}}, where \eqn{F} is the Wald distribution function, and
-#'   analogously for the distribution function with \eqn{F} replaced by its
-#'   integral. For \code{A > 0} the corresponding integral has no closed form;
-#'   use \code{\link{dRDM}}/\code{\link{n1PDF}}, which integrate over \code{st0}
-#'   numerically. Note that with \code{st0 > 0} the far upper tail of
-#'   \code{pwald} is accurate in absolute, but not in relative terms.
+#'   \code{A = 0}. For \code{A > 0} use
+#'   \code{\link{dRDM}}/\code{\link{n1PDF}}, which integrate over \code{st0}
+#'   numerically.
 #'
 #'   These functions are mainly for internal purposes when used as accumulators
 #'   of a race. For a race of Wald accumulators use the high-level functions
@@ -75,10 +63,6 @@
 #'
 #' Anders, R., Alario, F.-X., & Van Maanen, L. (2016). The shifted Wald distribution for response time data analysis. \emph{Psychological Methods}, 21(3), 309-327. doi:10.1037/met0000066
 #'
-#' Giner, G., & Smyth, G. K. (2016). statmod: Probability calculations for the inverse Gaussian distribution. \emph{The R Journal}, 8(1), 339-351. doi:10.32614/RJ-2016-024
-#'
-#' Michael, J. R., Schucany, W. R., & Haas, R. W. (1976). Generating random variates using transformations with multiple roots. \emph{The American Statistician}, 30(2), 88-90. doi:10.1080/00031305.1976.10479147
-#'
 #' @importFrom stats dnorm pnorm qnorm rnorm runif optimize uniroot qchisq qgamma
 #'
 #' @name single-RDM
@@ -105,12 +89,19 @@ dig_log <- function(x, mu, lambda) {
   0.5 * (log(lambda) - log(2 * pi) - 3 * log(x) - lambda * (x/mu - 1)^2 / x)
 }
 
-## log distribution function.
+## log distribution function. A negative mu is allowed and gives, by analytic
+## continuation, the defective first passage time distribution of an
+## accumulator drifting away from its threshold, with total (finite) mass
+## exp(2*lambda/mu) < 1.
 pig_log <- function(x, mu, lambda, lower.tail = TRUE) {
   ## x = Inf makes sqrt(lambda/x) * (x/mu) an Inf * 0 product below
   inf_x <- !is.finite(x)
   if (any(inf_x)) {
-    logp <- rep(if (lower.tail) 0 else -Inf, length(x))
+    ## log total mass: 0 for mu > 0 (proper), 2*lambda/mu for mu < 0
+    lm <- rep(0, length(x))
+    neg <- !is.na(mu) & mu < 0
+    lm[neg] <- 2 * lambda[neg]/mu[neg]
+    logp <- if (lower.tail) lm else log1p(-exp(lm))
     fin <- !inf_x
     if (any(fin))
       logp[fin] <- pig_log(x[fin], mu[fin], lambda[fin],
@@ -122,8 +113,15 @@ pig_log <- function(x, mu, lambda, lower.tail = TRUE) {
   z2 <- -sqr * (x/mu + 1)
   aa <- pnorm(z1, lower.tail = lower.tail, log.p = TRUE)
   bb <- 2 * lambda/mu + pnorm(z2, log.p = TRUE)
-  if (lower.tail) bb <- exp(bb - aa) else bb <- -exp(bb - aa)
-  logp <- aa + log1p(bb)
+  if (lower.tail) {
+    ## symmetric log-sum-exp: for mu > 0 the first term always dominates and
+    ## this reduces bit for bit to aa + log1p(exp(bb - aa)); for mu < 0 the
+    ## second term can dominate and exp(bb - aa) would overflow.
+    m <- pmax(aa, bb)
+    logp <- m + log1p(exp(pmin(aa, bb) - m))
+  } else {
+    logp <- aa + log1p(-exp(bb - aa))
+  }
   if (!lower.tail) {
     ## far upper tail: the two terms above cancel, use the asymptotic expansion
     ## for log pbar(q; 1, phi) instead (Giner & Smyth, 2016, p. 342, unnumbered;
