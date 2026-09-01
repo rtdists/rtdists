@@ -6,6 +6,7 @@ Suggests: testthat, glba, knitr, rmarkdown, dplyr, tidyr, purrr,
        lattice, latticeExtra, binom, RWiener
 Imports: evd, msm, gsl, stats, Rcpp
 LinkingTo: Rcpp
+SystemRequirements: GNU GSL (libgsl-dev/gsl)
 Description: Provides response time distributions (density/PDF,
        distribution function/CDF, quantile function, and random
        generation): (a) Ratcliff diffusion model (Ratcliff &

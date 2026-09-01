@@ -52,5 +52,9 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
-.Rproj.user
 Meta
+
+# Other folders
+.posit
+.Rproj.user
+doc

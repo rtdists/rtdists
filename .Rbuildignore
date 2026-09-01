@@ -1,12 +1,16 @@
 ^revdep$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.Rhistory$
+^\.gitignore$
+^\.gitattributes$
+^\.github$
+^\.posit$
 README.md
 development.R
 examples
 issues
 ^CONDUCT\.md$
-^\.travis\.yml$
 other_files
 ^doc$
 ^Meta$

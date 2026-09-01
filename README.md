@@ -2,7 +2,7 @@
 ![](http://cranlogs.r-pkg.org/badges/rtdists)
 [![total downloads](http://cranlogs.r-pkg.org/badges/grand-total/rtdists)](http://cranlogs.r-pkg.org/badges/grand-total/rtdists)
 [![Research software impact](http://depsy.org/api/package/cran/rtdists/badge.svg)](http://depsy.org/package/r/rtdists)
-[![Travis-CI Build Status](https://travis-ci.org/rtdists/rtdists.svg?branch=master)](https://travis-ci.org/rtdists/rtdists)
+[![R-CMD-check](https://github.com/rtdists/rtdists/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rtdists/rtdists/actions/workflows/R-CMD-check.yaml)
 
 rtdists: Response time distributions in R
 ====
