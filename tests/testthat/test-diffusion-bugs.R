@@ -1,6 +1,30 @@
 
 context("Diffusion Model: bugs")
 
+
+test_that("pdiffusion is monotonic for z near boundary (issue #13)", {
+  # When z approaches the boundary, pdiffusion should remain monotonic.
+  # Previously, the interpolation in F_get_val used PDE boundary conditions
+  # (which differ from F_limit at t=0), causing non-monotonic CDF values.
+  z_vals <- seq(0.5, 0.99, length.out = 50)
+
+  # Lower response, negative drift (toward lower): CDF should decrease as z increases
+  res_lower <- pdiffusion(rt = rep(1, 50), response = "lower", a = 1, v = -2, t0 = 0.3, z = z_vals)
+  expect_true(all(diff(res_lower) <= 1e-10),
+              info = "pdiffusion lower boundary should be monotonically non-increasing")
+
+  # Upper response, negative drift: CDF should increase as z increases
+  res_upper <- pdiffusion(rt = rep(1, 50), response = "upper", a = 1, v = -2, t0 = 0.3, z = z_vals)
+  expect_true(all(diff(res_upper) >= -1e-10),
+              info = "pdiffusion upper boundary should be monotonically non-decreasing")
+
+  # Also test z near 0 (other boundary discontinuity)
+  z_low <- seq(0.01, 0.5, length.out = 50)
+  res_low_z <- pdiffusion(rt = rep(1, 50), response = "lower", a = 1, v = 2, t0 = 0.3, z = z_low)
+  expect_true(all(diff(res_low_z) <= 1e-10),
+              info = "pdiffusion lower boundary near z=0 should be monotonically non-increasing")
+})
+
 test_that("ddiffusion passes NAs if all are NA", {
   expect_true(
     isTRUE(is.na(ddiffusion(rt = 1, response = 1, a = NA, v = NA, t0 = NA)))

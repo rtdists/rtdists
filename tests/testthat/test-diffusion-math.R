@@ -6,16 +6,17 @@ test_that("ddiffusion is equal to dwiener", {
     for (a in seq(0.5, 2.0, length.out = 6)) {
       for (v in seq(0.5, 2.0, length.out = 6)) {
         for (t0 in seq(0.05, 0.5, length.out = 6)) {
-          for (z in seq(0.4, 0.6, length.out = 6)) {
-            expect_equivalent(
+          for (z in seq(0.01, 0.99, length.out = 9)) {
+            expect_equal(
               ddiffusion(seq(0, 3, length.out = 15), a=a, v=v, t0=t0, z = z*a)
               ,
               dwiener(seq(0, 3, length.out = 15), resp = rep("upper", 15), alpha=a, delta=v, tau = t0, beta = z)
             )
-            expect_equivalent(
+            expect_equal(
               ddiffusion(seq(0, 3, length.out = 16), c("upper", "lower"), a=a, v=v, t0=t0, z = z*a)
               ,
               dwiener(seq(0, 3, length.out = 16), resp = rep(c("upper", "lower"), 8), alpha=a, delta=v, tau = t0, beta = z)
+              , tolerance = 0.00001
             )
           }
         }
@@ -31,7 +32,7 @@ test_that("pdiffusion is equal to pwiener", {
     for (a in seq(0.5, 2.0, length.out = 6)) {
       for (v in seq(0.5, 2.0, length.out = 6)) {
         for (t0 in seq(0.05, 0.5, length.out = 6)) {
-          for (z in seq(0.4, 0.6, length.out = 6)) {
+          for (z in seq(0.01, 0.99, length.out = 10)) {
             expect_equal(
               pdiffusion(seq(0, 3, length.out = 15), a=a, v=v, t0=t0, z = z*a)
               ,

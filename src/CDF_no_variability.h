@@ -46,6 +46,8 @@ struct F_plain_data
     double  t_offset;		 // time adjustment, resulting from t0 and d
     double  t;				   // adjusted time, corresponding to the vector F
     double *F;				   // state at time t + t_offset
+    double  boundary_0;	 // PDE boundary condition at z=0
+    double  boundary_N;	 // PDE boundary condition at z=a
 };
 
 
@@ -121,13 +123,21 @@ static void F_plain_start (F_calculator *fc, int plus)
   data->t_offset = data->t0 - data->d * (plus == 1? 0.5 : -0.5);
   data->t = 0;
 
-  data->F[0] = (plus == 1) ? 1 : 0;
+  // Store PDE boundary conditions for use during time evolution
+  data->boundary_0 = (plus == 1) ? 1.0 : 0.0;
+  data->boundary_N = (plus == 1) ? 1.0 : 0.0;
+
+  // At t=0, initialise ALL grid points (including boundaries) to F_limit.
+  // This ensures correct interpolation at t=0 (e.g. when computing the
+  // offset in precise_distribution).  The PDE boundary conditions are
+  // restored in F_plain_get_F before the first time step.
+  data->F[0] = F_limit(a, 0.0, v);
   for (i=1; i<N; i++)
   {
       double  z = F_get_z (fc, i);
       data->F[i] = F_limit(a, z, v);
   }
-  data->F[N] = (plus == 1) ? 1 : 0;
+  data->F[N] = F_limit(a, a, v);
 }
 
 static const double *F_plain_get_F (F_calculator *fc, double t)
@@ -138,6 +148,12 @@ static const double *F_plain_get_F (F_calculator *fc, double t)
 
     if (t > data->t)
     {
+      // Restore PDE boundary conditions before advancing the PDE.
+      // At t=0 the boundary values were set to F_limit for correct
+      // interpolation; for t > 0 the actual PDE boundary conditions
+      // must be used.
+      data->F[0] = data->boundary_0;
+      data->F[fc->N] = data->boundary_N;
       advance_to (fc->N, data->F, data->t, t, data->dz, data->v);
       data->t = t;
     }

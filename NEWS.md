@@ -9,6 +9,7 @@ Released September 2026
 - Fixed a rather large bug in `pdiffusion` that occurred whenever RTs were not ordered. Thanks to Kianté Fernandez (#21).
 - Large speed improvement to diffusion model functions. Change is probably most noticeable in `ddiffusion` when called with large number of RTs and varying parameters. Thanks to Kianté Fernandez (#21).
 - Fixed bugs in the lognormal and gamma single-accumulator LBA functions (`dlba_lnorm`, `plba_lnorm`, `dlba_gamma`, `plba_gamma`) that produced incorrect results when any element of `A` was below `1e-10` (the A_small branch). The lognormal functions used `max` instead of `min` in several intermediate calculations, `plba_lnorm` did not apply `rem_t0` in the A_small branch, and the gamma functions used full-length vectors instead of subsetted ones.
+- Fixed non-monotonic behaviour in `pdiffusion` for starting values near the boundary (#13). The PDE boundary conditions at t=0 differed from the `F_limit` initial condition, causing incorrect interpolation near z = a (or z = 0).
 
 ## 0.11-6
 
