@@ -217,7 +217,7 @@ pwald_core <- function(rt, A, b, t0, v, s = 1, nn) {
     e <- exp(log(2*lambda) - log(mu))
     add <- sqrt(lambda/tt)*(1 + tt/mu)
     sub <- sqrt(lambda/tt)*(1 - tt/mu)
-    out[A_small] <- exp(e + log(pnorm(add, lower.tail = FALSE))) + 
+    out[A_small] <- exp(e + pnorm(add, lower.tail = FALSE, log.p = TRUE)) + 
       pnorm(sub, lower.tail = FALSE)
   }
   
@@ -231,8 +231,8 @@ pwald_core <- function(rt, A, b, t0, v, s = 1, nn) {
     term_1b <- exp(-((kk - aa - tt*vv)^2/tt)/2)
     term_1c <- exp(-((kk + aa - tt*vv)^2/tt)/2)
     term_1 <- exp(term_1a)*(term_1b - term_1c)
-    term_2a <- exp(2*vv*(kk - aa) + log(pnorm(-(kk - aa + tt*vv)/sqr_t)))
-    term_2b <- exp(2*vv*(kk + aa) + log(pnorm(-(kk + aa + tt*vv)/sqr_t)))
+    term_2a <- exp(2*vv*(kk - aa) + pnorm(-(kk - aa + tt*vv)/sqr_t, log.p = TRUE))
+    term_2b <- exp(2*vv*(kk + aa) + pnorm(-(kk + aa + tt*vv)/sqr_t, log.p = TRUE))
     term_2 <- aa + (term_2b - term_2a)/(2*vv)
     term_4a <- 2*pnorm((kk + aa)/sqr_t - sqr_t*vv) - 1
     term_4b <- 2*pnorm((kk - aa)/sqr_t - sqr_t*vv) - 1
@@ -256,6 +256,7 @@ pwald_core <- function(rt, A, b, t0, v, s = 1, nn) {
   }
   
   out[which(is.na(out) | out < 0)] <- 0
+  out[ok & !is.finite(rt)] <- 1
   pmin(out, 1)
 }
 
