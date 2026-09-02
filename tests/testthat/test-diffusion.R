@@ -42,7 +42,7 @@ test_that("diffusion functions are identical with all input options", {
 
 
 test_that("qdiffusion is equivalent to manual calculation",{
-  p11_fit <- structure(list(par = structure(c(1.32060063610882, 3.27271614698074, 0.338560144920614, 0.34996447540773, 0.201794924457386, 1.05516829794661), .Names = c("a", "v", "t0", "sz", "st0", "sv"))))
+  p11_fit <- structure(list(par = structure(c(1.32060063610882, 3.27271614698074, 0.338560144920614, 0.34996447540773, 0.201794924457386, 1.05516829794661), names = c("a", "v", "t0", "sz", "st0", "sv"))))
   q <- c(0.1, 0.3, 0.5, 0.7, 0.9)
 
   i_pdiffusion <- function(x, args, value, response) {

@@ -501,7 +501,7 @@ test_that("qLBA is equivalent to manual calculation",{
                                    0.124346087574482,
                                    0.260994169758609
                                  ),
-                                 .Names = c("A", "v1", "v2", "b", "t0", "sv")
+                                 names = c("A", "v1", "v2", "b", "t0", "sv")
                                )))
   q <- c(0.1, 0.3, 0.5, 0.7, 0.9)
   pred_prop_correct <- pLBA(Inf, 2, 

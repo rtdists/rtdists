@@ -1,6 +1,4 @@
 
-context("Diffusion Model: Compare with RWiener")
-
 test_that("ddiffusion is equal to dwiener", {
   if (require(RWiener)) {
     for (a in seq(0.5, 2.0, length.out = 6)) {

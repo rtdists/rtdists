@@ -32,7 +32,7 @@ test_that("Norm: pdiffusion corresponds to random derivates with specific values
   samples <- 1e3
   p_min <- 0.01
   p_max <- 0.01
-  diffusion_pars <- structure(list(par = structure(c(1.32060063610882, 3.27271614698074, 0.338560144920614, 0.34996447540773, 0.201794924457386, 1.05516829794661), .Names = c("a", "v", "t0", "sz", "st0", "sv"))))
+  diffusion_pars <- structure(list(par = structure(c(1.32060063610882, 3.27271614698074, 0.338560144920614, 0.34996447540773, 0.201794924457386, 1.05516829794661), names = c("a", "v", "t0", "sz", "st0", "sv"))))
   
   r_diff1 <- rdiffusion(samples, a=diffusion_pars$par["a"], v=diffusion_pars$par["v"], t0=diffusion_pars$par["t0"], sz=diffusion_pars$par["sz"], st0=diffusion_pars$par["st0"], sv=diffusion_pars$par["sv"])
   t1 <- tryCatch.W.E(ks.test(r_diff1$rt[r_diff1$response=="upper"], normalised_pdiffusion, a=1.1, v=diffusion_pars$par["v"], t0=diffusion_pars$par["t0"], sz=diffusion_pars$par["sz"], st0=diffusion_pars$par["st0"], sv=diffusion_pars$par["sv"]))
