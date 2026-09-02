@@ -33,7 +33,7 @@ Released March 2020.
 
 Released October 2019.
 
-- Removed another argument passing bug that occured when using `args.dist` and more than two drift rates. Reported by Glen Livingston Jr.
+- Removed another argument passing bug that occurred when using `args.dist` and more than two drift rates. Reported by Glen Livingston Jr.
 - Removed issue in vignette due to breaking change in a tidyverse package.
 
 ## 0.9-x
@@ -67,7 +67,7 @@ Released May 2017.
 - Performance of diffusion functions and `rLBA` increased, especially for calls with parameters that differ trialwise. As a consequence single `rlba_...` functions now return a matrix and no `data.frame`.
 - All C functions are now accessed via Rcpp.
 - `pdiffusion` uses the C++ CDF (no more numerical integration in R).
-- `sv` can produce slow errors, and `sz` fast erros (this was the wrong way around in the documentation). Thanks to Gabriel Tillman for noticing that.
+- `sv` can produce slow errors, and `sz` fast errors (this was the wrong way around in the documentation). Thanks to Gabriel Tillman for noticing that.
 - Removed a bug in the `pdiffusion` C code letting rtdists hang indefinitely (see https://github.com/rtdists/rtdists/pull/3). Thanks to Tomas Kalibera for the fix.
 - Removed bug: `meanlog_v` and `sdlog_v` were not recycled for the lnorm LBA.
 - Ratcliff and Rouder (1998) vignette now uses nested `data.frame`s and `purrr::map` (i.e., more proper use of the tidyverse).
@@ -105,7 +105,7 @@ Released May 2016.
 
 Released April 2016.
 
-- Added `dLBA()`, `pLBA()`, `qLBA()`, and `rLBA()`. `dLBA()` is a fully vectorized versions of `n1PDF` which has response as second argument, allowing to get the density for each response and corresponding response time in one step. As for the diffusion model (see below), this allows a likelihood function which only includes one call to the density function. `pLBA()` and `qLBA()` are the correpsonding CDF and quantile functions, respectively. `rLBA()` is a fully vectorized version of the RNG functions and should be used from now on as top-level function.
+- Added `dLBA()`, `pLBA()`, `qLBA()`, and `rLBA()`. `dLBA()` is a fully vectorized versions of `n1PDF` which has response as second argument, allowing to get the density for each response and corresponding response time in one step. As for the diffusion model (see below), this allows a likelihood function which only includes one call to the density function. `pLBA()` and `qLBA()` are the corresponding CDF and quantile functions, respectively. `rLBA()` is a fully vectorized version of the RNG functions and should be used from now on as top-level function.
 - `t0` in the LBA now accepts accumulator and trialwise parameters just as `A` and `b`. `st0` now accepts trialwise parameter (not accumulator wise).
 - Diffusion model function have been renamed to `ddiffusion`, `pdiffusion`, and `rdiffusion`. Added quantile function for diffusion model, `qdiffusion`.
 - Diffusion model functions are now completely vectorized and accept vectors as parameters (including for boundary). As for the LBA, this allows a likelihood function which only includes one call to the density function (see examples).
