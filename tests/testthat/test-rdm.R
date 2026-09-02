@@ -37,6 +37,27 @@ test_that("dwald integrates to one and pwald is its integral", {
   }
 })
 
+test_that("pwald keeps its precision when 2*b*v/s^2 is large", {
+  # the terms inside exp() underflowed, e.g. with s = 0.1 (Ratcliff convention)
+  for (s in c(0.05, 0.1)) {
+    for (A in c(0, 0.2)) {
+      for (rt in c(0.7, 0.85, 1, 1.5, 3)) {
+        expect_equal(integrate(dwald, lower = 0, upper = rt, 
+                               A = A, b = 2, t0 = 0, v = 2, s = s, 
+                               rel.tol = 1e-10, subdivisions = 1000L)$value,
+                     pwald(rt, A = A, b = 2, t0 = 0, v = 2, s = s), 
+                     tolerance = 1e-8)
+      }
+    }
+  }
+})
+
+test_that("pwald is 1 at rt = Inf", {
+  expect_equal(pwald(Inf, A = 0, b = 1, t0 = 0.2, v = 2), 1)
+  expect_equal(pwald(Inf, A = 0.5, b = 1, t0 = 0.2, v = 2), 1)
+  expect_equal(pwald(c(0.5, Inf, 1), A = 0.5, b = 1, t0 = 0.2, v = 2)[2], 1)
+})
+
 test_that("dwald and pwald are 0 below t0 and for negative drift rates", {
   expect_equal(dwald(c(0.1, 0.3), A = 0.4, b = 1, t0 = 0.5, v = 2), c(0, 0))
   expect_equal(pwald(c(0.1, 0.3), A = 0.4, b = 1, t0 = 0.5, v = 2), c(0, 0))
