@@ -3,7 +3,7 @@ Type: Package
 Title: Response Time Distributions
 Depends: R (>= 3.0.0)
 Suggests: testthat, glba, knitr, rmarkdown, dplyr, tidyr, purrr,
-       lattice, latticeExtra, binom, RWiener
+       lattice, latticeExtra, binom, RWiener, WienR
 Imports: evd, msm, gsl, stats, Rcpp
 LinkingTo: Rcpp
 SystemRequirements: GNU GSL (libgsl-dev/gsl)
