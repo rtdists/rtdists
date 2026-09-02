@@ -17,7 +17,7 @@
 #' @param st0 inter-trial-variability of non-decisional components. Range of a uniform distribution with mean \code{t0 + st0/2} describing the distribution of actual \code{t0} values across trials. Accounts for response times below \code{t0}. Reduces skew of predicted RT distributions. Values different from 0 can slow computation considerably. Typical range: 0 < \code{st0} < 0.2. Default is 0.
 #' @param s diffusion constant; standard deviation of the random noise of the diffusion process (i.e., within-trial variability), scales \code{a}, \code{v}, and \code{sv}. Needs to be fixed to a constant in most applications. Default is 1. Note that the default used by Ratcliff and in other applications is often 0.1. 
 #' 
-#' @param precision \code{numerical} scalar value. Precision of calculation. Corresponds roughly to the number of decimals of the predicted CDFs that are calculated accurately. Default is 3.
+#' @param precision \code{numerical} scalar value. Controls the accuracy of the numerical calculations; the target is approximately  \code{10^(-precision+2)} for the PDF (\code{ddiffusion}) and \code{10^(-precision)} for the CDF (\code{pdiffusion}). Higher values produce more accurate results but increase computation time, especially for \code{pdiffusion} (where cost scales roughly exponentially). See the \dQuote{Precision and Numerical Accuracy} section below for details.
 #' @param maxt maximum \code{rt} allowed, used to stop integration problems. Larger values lead to considerably longer calculation times.
 #' @param interval a vector containing the end-points of the interval to be searched for the desired quantiles (i.e., RTs) in \code{qdiffusion}. Default is \code{c(0, 10)}.
 #' @param scale_p logical. Should entered probabilities automatically be scaled by maximally predicted probability? Default is \code{FALSE}. Convenience argument for obtaining predicted quantiles. Can be slow as the maximally predicted probability is calculated individually for each \code{p}.
@@ -46,7 +46,17 @@
 #' 
 #' Also note that quantiles (i.e., predicted RTs) are obtained by numerically minimizing the absolute difference between desired probability and the value returned from \code{pdiffusion} using \code{\link{optimize}}. If the difference between the desired probability and probability corresponding to the returned quantile is above a certain threshold (currently 0.0001) no quantile is returned but \code{NA}. This can be either because the desired quantile is above the maximal probability for this accumulator or because the limits for the numerical integration are too small (default is \code{c(0, 10)}).
 #' }
-#' 
+#'
+#' \subsection{Precision and Numerical Accuracy}{
+#' The \code{precision} argument (denoted \eqn{p}) controls the accuracy of the internal numerical calculations. It affects multiple internal parameters across two computation paths:
+#'
+#' \emph{Density (\code{ddiffusion})}: When inter-trial variability parameters (\code{st0}, \code{sz}) are non-zero, the density is computed by numerically integrating over their distributions. This integration uses adaptive Gauss-Kronrod quadrature (via the GNU Scientific Library) with absolute and relative error tolerances set to \eqn{10^{-(p+2)}}{10^(-(p+2))}. Variability values below \eqn{10^{-(p+2)}}{10^(-(p+2))} are treated as exactly zero, skipping the integration entirely. The base density itself uses analytical series expansions whose accuracy is fixed (approximately \eqn{10^{-6}}{10^-6}) and does \emph{not} scale with \code{precision}. Because of this, \code{precision} > 4 is not really meaningful.
+#'
+#' \emph{Distribution function (\code{pdiffusion})}: The target is approximately \eqn{10^{-p}}{10^(-p)} for the CDF. The CDF is computed by solving a partial differential equation (PDE) on a spatial grid using the Crank-Nicolson method. The \code{precision} argument controls the spatial grid resolution, the time-stepping parameters, and the number of quadrature points used for integrating over inter-trial variability in \code{sv}, \code{st0}, and \code{sz}. Because the PDE grid size grows roughly as \eqn{10^{p/2}}{10^(p/2)}, computation time increases approximately exponentially with \code{precision}.
+#'
+#' \emph{Practical guidance}: The default \code{precision = 3} is sufficient for most applications, including model fitting via maximum likelihood. Note that \code{qdiffusion} and \code{rdiffusion} rely on \code{pdiffusion} internally, so they inherit the same precision behavior.
+#' }
+#'
 #' @note The parameterization of the non-decisional components, \code{t0} and \code{st0}, differs from the parameterization used by, for example, Andreas Voss or Roger Ratcliff. In the present case \code{t0} is the lower bound of the uniform distribution of length \code{st0}, but \emph{not} its midpoint. The parameterization employed here is in line with the parametrization for the \link{LBA} code (where \code{t0} is also the lower bound).
 #' 
 #' The default diffusion constant \code{s} is 1 and not 0.1 as in most applications of Roger Ratcliff and others.
