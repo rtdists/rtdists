@@ -166,7 +166,7 @@ test_that("pdiffusion with variability parameters is equal to WienerPDF", {
   testthat::skip_on_ci()
   if (require(WienR)) {
     gridsize <- 3
-    precision <- 3
+    precision <- 4
     rt <- seq(0.3, 3, length.out = 20)
     for (a in seq(0.5, 2.0, length.out = gridsize)) {
       for (v in seq(0.5, 2.0, length.out = gridsize)) {
