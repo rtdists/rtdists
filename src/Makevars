@@ -1,0 +1,12 @@
+# Use gsl-config to find GSL headers and libraries
+GSL_CFLAGS := $(shell gsl-config --cflags 2>/dev/null)
+GSL_LIBS := $(shell gsl-config --libs 2>/dev/null)
+
+# Fall back to pkg-config if gsl-config is not available
+ifeq ($(GSL_CFLAGS),)
+GSL_CFLAGS := $(shell pkg-config --cflags gsl 2>/dev/null)
+GSL_LIBS := $(shell pkg-config --libs gsl 2>/dev/null)
+endif
+
+PKG_CPPFLAGS = $(GSL_CFLAGS)
+PKG_LIBS = $(GSL_LIBS)

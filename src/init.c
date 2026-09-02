@@ -2,6 +2,7 @@
 #include <Rinternals.h>
 #include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
+#include <gsl/gsl_errno.h>
 
 /* FIXME: 
    Check these declarations against the C/Fortran source code.
@@ -25,5 +26,8 @@ void R_init_rtdists(DllInfo *dll)
 {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
+    // Disable GSL's default error handler (which calls abort) so we can
+    // check return codes and handle errors gracefully instead.
+    gsl_set_error_handler_off();
 }
 

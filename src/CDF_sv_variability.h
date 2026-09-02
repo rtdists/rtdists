@@ -26,9 +26,10 @@
 //
 #include "CDF_sz_variability.h"
 
-// Includes normal and inverse normal CDF code required only here (originally in phi.c)
+#include <gsl/gsl_cdf.h>
+
+// Includes normal CDF code required only here (originally in phi.c)
 double Phi (double x);
-double Phi_inverse (double y);
 
 static void          F_sv_delete (F_calculator *fc);
 static void          F_sv_start  (F_calculator *fc, int plus);
@@ -82,7 +83,7 @@ static F_calculator *F_sv_new (Parameters *params)
     base_fc = xnew (struct F_calculator *, nv);         // NOTE: MEMORY ALLOCATION
     for (j=0; j<nv; ++j)
     {
-        double  x = Phi_inverse ((0.5+j)/nv);
+        double  x = gsl_cdf_ugaussian_Pinv((0.5+j)/nv);
         temp_params.v = sv*x + params->v;
         base_fc[j] = F_sz_new (&temp_params);
     }
@@ -171,34 +172,6 @@ double Phi (double x)
 /* The distribution function of the standard normal distribution.  */
 {
     return  0.5*(1+erf (x/M_SQRT2));
-}
-
-double Phi_inverse (double y)
-/* The inverse of Phi, calculated using the bisection method */
-{
-    double  l, r;
-
-    if (y<=0.5)
-    {
-        l = -1;
-        while (Phi(l)>=y)  l -= 1;
-        r = l+1;
-    }
-    else
-    {
-        r = 0;
-        while (Phi(r)<y)  r += 1;
-        l = r-1;
-    }
-
-    do
-    {
-        double m = 0.5*(l+r);
-        if (Phi(m) < y) { l = m; }
-                   else { r = m; }
-    } while (r-l > 1e-8);
-
-    return  0.5*(l+r);
 }
 
 #endif // CDF_SV_VARIABILITY_H

@@ -59,9 +59,15 @@ public:
     double  TUNE_INT_T0;
     double  TUNE_INT_Z;
 
+    // Tolerance for GSL adaptive quadrature (replaces fixed step sizes above)
+    double  TUNE_INT_EPSABS;
+    double  TUNE_INT_EPSREL;
+
     double  TUNE_SV_EPSILON; // CONVERSION NOTE: See below in SetPrecision()
     double  TUNE_SZ_EPSILON; // CONVERSION NOTE: See below in SetPrecision()
     double  TUNE_ST0_EPSILON; // CONVERSION NOTE: See below in SetPrecision()
+
+    double  precision;     // Stored precision parameter, used for GSL integration tolerances
     
 public:
   // Construct the object from the passed in params
@@ -76,6 +82,7 @@ public:
         st0 = params[PARAM_st0];
         zr  = params[PARAM_zr];
 
+        this->precision = precision;
         SetPrecision (precision);
     }
 
@@ -107,6 +114,10 @@ private:
 
         TUNE_INT_T0 = 0.089045 * exp(-1.037580*p);
         TUNE_INT_Z  = 0.508061 * exp(-1.022373*p);
+
+        // GSL adaptive quadrature tolerance — matches the existing epsilon pattern
+        TUNE_INT_EPSABS = pow(10, -(p+2.0));
+        TUNE_INT_EPSREL = pow(10, -(p+2.0));
 
         // CONVERSION NOTE:
         //     These have been added to optimise code paths by treating very small variances as 0

@@ -21,6 +21,9 @@
 #ifndef DENSITY_H
 #define DENSITY_H
 
+#include <gsl/gsl_integration.h>
+#include <gsl/gsl_errno.h>
+
 using namespace Rcpp;
 
 #define EPSILON 1e-6
@@ -230,40 +233,75 @@ static double g_minus_large_time(double t, double zr, int N)
     return sum * M_PI;
 }
 
-// CONVERSION NOTE: Simplest way to deal with the integrate function is to remove 
-//                  the clever recursiveness and instead (ugh) duplicate code
-static double integrate_z_over_t (Parameters *params, double a, double b, double step_width)
+// --- Rectangular (midpoint) rule fallback ---
+// Kept as a fallback when GSL adaptive quadrature fails to converge.
+static double midpoint_integrate(double (*func)(double, void*), void *params, double a, double b, double step_width)
 {
-    double width = b-a;
+    double width = b - a;
+    if (width <= 0) return 0;
     double tmp_N = width / step_width;
     if (std::isnan(tmp_N)) tmp_N = 20;
     int N = std::max(4, static_cast<int>(tmp_N));
     double step = std::max(width / N, EPSILON);
-    double x;
-    double result = 0;
-    
-    for(x = a+0.5*step; x < b; x += step) 
+    double x, result = 0;
+    for (x = a + 0.5*step; x < b; x += step)
+        result += step * func(x, params);
+    return result;
+}
+
+// GSL callback for integrate_z_over_t: integrates integral_z_g_minus over st0 variability
+static double gsl_integrand_z_over_t(double x, void *p)
+{
+    Parameters *params = static_cast<Parameters*>(p);
+    return integral_z_g_minus(x, params);
+}
+
+// GSL callback for integrate_v_over_zr: integrates integral_v_g_minus over sz variability
+struct IntegrateVContext { double t; Parameters *params; };
+static double gsl_integrand_v_over_zr(double x, void *ctx)
+{
+    IntegrateVContext *c = static_cast<IntegrateVContext*>(ctx);
+    return integral_v_g_minus(c->t, x, c->params);
+}
+
+// Wraps GSL adaptive quadrature (QAGS for singularity handling) with fallback to midpoint rule
+static double gsl_integrate_safe(double (*func)(double, void*), void *params,
+                                 double a, double b, double epsabs, double epsrel,
+                                 double fallback_step)
+{
+    if (a >= b) return 0;
+
+    gsl_function f;
+    f.function = func;
+    f.params = params;
+
+    gsl_integration_workspace *w = gsl_integration_workspace_alloc(1000);
+    double result, error;
+    // QAGS handles singularities/discontinuities (e.g. integrand is 0 for t<=0)
+    int status = gsl_integration_qags(&f, a, b, epsabs, epsrel, 1000, w, &result, &error);
+    gsl_integration_workspace_free(w);
+
+    if (status != GSL_SUCCESS)
     {
-        result += step * integral_z_g_minus(x, params);
+        // Fall back to the original midpoint rule
+        result = midpoint_integrate(func, params, a, b, fallback_step);
     }
     return result;
 }
 
+static double integrate_z_over_t (Parameters *params, double a, double b, double step_width)
+{
+    return gsl_integrate_safe(&gsl_integrand_z_over_t, params,
+                              a, b, params->TUNE_INT_EPSABS, params->TUNE_INT_EPSREL,
+                              step_width);
+}
+
 static double integrate_v_over_zr (Parameters *params, double a, double b, double t, double step_width)
 {
-    double width = b-a;
-    double tmp_N = width / step_width;
-    if (std::isnan(tmp_N)) tmp_N = 20;
-    int N = std::max(4, static_cast<int>(tmp_N));
-    double step = std::max(width / N, EPSILON);
-    double x;
-    double result = 0;
-  
-    for(x = a+0.5*step; x < b; x += step) 
-    {
-      result += step * integral_v_g_minus (t, x, params);
-    }
-    return result;
+    IntegrateVContext ctx = { t, params };
+    return gsl_integrate_safe(&gsl_integrand_v_over_zr, &ctx,
+                              a, b, params->TUNE_INT_EPSABS, params->TUNE_INT_EPSREL,
+                              step_width);
 }
 
 #endif // DENSITY_H
