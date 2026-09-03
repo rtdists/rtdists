@@ -6,6 +6,7 @@
 \alias{censored-shifted-Wald}
 \alias{dcswald}
 \alias{pcswald}
+\alias{qcswald}
 \alias{rcswald}
 \title{Censored shifted Wald distribution}
 \usage{
@@ -31,6 +32,21 @@ pcswald(
   s = 1,
   a = NULL,
   lower.tail = TRUE
+)
+
+qcswald(
+  p,
+  response = "upper",
+  b = NULL,
+  t0,
+  v,
+  w = 0.5,
+  s = 1,
+  a = NULL,
+  interval = c(0, 10),
+  max_diff = 1e-04,
+  scale_p = FALSE,
+  scale_max = Inf
 )
 
 rcswald(n, b = NULL, t0, v, w = 0.5, s = 1, a = NULL)
@@ -83,18 +99,37 @@ returns the defective probability of the response occurring at or before
 \code{rt}; if \code{FALSE}, the defective probability of the response
 occurring after \code{rt}. Both sum to the response probability.}
 
+\item{p}{vector of probabilities. Or for convenience also a
+\code{data.frame} with columns \code{p} and \code{response}.}
+
+\item{interval}{a vector containing the end-points of the interval to be
+searched for the desired quantiles in \code{qcswald}. Default is
+\code{c(0, 10)}.}
+
+\item{max_diff}{numeric. Maximum acceptable difference between desired and
+observed probability of the quantile function (\code{qcswald}).}
+
+\item{scale_p}{logical. Should entered probabilities automatically be scaled
+by maximally predicted probability? Default is \code{FALSE}.}
+
+\item{scale_max}{numerical scalar. Value at which maximally predicted RT
+should be calculated if \code{scale_p} is \code{TRUE}.}
+
 \item{n}{desired number of observations (scalar integer).}
 }
 \value{
-\code{dcswald} returns the defective density (PDF) and
-  \code{pcswald} the defective distribution function (CDF), both of the
-  same length as \code{rt}. \code{rcswald} returns a \code{data.frame} with
+\code{dcswald} returns the defective density (PDF), \code{pcswald}
+  the defective distribution function (CDF), and \code{qcswald} the
+  quantile function (i.e., predicted RTs for the defective probabilities
+  \code{p}), all of the same length as \code{rt}/\code{p}. \code{qcswald}
+  returns \code{NA} (with a warning) for probabilities above the predicted
+  response probability. \code{rcswald} returns a \code{data.frame} with
   columns \code{rt} (numeric) and \code{response} (factor with levels
   \code{"lower"} and \code{"upper"}).
 }
 \description{
-Density, distribution, and random generation functions for the censored
-shifted Wald model of choice response times (Miller, Scherbaum,
+Density, distribution, quantile, and random generation functions for the
+censored shifted Wald model of choice response times (Miller, Scherbaum,
 Heck, Goschke, & Enge, 2018): a competing-risks race (Prentice et al., 1978)
 between two shifted Wald accumulators that share the non-decision time
 \code{t0}. The accumulator of the upper response drifts towards its
@@ -121,10 +156,10 @@ Each accumulator is a shifted Wald (inverse Gaussian) first passage
   the other accumulator (Eq. 5 of Miller et al., 2018). For an unbiased
   start point (\code{w = 0.5}) the defective distribution function has a
   closed form; for \code{w != 0.5}, \code{pcswald} integrates the density
-  numerically.
+  numerically. \code{qcswald} inverts \code{pcswald} numerically.
 
-  The density and distribution functions are defective, that is, they are
-  scaled by the probability of the corresponding response, exactly
+  The density, distribution, and quantile functions are defective, that is,
+  they are scaled by the probability of the corresponding response, exactly
   as for \code{\link{dRDM}} and \code{\link{ddiffusion}}. Consequently,
   \code{sum(dcswald(rt, response, ..., log = TRUE))} is the log-likelihood of
   a full data set of RTs and responses, and \code{pcswald(Inf, response,
@@ -145,8 +180,9 @@ Each accumulator is a shifted Wald (inverse Gaussian) first passage
   (\code{st0}) are not part of this model.
 }
 \note{
-The density and distribution functions are vectorized for all
-  parameters (i.e., parameters are recycled to the length of \code{rt}). \code{rcswald} recycles parameters to \code{n}.
+The density, distribution, and quantile functions are vectorized for
+  all parameters (i.e., parameters are recycled to the length of
+  \code{rt}/\code{p}). \code{rcswald} recycles parameters to \code{n}.
 }
 \examples{
 ## censored shifted Wald: two shifted Wald accumulators race, the loser
@@ -178,6 +214,11 @@ dcswald(0.9, response = "upper", b = 3, t0 = 0.3, v = 6.5) -
 rts <- rcswald(1e4, b = 1, t0 = 0.3, v = 1.5)
 prop.table(table(rts$response))
 pcswald(Inf, response = "lower", b = 1, t0 = 0.3, v = 1.5)
+
+## quantiles (defective scale, like qRDM); use scale_p = TRUE for quantiles
+## conditional on the response:
+qcswald(c(0.1, 0.5, 0.9), response = "upper", b = 1, t0 = 0.3, v = 1.5,
+        scale_p = TRUE)
 
 \dontrun{
 ## ---------------------------------------------------------------------------

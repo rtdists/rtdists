@@ -28,6 +28,11 @@ rts <- rcswald(1e4, b = 1, t0 = 0.3, v = 1.5)
 prop.table(table(rts$response))
 pcswald(Inf, response = "lower", b = 1, t0 = 0.3, v = 1.5)
 
+## quantiles (defective scale, like qRDM); use scale_p = TRUE for quantiles
+## conditional on the response:
+qcswald(c(0.1, 0.5, 0.9), response = "upper", b = 1, t0 = 0.3, v = 1.5,
+        scale_p = TRUE)
+
 \dontrun{
 ## ---------------------------------------------------------------------------
 ## maximum likelihood estimation, and the bias from ignoring the censoring:

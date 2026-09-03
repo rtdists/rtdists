@@ -288,3 +288,37 @@ test_that("input is checked", {
                "positive values")
   expect_error(rcswald(c(10, 10), b = 1, t0 = 0.2, v = 1), "length 1")
 })
+
+## ---------------------------------------------------------------------------
+## quantile function
+## ---------------------------------------------------------------------------
+
+test_that("qcswald inverts pcswald", {
+  b <- 0.8; v <- 1.2; t0 <- 0.25
+  ## defective probabilities up to the response probability, for the
+  ## closed-form (w = 0.5) and the numerical (w = 0.4) CDF
+  for (w in c(0.5, 0.4)) for (resp in c("upper", "lower")) {
+    mass <- pcswald(Inf, resp, b = b, t0 = t0, v = v, w = w)
+    p <- c(0.1, 0.5, 0.9) * mass
+    q <- qcswald(p, resp, b = b, t0 = t0, v = v, w = w)
+    expect_equal(pcswald(q, resp, b = b, t0 = t0, v = v, w = w), p,
+                 tolerance = 1e-6)
+    ## scale_p rescales by the response probability
+    expect_equal(qcswald(c(0.1, 0.5, 0.9), resp, b = b, t0 = t0, v = v,
+                         w = w, scale_p = TRUE), q, tolerance = 1e-6)
+  }
+  ## p = 0 gives t0, probabilities above the response probability give NA
+  expect_identical(qcswald(0, "upper", b = b, t0 = t0, v = v), t0)
+  expect_warning(
+    out <- qcswald(0.5, "lower", b = b, t0 = t0, v = v),
+    "predicted response probability")
+  expect_identical(out, NA_real_)
+  ## the b and a parameterizations agree, and data.frame input works
+  expect_identical(
+    qcswald(c(0.2, 0.6), "upper", b = 0.8, t0 = 0.2, v = 1.2),
+    qcswald(c(0.2, 0.6), "upper", a = 1.6, t0 = 0.2, v = 1.2))
+  expect_identical(
+    qcswald(data.frame(p = c(0.2, 0.05), response = c("upper", "lower")),
+            b = 0.8, t0 = 0.2, v = 1.2),
+    qcswald(c(0.2, 0.05), c("upper", "lower"), b = 0.8, t0 = 0.2, v = 1.2))
+})

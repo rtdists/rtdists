@@ -1,8 +1,8 @@
 
 #' Censored shifted Wald distribution
 #'
-#' Density, distribution, and random generation functions for the censored
-#' shifted Wald model of choice response times (Miller, Scherbaum,
+#' Density, distribution, quantile, and random generation functions for the
+#' censored shifted Wald model of choice response times (Miller, Scherbaum,
 #' Heck, Goschke, & Enge, 2018): a competing-risks race (Prentice et al., 1978)
 #' between two shifted Wald accumulators that share the non-decision time
 #' \code{t0}. The accumulator of the upper response drifts towards its
@@ -12,6 +12,8 @@
 #'
 #' @param rt a vector of RTs. Or for convenience also a \code{data.frame} with
 #'   columns \code{rt} and \code{response} such as returned by \code{rcswald}.
+#' @param p vector of probabilities. Or for convenience also a
+#'   \code{data.frame} with columns \code{p} and \code{response}.
 #' @param n desired number of observations (scalar integer).
 #' @param response character vector with values in \code{c("upper", "lower")}
 #'   (possibly abbreviated), \code{"upper"} being the default. Alternatively, a
@@ -48,6 +50,15 @@
 #'   returns the defective probability of the response occurring at or before
 #'   \code{rt}; if \code{FALSE}, the defective probability of the response
 #'   occurring after \code{rt}. Both sum to the response probability.
+#' @param interval a vector containing the end-points of the interval to be
+#'   searched for the desired quantiles in \code{qcswald}. Default is
+#'   \code{c(0, 10)}.
+#' @param max_diff numeric. Maximum acceptable difference between desired and
+#'   observed probability of the quantile function (\code{qcswald}).
+#' @param scale_p logical. Should entered probabilities automatically be scaled
+#'   by maximally predicted probability? Default is \code{FALSE}.
+#' @param scale_max numerical scalar. Value at which maximally predicted RT
+#'   should be calculated if \code{scale_p} is \code{TRUE}.
 #'
 #' @details Each accumulator is a shifted Wald (inverse Gaussian) first passage
 #'   time process, that is, a single Wald accumulator without start point
@@ -67,10 +78,10 @@
 #'   the other accumulator (Eq. 5 of Miller et al., 2018). For an unbiased
 #'   start point (\code{w = 0.5}) the defective distribution function has a
 #'   closed form; for \code{w != 0.5}, \code{pcswald} integrates the density
-#'   numerically.
+#'   numerically. \code{qcswald} inverts \code{pcswald} numerically.
 #'
-#'   The density and distribution functions are defective, that is, they are
-#'   scaled by the probability of the corresponding response, exactly
+#'   The density, distribution, and quantile functions are defective, that is,
+#'   they are scaled by the probability of the corresponding response, exactly
 #'   as for \code{\link{dRDM}} and \code{\link{ddiffusion}}. Consequently,
 #'   \code{sum(dcswald(rt, response, ..., log = TRUE))} is the log-likelihood of
 #'   a full data set of RTs and responses, and \code{pcswald(Inf, response,
@@ -90,21 +101,25 @@
 #'   Start point variability (\code{A}) and non-decision time variability
 #'   (\code{st0}) are not part of this model.
 #'
-#' @return \code{dcswald} returns the defective density (PDF) and
-#'   \code{pcswald} the defective distribution function (CDF), both of the
-#'   same length as \code{rt}. \code{rcswald} returns a \code{data.frame} with
+#' @return \code{dcswald} returns the defective density (PDF), \code{pcswald}
+#'   the defective distribution function (CDF), and \code{qcswald} the
+#'   quantile function (i.e., predicted RTs for the defective probabilities
+#'   \code{p}), all of the same length as \code{rt}/\code{p}. \code{qcswald}
+#'   returns \code{NA} (with a warning) for probabilities above the predicted
+#'   response probability. \code{rcswald} returns a \code{data.frame} with
 #'   columns \code{rt} (numeric) and \code{response} (factor with levels
 #'   \code{"lower"} and \code{"upper"}).
 #'
-#' @note The density and distribution functions are vectorized for all
-#'   parameters (i.e., parameters are recycled to the length of \code{rt}). \code{rcswald} recycles parameters to \code{n}.
+#' @note The density, distribution, and quantile functions are vectorized for
+#'   all parameters (i.e., parameters are recycled to the length of
+#'   \code{rt}/\code{p}). \code{rcswald} recycles parameters to \code{n}.
 #'
 #' @references
 #' Miller, R., Scherbaum, S., Heck, D. W., Goschke, T., & Enge, S. (2018). On the relation between the (censored) shifted Wald and the Wiener distribution as measurement models for choice response times. \emph{Applied Psychological Measurement}, 42(2), 116-135. doi:10.1177/0146621617710465
 #'
 #' Prentice, R. L., Kalbfleisch, J. D., Peterson, A. V., Flournoy, N., Farewell, V. T., & Breslow, N. E. (1978). The analysis of failure times in the presence of competing risks. \emph{Biometrics}, 34(4), 541-554. doi:10.2307/2530374
 #'
-#' @importFrom stats integrate runif
+#' @importFrom stats integrate uniroot runif
 #'
 #' @name CensoredShiftedWald
 #' @aliases cswald censored-shifted-Wald
@@ -287,6 +302,63 @@ pcswald <- function(rt, response = "upper", b = NULL, t0, v, w = 0.5, s = 1,
   race <- csw_race(pars, csw_response(response, nn))
   csw_p_core(rt, race$kw, race$vw, race$kl, race$vl, pars$t0, nn,
              lower.tail = lower.tail)
+}
+
+#' @rdname CensoredShiftedWald
+#' @export qcswald
+qcswald <- function(p, response = "upper", b = NULL, t0, v, w = 0.5, s = 1,
+                    a = NULL, interval = c(0, 10), max_diff = 1e-4,
+                    scale_p = FALSE, scale_max = Inf) {
+  if (is.data.frame(p)) {
+    response <- p$response
+    p <- p$p
+  }
+  csw_check(b, a)
+  if (is.null(a)) check_vector(p, b, t0, v, w, s)
+  else check_vector(p, a, t0, v, w, s)
+  nn <- length(p)
+  pars <- csw_prep(b = b, a = a, w = w, t0 = t0, v = v, s = s, nn = nn)
+  race <- csw_race(pars, csw_response(response, nn))
+  if (scale_p)
+    p <- p * csw_p_core(rep(scale_max, nn), race$kw, race$vw, race$kl,
+                        race$vl, pars$t0, nn)
+  out <- rep(NA_real_, nn)
+  bad <- is.na(p) | p < 0 | p > 1
+  for (i in which(!bad)) {
+    out[i] <- q_invert_cswald(p[i], kw = race$kw[i], vw = race$vw[i],
+                              kl = race$kl[i], vl = race$vl[i],
+                              t0 = pars$t0[i], interval = interval,
+                              max_diff = max_diff)
+  }
+  out
+}
+
+q_invert_cswald <- function(value, kw, vw, kl, vl, t0, interval, max_diff) {
+  if (value == 0) return(t0)
+  pfun <- function(rt) {
+    m <- length(rt)
+    csw_p_core(rt, rep_len(kw, m), rep_len(vw, m), rep_len(kl, m),
+               rep_len(vl, m), rep_len(t0, m), m)
+  }
+  mass <- pfun(Inf)
+  if (is.na(mass) || value > mass) {
+    warning("p = ", value, " is above the predicted response probability (",
+            format(mass), "); NA returned. Use pcswald(Inf, ...) to obtain ",
+            "response probabilities or scale_p = TRUE.", call. = FALSE)
+    return(NA_real_)
+  }
+  lo <- max(interval[1], t0)
+  root <- tryCatch(
+    uniroot(function(x) pfun(x) - value, interval = c(lo, interval[2]),
+            extendInt = "upX", tol = .Machine$double.eps^0.5),
+    error = function(e) NULL)
+  if (is.null(root) || abs(root$f.root) > max_diff) {
+    warning("Cannot obtain RT that is less than ", max_diff,
+            " away from desired p = ", value,
+            ".\nIncrease/decrease interval.", call. = FALSE)
+    return(NA_real_)
+  }
+  root$root
 }
 
 #' @rdname CensoredShiftedWald
