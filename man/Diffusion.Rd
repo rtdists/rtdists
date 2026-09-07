@@ -123,7 +123,7 @@ rdiffusion(
 
 \item{max_diff}{numeric. Maximum acceptable difference between desired and observed probability of the quantile function (\code{qdiffusion}).}
 
-\item{n}{is a desired number of observations.}
+\item{n}{desired number of observations. If \code{length(n) > 1}, the length is taken to be the number required (as in base R RNGs).}
 
 \item{method}{character. Experimentally implementation of an alternative way of generating random variates via the quantile function (\code{qdiffusion}) and random uniform value. For simple calls, the default method \code{"fastdm"} is dramatically faster.}
 }

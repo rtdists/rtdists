@@ -3,7 +3,7 @@
 #' Density, distribution function, quantile function, and random generation for the Ratcliff diffusion model with following parameters: \code{a} (threshold separation), \code{z} (starting point), \code{v} (drift rate), \code{t0} (non-decision time/response time constant), \code{d} (differences in speed of response execution), \code{sv} (inter-trial-variability of drift), \code{st0} (inter-trial-variability of non-decisional components), \code{sz} (inter-trial-variability of relative starting point), and \code{s} (diffusion constant). \strong{Note that the parameterization or defaults of non-decision time variability \code{st0} and diffusion constant \code{s} differ from what is often found in the literature and that the parameterization of \code{z} and \code{sz} have changed compared to previous versions (now absolute and not relative).}
 #'
 #' @param rt a vector of RTs. Or for convenience also a \code{data.frame} with columns \code{rt} and \code{response} (such as returned from \code{rdiffusion} or \code{\link{rLBA}}). See examples.
-#' @param n is a desired number of observations.
+#' @param n desired number of observations. If `length(n) > 1`, the length is taken to be the number required (as in base R RNGs).
 #' @param response character vector. Which response boundary should be tested? Possible values are \code{c("upper", "lower")}, possibly abbreviated and \code{"upper"} being the default. Alternatively, a numeric vector with values 1=lower and 2=upper. For convenience, \code{response} is converted via \code{as.numeric} also allowing factors (see examples). Ignored if the first argument is a \code{data.frame}.
 #' @param p vector of probabilities. Or for convenience also a \code{data.frame} with columns \code{p} and \code{response}. See examples.
 #' 
@@ -289,6 +289,7 @@ rdiffusion <- function (n,
 {
   if(any(missing(a), missing(v), missing(t0))) stop("a, v, and/or t0 must be supplied")
   method <- match.arg(method)
+  if (length(n) > 1) n <- length(n)
   
   if (method == "fastdm") {
     pars <- prepare_diffusion_parameter(response = 1L, 

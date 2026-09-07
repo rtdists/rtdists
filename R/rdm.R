@@ -13,7 +13,7 @@
 #'   response/accumulator must receive value 1, second 2, and so forth.
 #' @param p vector of probabilities. Or for convenience also a \code{data.frame}
 #'   with columns \code{p} and \code{response}.
-#' @param n desired number of observations (scalar integer).
+#' @param n desired number of observations. If `length(n) > 1`, the length is taken to be the number required (as in base R RNGs).
 #' @param A start point interval or evidence in accumulator before beginning of
 #'   decision process. Start point varies from trial to trial in the interval
 #'   [0, \code{A}] (uniform distribution). Average amount of evidence before

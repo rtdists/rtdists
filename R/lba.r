@@ -23,7 +23,7 @@
 #'   \code{data.frame}.
 #' @param p vector of probabilities. Or for convenience also a \code{data.frame}
 #'   with columns \code{p} and \code{response}. See examples.
-#' @param n desired number of observations (scalar integer).
+#' @param n desired number of observations. If `length(n) > 1`, the length is taken to be the number required (as in base R RNGs).
 #' @param A start point interval or evidence in accumulator before beginning of
 #'   decision process. Start point varies from trial to trial in the interval
 #'   [0, \code{A}] (uniform distribution). Average amount of evidence before
@@ -563,6 +563,7 @@ rLBA <- function(n,A,b,t0, ..., st0=0, distribution = c("norm", "gamma", "freche
   n_v <- max(vapply(dots, length, 0))  # Number of responses
   if(!silent) message(paste("Results based on", n_v, "accumulators/drift rates."))
   #if (n_v < 2) stop("There need to be at least two accumulators/drift rates.")
+  if (length(n) > 1) n <- length(n)
   nn <- n
   distribution <- match.arg(distribution)
   A <- check_i_arguments(A, nn=nn, n_v=n_v)
