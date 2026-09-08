@@ -326,8 +326,7 @@ qLBA(qs, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2), 
 # for obtaining predicted RT quantiles for both responses at specific
 # conditional quantiles. To do so, use scale_p=TRUE:
 t <- data.frame(p = rep(c(.1, .5, .9), 2), response = rep(1:2, each = 3))
-t$pred_rt <- qLBA(t, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2), 
-               scale_p=TRUE)
+t$pred_rt <- qLBA(t, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2), scale_p=TRUE)
 t
 #     p response   pred_rt
 # 1 0.1        1 0.6716606
