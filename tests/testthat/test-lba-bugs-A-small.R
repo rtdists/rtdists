@@ -123,3 +123,17 @@ test_that("plba_frechet with A small and t0 > 0 applies rem_t0", {
   p_expected <- plba_frechet(rt = 1.5, A = 1e-12, b = 1, t0 = 0,   shape_v = 2, scale_v = 1)
   expect_equal(p_with_t0, p_expected)
 })
+
+test_that("dlba_frechet and plba_frechet with A = 0 use the closed form (#4)", {
+  rt <- c(0.5, 0.8, 1.2, 2)
+  d0 <- dlba_frechet(rt, A = 0, b = 0.5, t0 = 0.3, shape_v = 2, scale_v = 1)
+  p0 <- plba_frechet(rt, A = 0, b = 0.5, t0 = 0.3, shape_v = 2, scale_v = 1)
+  expect_equal(d0, dlba_frechet(rt, A = 1e-6, b = 0.5, t0 = 0.3, shape_v = 2, scale_v = 1), tolerance = 1e-4)
+  expect_equal(p0, plba_frechet(rt, A = 1e-6, b = 0.5, t0 = 0.3, shape_v = 2, scale_v = 1), tolerance = 1e-4)
+  expect_equal(dlba_frechet(c(0, Inf), A = 0, b = 0.5, t0 = 0.3, shape_v = 2, scale_v = 1), c(0, 0))
+  expect_equal(plba_frechet(c(0, Inf), A = 0, b = 0.5, t0 = 0.3, shape_v = 2, scale_v = 1), c(0, 1))
+  expect_equal(dlba_frechet(c(1.2, 1.2), A = c(0, 0.3), b = 0.5, t0 = 0.3, shape_v = 2, scale_v = 1),
+               c(d0[3], dlba_frechet(1.2, A = 0.3, b = 0.5, t0 = 0.3, shape_v = 2, scale_v = 1)))
+  expect_equal(plba_frechet(c(1.2, 1.2), A = c(0, 0.3), b = 0.5, t0 = 0.3, shape_v = 2, scale_v = 1),
+               c(p0[3], plba_frechet(1.2, A = 0.3, b = 0.5, t0 = 0.3, shape_v = 2, scale_v = 1)))
+})

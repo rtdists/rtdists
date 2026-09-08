@@ -423,6 +423,12 @@ dlba_frechet_core <- function(rt,A,b,t0,shape_v, scale_v, nn) {
   t_old <- rt
   
   out <- numeric(nn)
+  A_small <- A < 1e-10 & !ps_below_zero
+  if (any(A_small)) {
+    out[A_small] <- (b[A_small]/rt[A_small]^2)*dfrechet(b[A_small]/rt[A_small], loc=0, scale=scale_v[A_small], shape=shape_v[A_small])
+    out[!is.finite(out)] <- 0
+  }
+  ps_below_zero <- ps_below_zero | A_small
   
   if (sum(!ps_below_zero) > 0) {
     rt <- rt[!ps_below_zero]
@@ -479,6 +485,9 @@ plba_frechet_core <- function(rt,A,b,t0,shape_v, scale_v, nn) {
   t_old <- rt
   
   out <- numeric(nn)
+  A_small <- A < 1e-10 & !ps_below_zero
+  if (any(A_small)) out[A_small] <- 1 - pfrechet(b[A_small]/rt[A_small], loc=0, scale=scale_v[A_small], shape=shape_v[A_small])
+  ps_below_zero <- ps_below_zero | A_small
   
   if (sum(!ps_below_zero) > 0) {
     
