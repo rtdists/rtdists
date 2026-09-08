@@ -131,7 +131,7 @@ predicted probability is calculated individually for each \code{p}.}
 \item{scale_max}{numerical scalar. Value at which maximally predicted RT
 should be calculated if \code{scale_p} is \code{TRUE}.}
 
-\item{n}{desired number of observations (scalar integer).}
+\item{n}{desired number of observations. If \code{length(n) > 1}, the length is taken to be the number required (as in base R RNGs).}
 }
 \value{
 \code{dLBA} returns the density (PDF), \code{pLBA} returns the
@@ -322,7 +322,9 @@ qLBA(qs*max_p, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,
 # (but can be slow as it calculates max_p for each probability separately) 
 qLBA(qs, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2), scale_p=TRUE)
 
-# qLBA also accepts a data.frame as first argument:
+# qLBA also accepts a data.frame as first argument. As the maximal probability
+# differs between responses (0.66 for response 1, 0.34 for response 2), use
+# scale_p = TRUE (or scale p by hand) so that p = 0.66 is reachable for both:
 t <- data.frame(p = rep(c(0.05, 0.1, 0.66), 2), response = rep(1:2, each = 3))
 #      p response
 # 1 0.05        1
@@ -331,7 +333,7 @@ t <- data.frame(p = rep(c(0.05, 0.1, 0.66), 2), response = rep(1:2, each = 3))
 # 4 0.05        2
 # 5 0.10        2
 # 6 0.66        2
-qLBA(t, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
+qLBA(t, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2), scale_p=TRUE)
 
 
 ## LBA and diffusion can be used interchangeably:
