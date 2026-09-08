@@ -33,23 +33,27 @@ export(rlba_norm)
 export(rrd)
 export(rwald)
 importFrom(Rcpp,evalCpp)
-importFrom(evd,dfrechet)
-importFrom(evd,pfrechet)
-importFrom(evd,rfrechet)
+importFrom(evd,
+  dfrechet,
+  pfrechet,
+  rfrechet
+)
 importFrom(gsl,gamma_inc)
 importFrom(msm,rtnorm)
-importFrom(stats,dgamma)
-importFrom(stats,dlnorm)
-importFrom(stats,dnorm)
-importFrom(stats,integrate)
-importFrom(stats,optimize)
-importFrom(stats,pgamma)
-importFrom(stats,plnorm)
-importFrom(stats,pnorm)
-importFrom(stats,qnorm)
-importFrom(stats,rgamma)
-importFrom(stats,rlnorm)
-importFrom(stats,rnorm)
-importFrom(stats,runif)
-importFrom(stats,uniroot)
+importFrom(stats,
+  dgamma,
+  dlnorm,
+  dnorm,
+  integrate,
+  optimize,
+  pgamma,
+  plnorm,
+  pnorm,
+  qnorm,
+  rgamma,
+  rlnorm,
+  rnorm,
+  runif,
+  uniroot
+)
 useDynLib(rtdists, .registration = TRUE)

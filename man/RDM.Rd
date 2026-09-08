@@ -78,7 +78,7 @@ by maximally predicted probability? Default is \code{FALSE}.}
 \item{scale_max}{numerical scalar. Value at which maximally predicted RT
 should be calculated if \code{scale_p} is \code{TRUE}.}
 
-\item{n}{desired number of observations. If \code{length(n) > 1}, the length is taken to be the number required (as in base R RNGs).}
+\item{n}{desired number of observations. If `length(n) > 1`, the length is taken to be the number required (as in base R RNGs).}
 }
 \value{
 \code{dRDM} returns the density (PDF), \code{pRDM} returns the
