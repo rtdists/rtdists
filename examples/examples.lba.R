@@ -83,19 +83,20 @@ qLBA(qs*max_p, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,
 # (but can be slow as it calculates max_p for each probability separately) 
 qLBA(qs, response = 1, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2), scale_p=TRUE)
 
-# qLBA also accepts a data.frame as first argument. As the maximal probability
-# differs between responses (0.66 for response 1, 0.34 for response 2), use
-# scale_p = TRUE (or scale p by hand) so that p = 0.66 is reachable for both:
-t <- data.frame(p = rep(c(0.05, 0.1, 0.66), 2), response = rep(1:2, each = 3))
-#      p response
-# 1 0.05        1
-# 2 0.10        1
-# 3 0.66        1
-# 4 0.05        2
-# 5 0.10        2
-# 6 0.66        2
-qLBA(t, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2), scale_p=TRUE)
-
+# qLBA also accepts a data.frame as first argument. This is particularly useful
+# for obtaining predicted RT quantiles for both responses at specific
+# conditional quantiles. To do so, use scale_p=TRUE:
+t <- data.frame(p = rep(c(.1, .5, .9), 2), response = rep(1:2, each = 3))
+t$pred_rt <- qLBA(t, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2), 
+               scale_p=TRUE)
+t
+#     p response   pred_rt
+# 1 0.1        1 0.6716606
+# 2 0.5        1 0.7672016
+# 3 0.9        1 0.9569697
+# 4 0.1        2 0.6751672
+# 5 0.5        2 0.7743184
+# 6 0.9        2 0.9805128
 
 ## LBA and diffusion can be used interchangeably:
 rt1 <- rLBA(500, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1,1.2))
